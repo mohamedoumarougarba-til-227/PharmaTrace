@@ -1,0 +1,56 @@
+# ════════════════════════════════════════════════════
+#  PharmaTrace — .gitignore racine
+#  Équipe TrustGrid · MIABE Hackathon 2026
+# ════════════════════════════════════════════════════
+
+# ── Dossier personnel (à ne jamais publier) ─────────
+A exclure de github/
+
+# ── Secrets & variables d'environnement ─────────────
+.env
+.env.local
+.env.production
+# .env.example EST inclus (valeurs vides — pas de secrets)
+
+# ── Expo / React Native ──────────────────────────────
+app/PharmaTrace/node_modules/
+app/PharmaTrace/.expo/
+app/PharmaTrace/android/
+app/PharmaTrace/ios/
+app/PharmaTrace/dist/
+app/PharmaTrace/web-build/
+app/PharmaTrace/expo-env.d.ts
+app/PharmaTrace/npm-debug.*
+
+# Dossier PharmaTrace imbriqué (artefact à ignorer)
+app/PharmaTrace/PharmaTrace/
+
+# Clés de signature mobiles
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# ── Vercel / Landing page ────────────────────────────
+landing/.vercel/
+landing/node_modules/
+
+# ── Système d'exploitation ───────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Éditeurs ─────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# ── Logs & builds ────────────────────────────────────
+*.log
+*.aab
+*.apk
+*.ipa
+build/

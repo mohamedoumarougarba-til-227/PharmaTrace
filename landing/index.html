@@ -1,0 +1,3160 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            PharmaTrace — Traçabilité des médicaments au Niger · MIABE Hackathon
+            2026
+        </title>
+        <meta
+            name="description"
+            content="PharmaTrace rend chaque médicament vérifiable en 3 secondes grâce à la blockchain. Équipe TrustGrid — MIABE Hackathon 2026 · Niger."
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+            :root {
+                --navy: #1a3a5c;
+                --blue: #2e6da4;
+                --blue-light: #dce6f0;
+                --bg: #f7f9fc;
+                --white: #ffffff;
+                --text: #1a1a1a;
+                --muted: #666666;
+                --green: #27ae60;
+                --red: #c0392b;
+                --orange: #e67e22;
+                --purple: #8e44ad;
+                --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+                --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+                --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.16);
+                --radius-sm: 6px;
+                --radius-md: 12px;
+                --radius-lg: 20px;
+                --transition: 0.25s ease;
+            }
+
+            /* ============================================================
+       RESET & BASE
+    ============================================================ */
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            html {
+                scroll-behavior: smooth;
+                font-size: 16px;
+            }
+
+            body {
+                font-family: "Inter", sans-serif;
+                background: var(--white);
+                color: var(--text);
+                line-height: 1.6;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            img {
+                max-width: 100%;
+                display: block;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            ul {
+                list-style: none;
+            }
+
+            /* ============================================================
+       UTILITIES
+    ============================================================ */
+            .container {
+                max-width: 1140px;
+                margin: 0 auto;
+                padding: 0 24px;
+            }
+
+            .section-label {
+                display: inline-block;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                color: var(--blue);
+                background: var(--blue-light);
+                padding: 4px 12px;
+                border-radius: 100px;
+                margin-bottom: 16px;
+            }
+
+            .section-title {
+                font-size: clamp(26px, 4vw, 40px);
+                font-weight: 800;
+                color: var(--navy);
+                line-height: 1.2;
+                margin-bottom: 16px;
+            }
+
+            .section-subtitle {
+                font-size: 18px;
+                color: var(--muted);
+                max-width: 640px;
+                margin-bottom: 48px;
+            }
+
+            /* Scroll reveal */
+            .reveal {
+                opacity: 0;
+                transform: translateY(30px);
+                transition:
+                    opacity 0.6s ease,
+                    transform 0.6s ease;
+            }
+            .reveal.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .reveal-delay-1 {
+                transition-delay: 0.1s;
+            }
+            .reveal-delay-2 {
+                transition-delay: 0.2s;
+            }
+            .reveal-delay-3 {
+                transition-delay: 0.3s;
+            }
+            .reveal-delay-4 {
+                transition-delay: 0.4s;
+            }
+
+            /* ============================================================
+       SECTION 1 — NAVBAR
+    ============================================================ */
+            #navbar {
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+                background: var(--white);
+                border-bottom: 1px solid transparent;
+                transition:
+                    box-shadow var(--transition),
+                    border-color var(--transition);
+            }
+
+            #navbar.scrolled {
+                box-shadow: var(--shadow-md);
+                border-bottom-color: #e8ecf1;
+            }
+
+            .nav-inner {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                height: 64px;
+            }
+
+            /* Logo */
+            .nav-logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                text-decoration: none;
+            }
+
+            .nav-logo-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                background: var(--blue);
+                border-radius: 10px;
+                flex-shrink: 0;
+            }
+
+            .nav-logo-text {
+                font-size: 20px;
+                font-weight: 800;
+                color: var(--navy);
+                letter-spacing: -0.3px;
+            }
+
+            /* Nav links */
+            .nav-links {
+                display: flex;
+                align-items: center;
+                gap: 32px;
+            }
+
+            .nav-links a {
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--muted);
+                text-decoration: none;
+                transition: color var(--transition);
+                position: relative;
+            }
+
+            .nav-links a::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                bottom: -3px;
+                width: 0;
+                height: 2px;
+                background: var(--blue);
+                border-radius: 2px;
+                transition: width var(--transition);
+            }
+
+            .nav-links a:hover,
+            .nav-links a.active {
+                color: var(--navy);
+            }
+
+            .nav-links a:hover::after,
+            .nav-links a.active::after {
+                width: 100%;
+            }
+
+            /* CTA button */
+            .btn-primary {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--blue);
+                color: var(--white);
+                font-size: 14px;
+                font-weight: 600;
+                padding: 10px 20px;
+                border-radius: var(--radius-sm);
+                border: 2px solid var(--blue);
+                cursor: pointer;
+                transition: all var(--transition);
+                text-decoration: none;
+            }
+
+            .btn-primary:hover {
+                background: var(--navy);
+                border-color: var(--navy);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(46, 109, 164, 0.35);
+            }
+
+            .btn-outline-white {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: transparent;
+                color: var(--white);
+                font-size: 14px;
+                font-weight: 600;
+                padding: 10px 20px;
+                border-radius: var(--radius-sm);
+                border: 2px solid rgba(255, 255, 255, 0.6);
+                cursor: pointer;
+                transition: all var(--transition);
+                text-decoration: none;
+            }
+
+            .btn-outline-white:hover {
+                background: rgba(255, 255, 255, 0.12);
+                border-color: var(--white);
+                transform: translateY(-1px);
+            }
+
+            /* Hamburger */
+            .nav-hamburger {
+                display: none;
+                flex-direction: column;
+                gap: 5px;
+                cursor: pointer;
+                padding: 4px;
+                background: none;
+                border: none;
+            }
+
+            .nav-hamburger span {
+                display: block;
+                width: 24px;
+                height: 2px;
+                background: var(--navy);
+                border-radius: 2px;
+                transition: all var(--transition);
+            }
+
+            .nav-hamburger.open span:nth-child(1) {
+                transform: translateY(7px) rotate(45deg);
+            }
+            .nav-hamburger.open span:nth-child(2) {
+                opacity: 0;
+            }
+            .nav-hamburger.open span:nth-child(3) {
+                transform: translateY(-7px) rotate(-45deg);
+            }
+
+            /* Mobile menu */
+            .nav-mobile {
+                display: none;
+                background: var(--navy);
+                padding: 16px 24px 24px;
+            }
+
+            .nav-mobile.open {
+                display: block;
+            }
+
+            .nav-mobile a {
+                display: block;
+                font-size: 15px;
+                font-weight: 500;
+                color: rgba(255, 255, 255, 0.85);
+                padding: 12px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                text-decoration: none;
+                transition: color var(--transition);
+            }
+
+            .nav-mobile a:last-child {
+                border-bottom: none;
+            }
+
+            .nav-mobile a:hover {
+                color: var(--white);
+            }
+
+            .nav-mobile .btn-primary {
+                margin-top: 16px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* ============================================================
+       SECTION 2 — HERO
+    ============================================================ */
+            #hero {
+                background: #0d1b2a;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                overflow: hidden;
+            }
+
+            #hero::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse 60% 50% at 70% 50%,
+                        rgba(46, 109, 164, 0.18) 0%,
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 40% 40% at 20% 80%,
+                        rgba(26, 58, 92, 0.4) 0%,
+                        transparent 60%
+                    );
+                pointer-events: none;
+            }
+
+            .hero-inner {
+                width: 100%;
+                max-width: 1140px;
+                margin: 0 auto;
+                padding: 100px 24px 60px;
+                display: flex;
+                align-items: center;
+                gap: 60px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .hero-content {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .hero-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(192, 57, 43, 0.15);
+                border: 1px solid rgba(192, 57, 43, 0.4);
+                color: #ff6b6b;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 1.5px;
+                text-transform: uppercase;
+                padding: 6px 14px;
+                border-radius: 100px;
+                margin-bottom: 28px;
+            }
+
+            .hero-badge::before {
+                content: "";
+                width: 6px;
+                height: 6px;
+                background: #ff6b6b;
+                border-radius: 50%;
+                animation: pulse-dot 1.5s ease-in-out infinite;
+            }
+
+            @keyframes pulse-dot {
+                0%,
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.5;
+                    transform: scale(1.3);
+                }
+            }
+
+            .hero-stat-giant {
+                font-size: clamp(72px, 12vw, 110px);
+                font-weight: 900;
+                color: var(--orange);
+                line-height: 1;
+                margin-bottom: 12px;
+                letter-spacing: -3px;
+            }
+
+            .hero-title {
+                font-size: clamp(28px, 4vw, 42px);
+                font-weight: 800;
+                color: var(--white);
+                line-height: 1.2;
+                margin-bottom: 20px;
+            }
+
+            .hero-subtitle {
+                font-size: 18px;
+                color: rgba(255, 255, 255, 0.72);
+                line-height: 1.7;
+                max-width: 540px;
+                margin-bottom: 36px;
+            }
+
+            .hero-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-bottom: 56px;
+            }
+
+            .hero-buttons .btn-primary {
+                font-size: 15px;
+                padding: 13px 26px;
+            }
+
+            .hero-buttons .btn-outline-white {
+                font-size: 15px;
+                padding: 13px 26px;
+            }
+
+            /* Phone illustration */
+            .hero-visual {
+                flex-shrink: 0;
+                width: 300px;
+                display: flex;
+                justify-content: center;
+            }
+
+            .phone-mockup {
+                width: 220px;
+                position: relative;
+            }
+
+            .phone-body {
+                background: #1a2d42;
+                border: 3px solid #2e6da4;
+                border-radius: 30px;
+                padding: 20px 14px;
+                box-shadow:
+                    0 20px 60px rgba(0, 0, 0, 0.5),
+                    0 0 0 1px rgba(46, 109, 164, 0.3);
+                position: relative;
+            }
+
+            .phone-notch {
+                width: 50px;
+                height: 10px;
+                background: #0d1b2a;
+                border-radius: 10px;
+                margin: 0 auto 16px;
+            }
+
+            .phone-screen {
+                background: var(--white);
+                border-radius: 14px;
+                padding: 16px;
+                min-height: 280px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+            }
+
+            .qr-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 14px);
+                grid-template-rows: repeat(7, 14px);
+                gap: 2px;
+            }
+
+            .qr-cell {
+                border-radius: 2px;
+                background: var(--navy);
+            }
+            .qr-cell.empty {
+                background: transparent;
+            }
+
+            .verify-badge {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: #d4edda;
+                border: 1.5px solid var(--green);
+                border-radius: 8px;
+                padding: 8px 14px;
+                font-size: 13px;
+                font-weight: 700;
+                color: #155724;
+            }
+
+            .check-circle {
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                background: var(--green);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .phone-label {
+                font-size: 10px;
+                color: var(--muted);
+                text-align: center;
+            }
+
+            /* Hero stats counter */
+            .hero-stats {
+                display: flex;
+                gap: 0;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 32px;
+                position: relative;
+                z-index: 1;
+                width: 100%;
+                max-width: 1140px;
+                margin: 0 auto;
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .hero-stat-item {
+                flex: 1;
+                text-align: center;
+                padding: 0 20px;
+                border-right: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .hero-stat-item:last-child {
+                border-right: none;
+            }
+
+            .hero-stat-number {
+                font-size: clamp(22px, 3.5vw, 32px);
+                font-weight: 800;
+                color: var(--white);
+                line-height: 1;
+                margin-bottom: 6px;
+            }
+
+            .hero-stat-label {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.55);
+                line-height: 1.4;
+            }
+
+            /* ============================================================
+       SECTION 3 — LE PROBLÈME
+    ============================================================ */
+            #problem {
+                background: var(--white);
+                padding: 96px 0;
+            }
+
+            .problem-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+                margin-bottom: 48px;
+            }
+
+            .stat-card {
+                border-radius: var(--radius-md);
+                padding: 28px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .stat-card::before {
+                content: "";
+                position: absolute;
+                top: -30px;
+                right: -30px;
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                opacity: 0.08;
+                background: var(--white);
+            }
+
+            .stat-card-red {
+                background: var(--red);
+                color: var(--white);
+            }
+            .stat-card-orange {
+                background: var(--orange);
+                color: var(--white);
+            }
+            .stat-card-blue {
+                background: var(--blue);
+                color: var(--white);
+            }
+            .stat-card-dark {
+                background: var(--navy);
+                color: var(--white);
+            }
+
+            .stat-card-number {
+                font-size: clamp(36px, 5vw, 52px);
+                font-weight: 900;
+                line-height: 1;
+                margin-bottom: 8px;
+                letter-spacing: -1px;
+            }
+
+            .stat-card-desc {
+                font-size: 15px;
+                opacity: 0.9;
+                line-height: 1.4;
+                margin-bottom: 12px;
+            }
+
+            .stat-card-source {
+                font-size: 11px;
+                opacity: 0.65;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+            }
+
+            .problem-text {
+                background: var(--bg);
+                border-left: 4px solid var(--blue);
+                border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+                padding: 24px 28px;
+                margin-bottom: 20px;
+                font-size: 15px;
+                line-height: 1.8;
+                color: var(--text);
+            }
+
+            .problem-highlight {
+                background: rgba(192, 57, 43, 0.06);
+                border: 1px solid rgba(192, 57, 43, 0.2);
+                border-radius: var(--radius-sm);
+                padding: 16px 20px;
+                font-size: 15px;
+                color: var(--red);
+                font-weight: 600;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            /* ============================================================
+       SECTION 4 — LA SOLUTION
+    ============================================================ */
+            #solution {
+                background: var(--bg);
+                padding: 96px 0;
+            }
+
+            .solution-subtitle-italic {
+                font-style: italic;
+                font-size: 18px;
+                color: var(--muted);
+                margin-bottom: 48px;
+                max-width: 600px;
+            }
+
+            .solution-cards {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+            }
+
+            .solution-card {
+                border-radius: var(--radius-md);
+                padding: 32px 28px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .solution-card-blue {
+                background: #dceeff;
+            }
+            .solution-card-green {
+                background: #d5f5e3;
+            }
+            .solution-card-orange {
+                background: #fdebd0;
+            }
+
+            .solution-card-number {
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 2px;
+                color: var(--muted);
+                margin-bottom: 4px;
+            }
+
+            .solution-card-title {
+                font-size: 20px;
+                font-weight: 800;
+                color: var(--navy);
+            }
+
+            .solution-card-desc {
+                font-size: 14px;
+                line-height: 1.7;
+                color: #444;
+            }
+
+            .solution-card-icon {
+                width: 48px;
+                height: 48px;
+                margin-bottom: 4px;
+            }
+
+            /* ============================================================
+       SECTION 5 — COMMENT ÇA MARCHE
+    ============================================================ */
+            #how {
+                background: var(--white);
+                padding: 96px 0;
+            }
+
+            .steps-wrapper {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 32px;
+                position: relative;
+                margin-bottom: 56px;
+            }
+
+            /* Arrows between steps (desktop) */
+            .steps-wrapper::before,
+            .steps-wrapper::after {
+                content: "→";
+                position: absolute;
+                top: 52px;
+                font-size: 28px;
+                color: #ccd6df;
+                font-weight: 300;
+            }
+
+            .steps-wrapper::before {
+                left: calc(33.33% - 16px);
+            }
+            .steps-wrapper::after {
+                left: calc(66.66% - 16px);
+            }
+
+            .step-card {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+                padding: 28px;
+                border-radius: var(--radius-md);
+                background: var(--bg);
+                border: 1px solid #e8ecf1;
+            }
+
+            .step-number-circle {
+                width: 52px;
+                height: 52px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                font-weight: 900;
+                color: var(--white);
+                flex-shrink: 0;
+            }
+
+            .step-circle-navy {
+                background: var(--navy);
+            }
+            .step-circle-green {
+                background: var(--green);
+            }
+            .step-circle-orange {
+                background: var(--orange);
+            }
+
+            .step-title {
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--navy);
+            }
+
+            .step-desc {
+                font-size: 14px;
+                color: var(--muted);
+                line-height: 1.7;
+            }
+
+            .step-tag {
+                display: inline-block;
+                font-size: 12px;
+                font-weight: 600;
+                padding: 4px 10px;
+                border-radius: 100px;
+                background: rgba(26, 58, 92, 0.08);
+                color: var(--navy);
+            }
+
+            .step-icon {
+                width: 36px;
+                height: 36px;
+                opacity: 0.75;
+            }
+
+            /* Flow diagram */
+            .flow-diagram {
+                background: var(--bg);
+                border: 1px solid #e8ecf1;
+                border-radius: var(--radius-md);
+                padding: 24px 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+
+            .flow-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--navy);
+            }
+
+            .flow-arrow {
+                color: var(--blue);
+                font-size: 18px;
+                font-weight: 300;
+            }
+
+            .flow-note {
+                text-align: center;
+                font-size: 13px;
+                color: var(--muted);
+            }
+
+            /* ============================================================
+       SECTION 6 — POURQUOI LA BLOCKCHAIN
+    ============================================================ */
+            #blockchain {
+                background: var(--navy);
+                padding: 96px 0;
+                color: var(--white);
+            }
+
+            .blockchain-label {
+                display: inline-block;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                color: rgba(255, 255, 255, 0.6);
+                background: rgba(255, 255, 255, 0.08);
+                padding: 4px 12px;
+                border-radius: 100px;
+                margin-bottom: 16px;
+            }
+
+            .blockchain-title {
+                font-size: clamp(24px, 3.5vw, 36px);
+                font-weight: 800;
+                color: var(--white);
+                margin-bottom: 40px;
+                max-width: 680px;
+                line-height: 1.3;
+            }
+
+            .blockchain-inner {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 48px;
+                align-items: start;
+            }
+
+            .blockchain-text {
+                font-size: 15px;
+                line-height: 1.8;
+                color: rgba(255, 255, 255, 0.8);
+                margin-bottom: 28px;
+            }
+
+            .blockchain-quote {
+                background: rgba(230, 126, 34, 0.12);
+                border-left: 4px solid var(--orange);
+                border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+                padding: 20px 24px;
+                font-size: 15px;
+                font-style: italic;
+                color: rgba(255, 255, 255, 0.9);
+                line-height: 1.7;
+            }
+
+            /* Comparison table */
+            .compare-table {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: var(--radius-md);
+                overflow: hidden;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .compare-header {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .compare-header-cell {
+                padding: 14px 18px;
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+            }
+
+            .compare-header-cell:first-child {
+                background: rgba(192, 57, 43, 0.2);
+                color: #ff9a9a;
+                border-right: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .compare-header-cell:last-child {
+                background: rgba(39, 174, 96, 0.2);
+                color: #7fffb4;
+            }
+
+            .compare-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                border-top: 1px solid rgba(255, 255, 255, 0.07);
+            }
+
+            .compare-cell {
+                padding: 12px 18px;
+                font-size: 13px;
+                color: rgba(255, 255, 255, 0.75);
+                line-height: 1.4;
+            }
+
+            .compare-cell:first-child {
+                border-right: 1px solid rgba(255, 255, 255, 0.07);
+            }
+
+            .compare-row:hover .compare-cell {
+                background: rgba(255, 255, 255, 0.03);
+            }
+
+            /* ============================================================
+       SECTION 7 — APERÇU DES INTERFACES
+    ============================================================ */
+            #interfaces {
+                background: var(--bg);
+                padding: 96px 0;
+            }
+
+            .interfaces-cards {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+                margin-bottom: 24px;
+            }
+
+            .mockup-card {
+                border-radius: var(--radius-md);
+                overflow: hidden;
+                box-shadow: var(--shadow-md);
+            }
+
+            .mockup-header {
+                padding: 14px 18px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .mockup-header-title {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--white);
+            }
+
+            .mockup-badge {
+                font-size: 10px;
+                font-weight: 700;
+                padding: 3px 8px;
+                border-radius: 100px;
+                background: rgba(255, 255, 255, 0.15);
+                color: rgba(255, 255, 255, 0.85);
+            }
+
+            .mockup-body {
+                padding: 20px 18px 24px;
+                min-height: 180px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .mockup-body-img {
+                padding: 0;
+                min-height: auto;
+                overflow: hidden;
+                border-radius: 0 0 var(--radius-md) var(--radius-md);
+            }
+
+            .mockup-screenshot {
+                width: 100%;
+                height: auto;
+                display: block;
+            }
+
+            .mockup-line {
+                height: 10px;
+                border-radius: 5px;
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            .mockup-line-short {
+                width: 55%;
+            }
+            .mockup-line-med {
+                width: 75%;
+            }
+            .mockup-line-full {
+                width: 100%;
+            }
+
+            .mockup-input-sim {
+                height: 30px;
+                border-radius: 5px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            /* Card 1: navy */
+            .mockup-card-1 .mockup-header {
+                background: #162d45;
+            }
+            .mockup-card-1 .mockup-body {
+                background: #1a3554;
+            }
+
+            /* Card 2: green dark */
+            .mockup-card-2 .mockup-header {
+                background: #1e5c35;
+            }
+            .mockup-card-2 .mockup-body {
+                background: #216039;
+            }
+
+            /* Card 3: green bright */
+            .mockup-card-3 .mockup-header {
+                background: #219150;
+            }
+            .mockup-card-3 .mockup-body {
+                background: #27ae60;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mockup-verify-big {
+                font-size: 48px;
+                font-weight: 900;
+                color: var(--white);
+                line-height: 1;
+            }
+
+            .mockup-verify-label {
+                font-size: 16px;
+                font-weight: 700;
+                color: rgba(255, 255, 255, 0.85);
+                letter-spacing: 1px;
+            }
+
+            .mockup-dots {
+                display: flex;
+                gap: 5px;
+                margin-bottom: 6px;
+            }
+
+            .mockup-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.35);
+            }
+
+            .interfaces-note {
+                text-align: center;
+                font-size: 13px;
+                color: var(--muted);
+                font-style: italic;
+            }
+
+            /* ============================================================
+       SECTION 8 — ÉQUIPE
+    ============================================================ */
+            #team {
+                background: var(--white);
+                padding: 96px 0;
+            }
+
+            .team-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--bg);
+                border: 1px solid #d0d9e4;
+                border-radius: 100px;
+                padding: 8px 18px;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--navy);
+                margin-bottom: 48px;
+            }
+
+            .team-cards {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 28px;
+            }
+
+            .team-card {
+                background: var(--white);
+                border-radius: var(--radius-md);
+                box-shadow: var(--shadow-md);
+                padding: 28px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 0;
+                transition:
+                    transform var(--transition),
+                    box-shadow var(--transition);
+            }
+
+            .team-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .team-card-1 {
+                border-top: 4px solid var(--navy);
+            }
+            .team-card-2 {
+                border-top: 4px solid var(--green);
+            }
+            .team-card-3 {
+                border-top: 4px solid var(--purple);
+            }
+
+            .team-photo-wrap {
+                position: relative;
+                margin-bottom: 18px;
+            }
+
+            .team-photo {
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                object-fit: cover;
+                object-position: top center;
+                display: block;
+            }
+
+            .team-photo-border-navy {
+                border: 3px solid var(--navy);
+            }
+            .team-photo-border-green {
+                border: 3px solid var(--green);
+            }
+            .team-photo-border-purple {
+                border: 3px solid var(--purple);
+            }
+
+            .team-name {
+                font-size: 17px;
+                font-weight: 800;
+                color: var(--navy);
+                margin-bottom: 4px;
+            }
+
+            .team-role {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--blue);
+                margin-bottom: 14px;
+                line-height: 1.4;
+            }
+
+            .team-desc {
+                font-size: 13px;
+                color: var(--muted);
+                line-height: 1.7;
+                margin-bottom: 18px;
+            }
+
+            .team-tags {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 6px;
+            }
+
+            .team-tag {
+                font-size: 11px;
+                font-weight: 600;
+                padding: 3px 10px;
+                border-radius: 100px;
+                background: var(--bg);
+                color: var(--navy);
+                border: 1px solid #d0d9e4;
+            }
+
+            /* ============================================================
+       SECTION 9 — FOOTER
+    ============================================================ */
+            #footer {
+                background: var(--navy);
+                padding: 48px 0 32px;
+                color: rgba(255, 255, 255, 0.75);
+            }
+
+            .footer-top {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 32px;
+                flex-wrap: wrap;
+                padding-bottom: 32px;
+                margin-bottom: 24px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .footer-logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            .footer-logo-icon {
+                width: 32px;
+                height: 32px;
+                background: var(--blue);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .footer-logo-text {
+                font-size: 18px;
+                font-weight: 800;
+                color: var(--white);
+            }
+
+            .footer-tagline {
+                font-size: 13px;
+                color: rgba(255, 255, 255, 0.55);
+                line-height: 1.5;
+                max-width: 300px;
+            }
+
+            .footer-links {
+                display: flex;
+                gap: 24px;
+            }
+
+            .footer-links a {
+                font-size: 13px;
+                font-weight: 500;
+                color: rgba(255, 255, 255, 0.65);
+                text-decoration: none;
+                transition: color var(--transition);
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .footer-links a:hover {
+                color: var(--white);
+            }
+
+            .footer-bottom {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                text-align: center;
+            }
+
+            .footer-odd {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.45);
+                letter-spacing: 0.3px;
+            }
+
+            .footer-copy {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.35);
+            }
+
+            /* ============================================================
+       RESPONSIVE — TABLET (768-1024px)
+    ============================================================ */
+            @media (max-width: 1024px) {
+                .solution-cards,
+                .steps-wrapper,
+                .interfaces-cards,
+                .team-cards {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .blockchain-inner {
+                    grid-template-columns: 1fr;
+                    gap: 32px;
+                }
+
+                .hero-visual {
+                    display: none;
+                }
+
+                .steps-wrapper::before,
+                .steps-wrapper::after {
+                    display: none;
+                }
+            }
+
+            /* ============================================================
+       RESPONSIVE — MOBILE (<768px)
+    ============================================================ */
+            @media (max-width: 768px) {
+                .nav-links,
+                .nav-cta {
+                    display: none;
+                }
+
+                .nav-hamburger {
+                    display: flex;
+                }
+
+                .hero-inner {
+                    flex-direction: column;
+                    padding: 80px 24px 40px;
+                }
+
+                .hero-stats {
+                    flex-direction: column;
+                    gap: 0;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                .hero-stat-item {
+                    border-right: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    padding: 16px 20px;
+                }
+
+                .hero-stat-item:last-child {
+                    border-bottom: none;
+                }
+
+                .problem-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .solution-cards,
+                .steps-wrapper,
+                .interfaces-cards,
+                .team-cards {
+                    grid-template-columns: 1fr;
+                }
+
+                .compare-header,
+                .compare-row {
+                    grid-template-columns: 1fr;
+                }
+
+                .compare-cell:first-child {
+                    border-right: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+                }
+
+                .compare-header-cell:first-child {
+                    border-right: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                .footer-top {
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                }
+
+                .footer-links {
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 12px;
+                }
+
+                .flow-diagram {
+                    flex-direction: column;
+                    gap: 4px;
+                }
+            }
+
+            /* ============================================================
+       MISC — verify section scroll target
+    ============================================================ */
+            #verify {
+                scroll-margin-top: 72px;
+            }
+
+            section {
+                scroll-margin-top: 64px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- ================================================================
+     SECTION 1 — NAVBAR
+================================================================ -->
+        <nav id="navbar">
+            <div class="container">
+                <div class="nav-inner">
+                    <!-- Logo -->
+                    <a href="#hero" class="nav-logo">
+                        <div class="nav-logo-icon">
+                            <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <rect
+                                    x="3"
+                                    y="2"
+                                    width="10"
+                                    height="13"
+                                    rx="2"
+                                    fill="white"
+                                    opacity=".9"
+                                />
+                                <rect
+                                    x="7"
+                                    y="5"
+                                    width="6"
+                                    height="1.5"
+                                    rx=".75"
+                                    fill="#2E6DA4"
+                                />
+                                <rect
+                                    x="7"
+                                    y="8"
+                                    width="4"
+                                    height="1.5"
+                                    rx=".75"
+                                    fill="#2E6DA4"
+                                />
+                                <circle cx="15" cy="15" r="4" fill="#27AE60" />
+                                <path
+                                    d="M13 15l1.3 1.3L17 13.2"
+                                    stroke="white"
+                                    stroke-width="1.4"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                            </svg>
+                        </div>
+                        <span class="nav-logo-text">PharmaTrace</span>
+                    </a>
+
+                    <!-- Nav links (desktop) -->
+                    <ul class="nav-links">
+                        <li><a href="#hero" class="nav-link">Accueil</a></li>
+                        <li>
+                            <a href="#problem" class="nav-link">Problème</a>
+                        </li>
+                        <li>
+                            <a href="#solution" class="nav-link">Solution</a>
+                        </li>
+                        <li>
+                            <a href="#how" class="nav-link"
+                                >Comment ça marche</a
+                            >
+                        </li>
+                        <li><a href="#team" class="nav-link">Équipe</a></li>
+                    </ul>
+
+                    <!-- CTA -->
+                    <a href="#verify" class="btn-primary nav-cta">
+                        <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                        >
+                            <path
+                                d="M2 7h10M7 2l5 5-5 5"
+                                stroke="white"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                        Vérifier un médicament
+                    </a>
+
+                    <!-- Hamburger (mobile) -->
+                    <button
+                        class="nav-hamburger"
+                        id="hamburger"
+                        aria-label="Menu"
+                        aria-expanded="false"
+                    >
+                        <span></span><span></span><span></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile menu -->
+            <div class="nav-mobile" id="mobileMenu">
+                <a href="#hero" class="nav-link-mob">Accueil</a>
+                <a href="#problem" class="nav-link-mob">Problème</a>
+                <a href="#solution" class="nav-link-mob">Solution</a>
+                <a href="#how" class="nav-link-mob">Comment ça marche</a>
+                <a href="#team" class="nav-link-mob">Équipe</a>
+                <a href="#verify" class="btn-primary"
+                    >Vérifier un médicament →</a
+                >
+            </div>
+        </nav>
+
+        <!-- ================================================================
+     SECTION 2 — HERO
+================================================================ -->
+        <section id="hero">
+            <div class="hero-inner">
+                <!-- Content -->
+                <div class="hero-content">
+                    <div class="hero-badge">Urgence Sanitaire — Niger</div>
+                    <div class="hero-stat-giant" id="hero-stat-giant">
+                        30–60%
+                    </div>
+                    <h1 class="hero-title">
+                        Des médicaments contrefaits tuent chaque jour au Niger.
+                    </h1>
+                    <p class="hero-subtitle">
+                        PharmaTrace rend chaque médicament vérifiable en 3
+                        secondes grâce à la blockchain.
+                    </p>
+
+                    <div class="hero-buttons">
+                        <a href="#solution" class="btn-primary">
+                            Découvrir la solution ↓
+                        </a>
+                        <a href="#how" class="btn-outline-white">
+                            Voir la démo →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Phone illustration (desktop only) -->
+                <div class="hero-visual">
+                    <div class="phone-mockup">
+                        <div class="phone-body">
+                            <div class="phone-notch"></div>
+                            <div class="phone-screen">
+                                <!-- QR Code simulation -->
+                                <svg
+                                    width="110"
+                                    height="110"
+                                    viewBox="0 0 110 110"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <!-- Top-left corner marker -->
+                                    <rect
+                                        x="6"
+                                        y="6"
+                                        width="28"
+                                        height="28"
+                                        rx="3"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="11"
+                                        y="11"
+                                        width="18"
+                                        height="18"
+                                        rx="2"
+                                        fill="white"
+                                    />
+                                    <rect
+                                        x="15"
+                                        y="15"
+                                        width="10"
+                                        height="10"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <!-- Top-right corner marker -->
+                                    <rect
+                                        x="76"
+                                        y="6"
+                                        width="28"
+                                        height="28"
+                                        rx="3"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="81"
+                                        y="11"
+                                        width="18"
+                                        height="18"
+                                        rx="2"
+                                        fill="white"
+                                    />
+                                    <rect
+                                        x="85"
+                                        y="15"
+                                        width="10"
+                                        height="10"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <!-- Bottom-left corner marker -->
+                                    <rect
+                                        x="6"
+                                        y="76"
+                                        width="28"
+                                        height="28"
+                                        rx="3"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="11"
+                                        y="81"
+                                        width="18"
+                                        height="18"
+                                        rx="2"
+                                        fill="white"
+                                    />
+                                    <rect
+                                        x="15"
+                                        y="85"
+                                        width="10"
+                                        height="10"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <!-- Data dots -->
+                                    <rect
+                                        x="42"
+                                        y="6"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="53"
+                                        y="6"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="64"
+                                        y="6"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="42"
+                                        y="17"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="53"
+                                        y="28"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="64"
+                                        y="17"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="6"
+                                        y="42"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="17"
+                                        y="42"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="28"
+                                        y="53"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="6"
+                                        y="64"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="42"
+                                        y="42"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="53"
+                                        y="42"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="64"
+                                        y="53"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="42"
+                                        y="64"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="53"
+                                        y="53"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#2E6DA4"
+                                    />
+                                    <rect
+                                        x="76"
+                                        y="42"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="87"
+                                        y="53"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="97"
+                                        y="42"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="76"
+                                        y="64"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="87"
+                                        y="64"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="42"
+                                        y="76"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="53"
+                                        y="76"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="64"
+                                        y="87"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="42"
+                                        y="97"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="64"
+                                        y="97"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="76"
+                                        y="76"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="97"
+                                        y="76"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                    <rect
+                                        x="87"
+                                        y="97"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                        fill="#1A3A5C"
+                                    />
+                                </svg>
+
+                                <!-- Verify badge -->
+                                <div class="verify-badge">
+                                    <div class="check-circle">
+                                        <svg
+                                            width="12"
+                                            height="12"
+                                            viewBox="0 0 12 12"
+                                            fill="none"
+                                        >
+                                            <path
+                                                d="M2.5 6l2.5 2.5L9.5 3.5"
+                                                stroke="white"
+                                                stroke-width="1.8"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <span>AUTHENTIQUE</span>
+                                </div>
+                                <div class="phone-label">
+                                    PharmaTrace · Résultat en 3s
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats counter bar -->
+            <div class="hero-stats">
+                <div class="hero-stat-item">
+                    <div class="hero-stat-number">
+                        <span
+                            class="counter"
+                            data-target="500000"
+                            data-suffix="k"
+                            data-divisor="1000"
+                            >0</span
+                        >+
+                    </div>
+                    <div class="hero-stat-label">
+                        décès par an liés aux<br />faux médicaments
+                    </div>
+                </div>
+                <div class="hero-stat-item">
+                    <div class="hero-stat-number">
+                        &lt;<span
+                            class="counter"
+                            data-target="10"
+                            data-suffix="%"
+                            >0</span
+                        >
+                    </div>
+                    <div class="hero-stat-label">
+                        des médicaments<br />traçables au Niger
+                    </div>
+                </div>
+                <div class="hero-stat-item">
+                    <div class="hero-stat-number">
+                        <span
+                            class="counter"
+                            data-target="200"
+                            data-suffix=" Mds $"
+                            >0</span
+                        >
+                    </div>
+                    <div class="hero-stat-label">
+                        marché mondial<br />des contrefaçons
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================
+     SECTION 3 — LE PROBLÈME
+================================================================ -->
+        <section id="problem">
+            <div class="container">
+                <div class="reveal">
+                    <span class="section-label">La réalité au Niger</span>
+                    <h2 class="section-title">
+                        Le problème que PharmaTrace résout
+                    </h2>
+                </div>
+
+                <!-- Stat cards grid -->
+                <div class="problem-grid">
+                    <div class="stat-card stat-card-red reveal reveal-delay-1">
+                        <div class="stat-card-number">30–60%</div>
+                        <div class="stat-card-desc">
+                            des médicaments contrefaits en Afrique subsaharienne
+                        </div>
+                        <div class="stat-card-source">Source : OMS</div>
+                    </div>
+                    <div
+                        class="stat-card stat-card-orange reveal reveal-delay-2"
+                    >
+                        <div class="stat-card-number">500 000</div>
+                        <div class="stat-card-desc">
+                            décès par an liés aux faux médicaments
+                        </div>
+                        <div class="stat-card-source">Source : OMS</div>
+                    </div>
+                    <div class="stat-card stat-card-blue reveal reveal-delay-3">
+                        <div class="stat-card-number">&lt; 10%</div>
+                        <div class="stat-card-desc">
+                            des médicaments traçables au Niger
+                        </div>
+                        <div class="stat-card-source">Source : DPN Niger</div>
+                    </div>
+                    <div class="stat-card stat-card-dark reveal reveal-delay-4">
+                        <div class="stat-card-number">200 Mds $</div>
+                        <div class="stat-card-desc">
+                            marché mondial des contrefaçons pharmaceutiques
+                        </div>
+                        <div class="stat-card-source">
+                            Source : Interpol 2023
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Context paragraph -->
+                <div class="problem-text reveal">
+                    En 2022, la Direction de la Pharmacie Nigérienne a saisi
+                    plus de
+                    <strong>2 tonnes de médicaments contrefaits</strong> sur le
+                    territoire national. Ces chiffres ne représentent qu'une
+                    infime partie du volume réel. Les circuits illicites
+                    traversent les marchés de brousse, les frontières poreuses
+                    et infiltrent même les pharmacies officielles.
+                </div>
+
+                <div class="problem-highlight reveal">
+                    <span style="font-size: 18px">⚠️</span>
+                    <span
+                        >Moins de
+                        <strong>10% des médicaments au Niger</strong> peuvent
+                        être tracés jusqu'à leur fabricant d'origine.</span
+                    >
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================
+     SECTION 4 — LA SOLUTION
+================================================================ -->
+        <section id="solution">
+            <div class="container">
+                <div class="reveal">
+                    <span class="section-label">La solution</span>
+                    <h2 class="section-title">
+                        PharmaTrace — La traçabilité au service de la vie
+                    </h2>
+                    <p class="solution-subtitle-italic">
+                        "Un médicament enregistré ne peut pas être falsifié.<br />
+                        Un médicament scanné ne peut pas mentir."
+                    </p>
+                </div>
+
+                <div class="solution-cards">
+                    <!-- Card 1 -->
+                    <div
+                        class="solution-card solution-card-blue reveal reveal-delay-1"
+                    >
+                        <svg
+                            class="solution-card-icon"
+                            viewBox="0 0 48 48"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <rect
+                                x="8"
+                                y="4"
+                                width="28"
+                                height="36"
+                                rx="4"
+                                fill="#2E6DA4"
+                                opacity=".15"
+                                stroke="#2E6DA4"
+                                stroke-width="2"
+                            />
+                            <rect
+                                x="14"
+                                y="12"
+                                width="16"
+                                height="2.5"
+                                rx="1.25"
+                                fill="#2E6DA4"
+                            />
+                            <rect
+                                x="14"
+                                y="18"
+                                width="12"
+                                height="2.5"
+                                rx="1.25"
+                                fill="#2E6DA4"
+                                opacity=".6"
+                            />
+                            <rect
+                                x="14"
+                                y="24"
+                                width="14"
+                                height="2.5"
+                                rx="1.25"
+                                fill="#2E6DA4"
+                                opacity=".4"
+                            />
+                            <circle cx="36" cy="36" r="9" fill="#27AE60" />
+                            <path
+                                d="M31.5 36l3 3 5-5"
+                                stroke="white"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                        <div class="solution-card-number">01</div>
+                        <div class="solution-card-title">Enregistrement</div>
+                        <div class="solution-card-desc">
+                            Le fabricant agréé enregistre chaque lot. Le système
+                            génère instantanément un hash SHA-256 unique et un
+                            QR code à imprimer sur l'emballage.
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div
+                        class="solution-card solution-card-green reveal reveal-delay-2"
+                    >
+                        <svg
+                            class="solution-card-icon"
+                            viewBox="0 0 48 48"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <circle
+                                cx="24"
+                                cy="24"
+                                r="18"
+                                fill="#27AE60"
+                                opacity=".12"
+                                stroke="#27AE60"
+                                stroke-width="2"
+                            />
+                            <path
+                                d="M14 24h20M28 18l6 6-6 6"
+                                stroke="#27AE60"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                            <path
+                                d="M20 30l-6-6 6-6"
+                                stroke="#27AE60"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                opacity=".5"
+                            />
+                        </svg>
+                        <div class="solution-card-number">02</div>
+                        <div class="solution-card-title">Traçabilité</div>
+                        <div class="solution-card-desc">
+                            Chaque transfert de lot est confirmé par scan à la
+                            réception. L'historique complet est tracé de façon
+                            immuable et consultable à tout moment.
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div
+                        class="solution-card solution-card-orange reveal reveal-delay-3"
+                    >
+                        <svg
+                            class="solution-card-icon"
+                            viewBox="0 0 48 48"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <rect
+                                x="12"
+                                y="4"
+                                width="24"
+                                height="40"
+                                rx="5"
+                                fill="#E67E22"
+                                opacity=".12"
+                                stroke="#E67E22"
+                                stroke-width="2"
+                            />
+                            <rect
+                                x="16"
+                                y="9"
+                                width="16"
+                                height="2.5"
+                                rx="1.25"
+                                fill="#E67E22"
+                                opacity=".4"
+                            />
+                            <rect
+                                x="17"
+                                y="16"
+                                width="14"
+                                height="14"
+                                rx="3"
+                                fill="#E67E22"
+                                opacity=".15"
+                                stroke="#E67E22"
+                                stroke-width="1.5"
+                            />
+                            <rect
+                                x="20"
+                                y="19"
+                                width="8"
+                                height="8"
+                                rx="1"
+                                fill="#E67E22"
+                                opacity=".5"
+                            />
+                            <circle
+                                cx="24"
+                                cy="39"
+                                r="2"
+                                fill="#E67E22"
+                                opacity=".5"
+                            />
+                        </svg>
+                        <div class="solution-card-number">03</div>
+                        <div class="solution-card-title">Vérification</div>
+                        <div class="solution-card-desc">
+                            Pharmacien ou patient scanne le QR code avec
+                            n'importe quel smartphone. Résultat en 3 secondes :
+                            <strong>AUTHENTIQUE ✓</strong> ou
+                            <strong>SUSPECT ✗</strong>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================
+     SECTION 5 — COMMENT ÇA MARCHE
+================================================================ -->
+        <section id="how">
+            <div class="container">
+                <div class="reveal">
+                    <span class="section-label">Fonctionnement</span>
+                    <h2 class="section-title">En 3 étapes simples</h2>
+                </div>
+
+                <div class="steps-wrapper">
+                    <!-- Step 1 -->
+                    <div class="step-card reveal reveal-delay-1">
+                        <div class="step-number-circle step-circle-navy">1</div>
+                        <!-- Factory icon -->
+                        <svg
+                            class="step-icon"
+                            viewBox="0 0 36 36"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <rect
+                                x="2"
+                                y="18"
+                                width="32"
+                                height="16"
+                                rx="2"
+                                fill="#1A3A5C"
+                                opacity=".15"
+                                stroke="#1A3A5C"
+                                stroke-width="1.5"
+                            />
+                            <path
+                                d="M2 18l9-8v8"
+                                fill="#1A3A5C"
+                                opacity=".25"
+                            />
+                            <path
+                                d="M11 18l9-8v8"
+                                fill="#1A3A5C"
+                                opacity=".25"
+                            />
+                            <path
+                                d="M20 18v-8h12v8"
+                                fill="#1A3A5C"
+                                opacity=".25"
+                            />
+                            <rect
+                                x="14"
+                                y="22"
+                                width="8"
+                                height="12"
+                                rx="1"
+                                fill="#1A3A5C"
+                                opacity=".4"
+                            />
+                            <rect
+                                x="5"
+                                y="22"
+                                width="6"
+                                height="6"
+                                rx="1"
+                                fill="#1A3A5C"
+                                opacity=".3"
+                            />
+                            <rect
+                                x="25"
+                                y="22"
+                                width="6"
+                                height="6"
+                                rx="1"
+                                fill="#1A3A5C"
+                                opacity=".3"
+                            />
+                        </svg>
+                        <div class="step-title">Le fabricant crée le lot</div>
+                        <div class="step-desc">
+                            Il saisit les informations du médicament. Le système
+                            génère automatiquement un hash SHA-256 unique et un
+                            QR code à apposer sur l'emballage.
+                        </div>
+                        <span class="step-tag">🔐 Hash immuable</span>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="step-card reveal reveal-delay-2">
+                        <div class="step-number-circle step-circle-green">
+                            2
+                        </div>
+                        <!-- Truck icon -->
+                        <svg
+                            class="step-icon"
+                            viewBox="0 0 36 36"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <rect
+                                x="2"
+                                y="12"
+                                width="22"
+                                height="16"
+                                rx="2"
+                                fill="#27AE60"
+                                opacity=".15"
+                                stroke="#27AE60"
+                                stroke-width="1.5"
+                            />
+                            <path
+                                d="M24 16h6l4 6v6h-10V16z"
+                                fill="#27AE60"
+                                opacity=".2"
+                                stroke="#27AE60"
+                                stroke-width="1.5"
+                            />
+                            <circle
+                                cx="9"
+                                cy="30"
+                                r="3"
+                                fill="#27AE60"
+                                opacity=".6"
+                            />
+                            <circle
+                                cx="28"
+                                cy="30"
+                                r="3"
+                                fill="#27AE60"
+                                opacity=".6"
+                            />
+                            <rect
+                                x="6"
+                                y="17"
+                                width="12"
+                                height="2"
+                                rx="1"
+                                fill="#27AE60"
+                                opacity=".4"
+                            />
+                        </svg>
+                        <div class="step-title">
+                            Le lot transite vers les pharmacies
+                        </div>
+                        <div class="step-desc">
+                            Chaque transfert est initié par le fabricant et
+                            confirmé par scan à la réception. L'historique est
+                            tracé en temps réel sur la chaîne immuable.
+                        </div>
+                        <span class="step-tag">📦 Transfert confirmé</span>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="step-card reveal reveal-delay-3">
+                        <div class="step-number-circle step-circle-orange">
+                            3
+                        </div>
+                        <!-- QR phone icon -->
+                        <svg
+                            class="step-icon"
+                            viewBox="0 0 36 36"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <rect
+                                x="8"
+                                y="2"
+                                width="20"
+                                height="32"
+                                rx="4"
+                                fill="#E67E22"
+                                opacity=".12"
+                                stroke="#E67E22"
+                                stroke-width="1.5"
+                            />
+                            <rect
+                                x="12"
+                                y="8"
+                                width="12"
+                                height="12"
+                                rx="2"
+                                fill="#E67E22"
+                                opacity=".2"
+                                stroke="#E67E22"
+                                stroke-width="1.2"
+                            />
+                            <rect
+                                x="14.5"
+                                y="10.5"
+                                width="3"
+                                height="3"
+                                rx=".5"
+                                fill="#E67E22"
+                            />
+                            <rect
+                                x="19.5"
+                                y="10.5"
+                                width="3"
+                                height="3"
+                                rx=".5"
+                                fill="#E67E22"
+                            />
+                            <rect
+                                x="14.5"
+                                y="15.5"
+                                width="3"
+                                height="3"
+                                rx=".5"
+                                fill="#E67E22"
+                            />
+                            <rect
+                                x="19.5"
+                                y="15.5"
+                                width="3"
+                                height="3"
+                                rx=".5"
+                                fill="#E67E22"
+                            />
+                            <path
+                                d="M12 24l3 3 5.5-5.5"
+                                stroke="#E67E22"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                        <div class="step-title">
+                            Scan → verdict en 3 secondes
+                        </div>
+                        <div class="step-desc">
+                            Pharmacien ou patient scanne le QR code. Résultat
+                            immédiat :
+                            <strong style="color: var(--green)"
+                                >AUTHENTIQUE</strong
+                            >
+                            (vert) ou
+                            <strong style="color: var(--red)">SUSPECT</strong>
+                            (rouge). Aucune application à installer.
+                        </div>
+                        <span class="step-tag">📱 Android &amp; iOS</span>
+                    </div>
+                </div>
+
+                <!-- Flow diagram -->
+                <div class="flow-diagram reveal">
+                    <div class="flow-item">🏭 <span>Fabricant</span></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-item">📦 <span>Distributeur</span></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-item">💊 <span>Pharmacie</span></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-item">👤 <span>Patient</span></div>
+                </div>
+
+                <p class="flow-note reveal">
+                    Compatible avec n'importe quel smartphone Android ou iOS.
+                </p>
+            </div>
+        </section>
+
+        <!-- ================================================================
+     SECTION 6 — POURQUOI LA BLOCKCHAIN
+================================================================ -->
+        <section id="blockchain">
+            <div class="container">
+                <div class="reveal">
+                    <span class="blockchain-label">Technologie</span>
+                    <h2 class="blockchain-title">
+                        Pourquoi la blockchain et pas une simple base de données
+                        ?
+                    </h2>
+                </div>
+
+                <div class="blockchain-inner">
+                    <!-- Left column -->
+                    <div class="reveal">
+                        <p class="blockchain-text">
+                            Une base de données classique peut être modifiée par
+                            un administrateur mal intentionné, un pirate ou sous
+                            contrainte. Un faussaire suffisamment sophistiqué
+                            peut y injecter de faux enregistrements, créer de
+                            faux QR codes et faire valider de faux médicaments.
+                        </p>
+                        <p class="blockchain-text">
+                            PharmaTrace repose sur un registre
+                            <strong style="color: white"
+                                >blockchain-lite</strong
+                            >
+                            : chaque enregistrement est scellé par un hash
+                            SHA-256 qui dépend du contenu exact des données.
+                            Toute modification rend instantanément le hash
+                            invalide. Le registre est une chaîne de blocs liés,
+                            où altérer un enregistrement passé invalide tous les
+                            suivants.
+                        </p>
+                        <div class="blockchain-quote">
+                            "Un faux QR code ne peut pas retourner un résultat
+                            valide — car notre registre ne peut pas être
+                            falsifié après écriture."
+                        </div>
+                    </div>
+
+                    <!-- Right column — comparison table -->
+                    <div class="reveal reveal-delay-2">
+                        <div class="compare-table">
+                            <div class="compare-header">
+                                <div class="compare-header-cell">
+                                    Base de données classique
+                                </div>
+                                <div class="compare-header-cell">
+                                    PharmaTrace (Blockchain-lite)
+                                </div>
+                            </div>
+                            <div class="compare-row">
+                                <div class="compare-cell">
+                                    ❌ Modifiable par un admin
+                                </div>
+                                <div class="compare-cell">
+                                    ✅ Immuable après écriture
+                                </div>
+                            </div>
+                            <div class="compare-row">
+                                <div class="compare-cell">
+                                    ❌ Hash falsifiable
+                                </div>
+                                <div class="compare-cell">
+                                    ✅ SHA-256 vérifiable par tous
+                                </div>
+                            </div>
+                            <div class="compare-row">
+                                <div class="compare-cell">
+                                    ❌ Confiance dans une institution
+                                </div>
+                                <div class="compare-cell">
+                                    ✅ Confiance dans le code
+                                </div>
+                            </div>
+                            <div class="compare-row">
+                                <div class="compare-cell">
+                                    ❌ Piratage sans trace
+                                </div>
+                                <div class="compare-cell">
+                                    ✅ Fraude détectable immédiatement
+                                </div>
+                            </div>
+                            <div class="compare-row">
+                                <div class="compare-cell">
+                                    ❌ QR copiable frauduleusement
+                                </div>
+                                <div class="compare-cell">
+                                    ✅ Faux QR = zéro résultat
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================
+     SECTION 7 — APERÇU DES INTERFACES
+================================================================ -->
+        <section id="interfaces">
+            <div class="container">
+                <div
+                    class="reveal"
+                    style="text-align: center; margin-bottom: 48px"
+                >
+                    <span class="section-label">Interfaces</span>
+                    <h2 class="section-title" style="margin-bottom: 8px">
+                        Aperçu des interfaces
+                    </h2>
+                    <p style="color: var(--muted); font-size: 16px">
+                        Conçues pour le terrain — fonctionnelles sur tout
+                        smartphone
+                    </p>
+                </div>
+
+                <div class="interfaces-cards">
+                    <!-- Card 1: Fabricant -->
+                    <div
+                        class="mockup-card mockup-card-1 reveal reveal-delay-1"
+                    >
+                        <div class="mockup-header">
+                            <span class="mockup-header-title"
+                                >Interface Fabricant</span
+                            >
+                            <span class="mockup-badge"
+                                >Enregistrement de lots</span
+                            >
+                        </div>
+                        <div class="mockup-body mockup-body-img">
+                            <img
+                                src="maquettes/fabricant-nouveau-lot.png"
+                                alt="Interface Fabricant — Enregistrement d'un nouveau lot"
+                                class="mockup-screenshot"
+                                loading="lazy"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Pharmacie -->
+                    <div
+                        class="mockup-card mockup-card-2 reveal reveal-delay-2"
+                    >
+                        <div class="mockup-header">
+                            <span class="mockup-header-title"
+                                >Interface Pharmacie</span
+                            >
+                            <span class="mockup-badge"
+                                >Réception &amp; Stock</span
+                            >
+                        </div>
+                        <div class="mockup-body mockup-body-img">
+                            <img
+                                src="maquettes/pharmacie-reception.png"
+                                alt="Interface Pharmacie — Réception et stock"
+                                class="mockup-screenshot"
+                                loading="lazy"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Patient -->
+                    <div
+                        class="mockup-card mockup-card-3 reveal reveal-delay-3"
+                    >
+                        <div class="mockup-header">
+                            <span class="mockup-header-title"
+                                >Patient — Vérification</span
+                            >
+                            <span class="mockup-badge"
+                                >Scan QR · 3 secondes</span
+                            >
+                        </div>
+                        <div class="mockup-body mockup-body-img">
+                            <img
+                                src="maquettes/patient-scanner-resultat-authentique.png"
+                                alt="Patient — Résultat de scan : AUTHENTIQUE"
+                                class="mockup-screenshot"
+                                loading="lazy"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <p class="interfaces-note reveal">
+                    Maquettes haute fidélité — Figma · Équipe TrustGrid 2026
+                </p>
+            </div>
+        </section>
+
+        <!-- ================================================================
+     SECTION 8 — ÉQUIPE
+================================================================ -->
+        <section id="team">
+            <div class="container">
+                <div class="reveal" style="text-align: center">
+                    <span class="section-label">L'équipe</span>
+                    <h2 class="section-title">TrustGrid — Niger</h2>
+                    <p
+                        style="
+                            color: var(--muted);
+                            font-size: 17px;
+                            margin-bottom: 24px;
+                        "
+                    >
+                        Trois développeurs passionnés, unis pour une cause
+                        vitale.
+                    </p>
+                    <div class="team-badge">
+                        🇳🇪 MIABE Hackathon 2026 · Ambassadeur Niger
+                    </div>
+                </div>
+
+                <div class="team-cards">
+                    <!-- Mohamed -->
+                    <div class="team-card team-card-1 reveal reveal-delay-1">
+                        <div class="team-photo-wrap">
+                            <img
+                                src="medias/Mohamed OUMAROU GARBA.jpg"
+                                alt="Mohamed Oumarou Garba"
+                                class="team-photo team-photo-border-navy"
+                                loading="lazy"
+                            />
+                        </div>
+                        <div class="team-name">Mohamed Oumarou Garba</div>
+                        <div class="team-role">
+                            Chef d'équipe · Product Owner · UI Designer
+                        </div>
+                        <div class="team-desc">
+                            Technicien informatique autodidacte, orienté
+                            cybersécurité et automatisation. Ambassadeur
+                            officiel MIABE Niger. Coordination, maquettes Figma,
+                            QA et présentation.
+                        </div>
+                        <div class="team-tags">
+                            <span class="team-tag">Figma</span>
+                            <span class="team-tag">Cybersécurité</span>
+                            <span class="team-tag">Coordination</span>
+                            <span class="team-tag">QA</span>
+                        </div>
+                    </div>
+
+                    <!-- Mahamadou -->
+                    <div class="team-card team-card-2 reveal reveal-delay-2">
+                        <div class="team-photo-wrap">
+                            <img
+                                src="medias/Mahamadou GARBA ZAKOU.jpeg"
+                                alt="Mahamadou Garba Zakou"
+                                class="team-photo team-photo-border-green"
+                                loading="lazy"
+                            />
+                        </div>
+                        <div class="team-name">Mahamadou Garba Zakou</div>
+                        <div class="team-role">
+                            Lead Backend · Base de données · Blockchain
+                        </div>
+                        <div class="team-desc">
+                            Développeur backend expérimenté : Spring Boot
+                            (Java), .NET (C#), API RESTful. Spécialiste
+                            architecture PostgreSQL, hash SHA-256 et Edge
+                            Functions Supabase.
+                        </div>
+                        <div class="team-tags">
+                            <span class="team-tag">Spring Boot</span>
+                            <span class="team-tag">.NET</span>
+                            <span class="team-tag">PostgreSQL</span>
+                            <span class="team-tag">Supabase</span>
+                        </div>
+                    </div>
+
+                    <!-- Abdoul Raouf -->
+                    <div class="team-card team-card-3 reveal reveal-delay-3">
+                        <div class="team-photo-wrap">
+                            <img
+                                src="medias/Abdoul Raouf HAROUNA MOUSSA.jpeg"
+                                alt="Abdoul Raouf Harouna Moussa"
+                                class="team-photo team-photo-border-purple"
+                                loading="lazy"
+                            />
+                        </div>
+                        <div class="team-name">Abdoul Raouf Harouna Moussa</div>
+                        <div class="team-role">
+                            Lead Frontend · Intégration · GitHub
+                        </div>
+                        <div class="team-desc">
+                            Développeur frontend polyvalent : Vue.js, React,
+                            Node.js, TailwindCSS, Blazor WASM. Responsable de la
+                            landing page, dashboards et intégration du scanner
+                            QR.
+                        </div>
+                        <div class="team-tags">
+                            <span class="team-tag">React</span>
+                            <span class="team-tag">Vue.js</span>
+                            <span class="team-tag">TailwindCSS</span>
+                            <span class="team-tag">Node.js</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================
+     SECTION 9 — FOOTER
+================================================================ -->
+        <footer id="footer">
+            <div class="container">
+                <div class="footer-top">
+                    <!-- Brand -->
+                    <div>
+                        <div class="footer-logo">
+                            <div class="footer-logo-icon">
+                                <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 20 20"
+                                    fill="none"
+                                >
+                                    <rect
+                                        x="3"
+                                        y="2"
+                                        width="10"
+                                        height="13"
+                                        rx="2"
+                                        fill="white"
+                                        opacity=".9"
+                                    />
+                                    <rect
+                                        x="7"
+                                        y="5"
+                                        width="6"
+                                        height="1.5"
+                                        rx=".75"
+                                        fill="#2E6DA4"
+                                    />
+                                    <rect
+                                        x="7"
+                                        y="8"
+                                        width="4"
+                                        height="1.5"
+                                        rx=".75"
+                                        fill="#2E6DA4"
+                                    />
+                                    <circle
+                                        cx="15"
+                                        cy="15"
+                                        r="4"
+                                        fill="#27AE60"
+                                    />
+                                    <path
+                                        d="M13 15l1.3 1.3L17 13.2"
+                                        stroke="white"
+                                        stroke-width="1.4"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    />
+                                </svg>
+                            </div>
+                            <span class="footer-logo-text">PharmaTrace</span>
+                        </div>
+                        <p class="footer-tagline">
+                            PharmaTrace — MIABE Hackathon 2026<br />
+                            Équipe TrustGrid · Niger
+                        </p>
+                    </div>
+
+                    <!-- Links -->
+                    <div class="footer-links">
+                        <a href="#" target="_blank" rel="noopener">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                            >
+                                <path
+                                    d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.026A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.337 1.909-1.294 2.747-1.026 2.747-1.026.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"
+                                />
+                            </svg>
+                            GitHub
+                        </a>
+                        <a
+                            href="https://miabehackathon.com"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <circle cx="12" cy="12" r="10" />
+                                <path
+                                    d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"
+                                />
+                            </svg>
+                            miabehackathon.com
+                        </a>
+                    </div>
+                </div>
+
+                <div class="footer-bottom">
+                    <p class="footer-odd">
+                        Bonne santé et bien-être &nbsp;·&nbsp; — Institutions
+                        efficaces
+                    </p>
+                    <p class="footer-copy">
+                        © 2026 Équipe TrustGrid — Niger. Tous droits réservés.
+                    </p>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Verify anchor target -->
+        <div id="verify" style="display: none"></div>
+
+        <!-- ================================================================
+     JAVASCRIPT
+================================================================ -->
+        <script>
+            /* ---------------------------------------------------------------
+     1. Navbar shadow on scroll
+  --------------------------------------------------------------- */
+            const navbar = document.getElementById("navbar");
+
+            function handleNavbarScroll() {
+                if (window.scrollY > 50) {
+                    navbar.classList.add("scrolled");
+                } else {
+                    navbar.classList.remove("scrolled");
+                }
+            }
+
+            window.addEventListener("scroll", handleNavbarScroll, {
+                passive: true,
+            });
+            handleNavbarScroll();
+
+            /* ---------------------------------------------------------------
+     2. Smooth scroll for anchor links
+  --------------------------------------------------------------- */
+            document
+                .querySelectorAll('a[href^="#"]')
+                .forEach(function (anchor) {
+                    anchor.addEventListener("click", function (e) {
+                        var targetId = this.getAttribute("href").slice(1);
+                        if (!targetId) return;
+                        var target = document.getElementById(targetId);
+                        if (target) {
+                            e.preventDefault();
+                            target.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                            });
+                            // Close mobile menu if open
+                            closeMobileMenu();
+                        }
+                    });
+                });
+
+            /* ---------------------------------------------------------------
+     3. Hamburger / mobile menu
+  --------------------------------------------------------------- */
+            var hamburger = document.getElementById("hamburger");
+            var mobileMenu = document.getElementById("mobileMenu");
+
+            function closeMobileMenu() {
+                hamburger.classList.remove("open");
+                mobileMenu.classList.remove("open");
+                hamburger.setAttribute("aria-expanded", "false");
+            }
+
+            hamburger.addEventListener("click", function () {
+                var isOpen = mobileMenu.classList.contains("open");
+                if (isOpen) {
+                    closeMobileMenu();
+                } else {
+                    hamburger.classList.add("open");
+                    mobileMenu.classList.add("open");
+                    hamburger.setAttribute("aria-expanded", "true");
+                }
+            });
+
+            // Close mobile menu when clicking outside
+            document.addEventListener("click", function (e) {
+                if (!navbar.contains(e.target)) {
+                    closeMobileMenu();
+                }
+            });
+
+            /* ---------------------------------------------------------------
+     4. Scroll reveal via Intersection Observer
+  --------------------------------------------------------------- */
+            var revealElements = document.querySelectorAll(".reveal");
+
+            var revealObserver = new IntersectionObserver(
+                function (entries) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("visible");
+                            revealObserver.unobserve(entry.target);
+                        }
+                    });
+                },
+                {
+                    threshold: 0.12,
+                    rootMargin: "0px 0px -40px 0px",
+                },
+            );
+
+            revealElements.forEach(function (el) {
+                revealObserver.observe(el);
+            });
+
+            /* ---------------------------------------------------------------
+     5. Animated counters in hero
+  --------------------------------------------------------------- */
+            var counters = document.querySelectorAll(".counter");
+            var countersStarted = false;
+
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+
+            function animateCounter(el) {
+                var target = parseInt(el.getAttribute("data-target"), 10);
+                var suffix = el.getAttribute("data-suffix") || "";
+                var divisor = parseFloat(el.getAttribute("data-divisor")) || 1;
+                var duration = 1800;
+                var start = performance.now();
+
+                function update(now) {
+                    var elapsed = now - start;
+                    var progress = Math.min(elapsed / duration, 1);
+                    var eased = easeOutCubic(progress);
+                    var value = Math.round((eased * target) / divisor);
+
+                    if (divisor > 1) {
+                        // Format with spaces for large numbers
+                        el.textContent = value.toLocaleString("fr-FR") + suffix;
+                    } else {
+                        el.textContent = value + suffix;
+                    }
+
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    } else {
+                        // Ensure final value is exact
+                        var finalVal = target / divisor;
+                        if (Number.isInteger(finalVal)) {
+                            el.textContent =
+                                finalVal.toLocaleString("fr-FR") + suffix;
+                        } else {
+                            el.textContent = finalVal + suffix;
+                        }
+                    }
+                }
+
+                requestAnimationFrame(update);
+            }
+
+            function startCounters() {
+                if (countersStarted) return;
+                countersStarted = true;
+                counters.forEach(function (counter) {
+                    animateCounter(counter);
+                });
+            }
+
+            // Trigger counters after a short delay (hero is visible on load)
+            window.addEventListener("load", function () {
+                setTimeout(startCounters, 400);
+            });
+
+            /* ---------------------------------------------------------------
+     6. Active nav link highlight based on scroll position
+  --------------------------------------------------------------- */
+            var sections = document.querySelectorAll(
+                'section[id], div[id="verify"]',
+            );
+            var navLinks = document.querySelectorAll(".nav-link");
+
+            function highlightActiveLink() {
+                var scrollY = window.scrollY;
+                var windowHeight = window.innerHeight;
+                var activeId = null;
+
+                sections.forEach(function (section) {
+                    var sectionTop = section.offsetTop - 80;
+                    var sectionHeight = section.offsetHeight;
+
+                    if (
+                        scrollY >= sectionTop &&
+                        scrollY < sectionTop + sectionHeight
+                    ) {
+                        activeId = section.getAttribute("id");
+                    }
+                });
+
+                navLinks.forEach(function (link) {
+                    link.classList.remove("active");
+                    var href = link.getAttribute("href");
+                    if (href === "#" + activeId) {
+                        link.classList.add("active");
+                    }
+                });
+            }
+
+            window.addEventListener("scroll", highlightActiveLink, {
+                passive: true,
+            });
+            highlightActiveLink();
+        </script>
+    </body>
+</html>

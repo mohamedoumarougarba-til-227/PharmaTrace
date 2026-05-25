@@ -1,0 +1,72 @@
+import { Tabs } from "expo-router";
+import { Text, TouchableOpacity, Alert } from "react-native";
+import { router } from "expo-router";
+import { supabase } from "../../lib/supabase";
+
+function LogoutButton() {
+  const handleLogout = () => {
+    Alert.alert("Se déconnecter", "Voulez-vous vraiment vous déconnecter ?", [
+      { text: "Annuler", style: "cancel" },
+      {
+        text: "Se déconnecter",
+        style: "destructive",
+        onPress: async () => {
+          await supabase.auth.signOut();
+          router.replace("/(auth)/login");
+        },
+      },
+    ]);
+  };
+
+  return (
+    <TouchableOpacity onPress={handleLogout} style={{ marginRight: 16 }}>
+      <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 22 }}>↩️</Text>
+    </TouchableOpacity>
+  );
+}
+
+export default function AgentDPHLayout() {
+  return (
+    <Tabs
+      screenOptions={{
+        headerStyle: { backgroundColor: "#8E44AD" },
+        headerTintColor: "#fff",
+        headerTitleStyle: { fontWeight: "700", fontSize: 17 },
+        headerRight: () => <LogoutButton />,
+        tabBarStyle: {
+          backgroundColor: "#fff",
+          borderTopColor: "#DCE6F0",
+          height: 64,
+        },
+        tabBarActiveTintColor: "#8E44AD",
+        tabBarInactiveTintColor: "#999",
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600", marginBottom: 4 },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Surveillance nationale",
+          tabBarLabel: "Accueil",
+          tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏛️</Text>,
+        }}
+      />
+      <Tabs.Screen
+        name="alertes"
+        options={{
+          title: "Alertes",
+          tabBarLabel: "Alertes",
+          tabBarIcon: () => <Text style={{ fontSize: 20 }}>🚨</Text>,
+        }}
+      />
+      <Tabs.Screen
+        name="lots"
+        options={{
+          title: "Tous les lots",
+          tabBarLabel: "Lots",
+          tabBarIcon: () => <Text style={{ fontSize: 20 }}>📦</Text>,
+        }}
+      />
+    </Tabs>
+  );
+}

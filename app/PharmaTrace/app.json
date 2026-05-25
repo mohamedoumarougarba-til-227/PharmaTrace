@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "PharmaTrace",
+    "slug": "pharmatrace",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "pharmatrace",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.trustgrid.pharmatrace"
+    },
+    "android": {
+      "package": "com.trustgrid.pharmatrace",
+      "permissions": ["android.permission.CAMERA"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-splash-screen",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "PharmaTrace a besoin d'accéder à votre caméra pour scanner les QR codes des médicaments."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

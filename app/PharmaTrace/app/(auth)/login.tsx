@@ -11,6 +11,7 @@ import {
   Image,
 } from "react-native";
 import { router } from "expo-router";
+import { FAIcon } from '../../constants/icons';
 import { StatusBar } from "expo-status-bar";
 import { supabase } from "../../lib/supabase";
 
@@ -124,9 +125,7 @@ export default function LoginScreen() {
               className="absolute right-4 top-3"
               onPress={() => setShowPwd((p) => !p)}
             >
-              <Text className="text-muted text-base">
-                {showPwd ? "🙈" : "👁"}
-              </Text>
+              <FAIcon name={showPwd ? 'eye-slash' : 'eye'} size={16} color="#999" family="FontAwesome6" />
             </TouchableOpacity>
           </View>
 
@@ -145,10 +144,13 @@ export default function LoginScreen() {
 
         {/* Note accès restreint */}
         <View className="bg-navy/30 rounded-xl p-4 mt-5 mx-1">
-          <Text className="text-white/50 text-xs text-center leading-relaxed">
-            🔒 L'accès est validé manuellement par l'administrateur. Seuls les
-            acteurs agréés peuvent se connecter.
-          </Text>
+          <View className="flex-row items-start gap-2">
+            <FAIcon name="lock" size={12} color="rgba(255,255,255,0.5)" family="FontAwesome6" />
+            <Text className="text-white/50 text-xs text-center leading-relaxed flex-1">
+              L'accès est validé manuellement par l'administrateur. Seuls les
+              acteurs agréés peuvent se connecter.
+            </Text>
+          </View>
         </View>
 
         {/* Bouton scanner — pour les patients qui arrivent par erreur ici */}
@@ -156,7 +158,7 @@ export default function LoginScreen() {
           onPress={() => router.replace("/(public)/verify")}
           className="mt-6 mb-8 h-14 border-2 border-white/30 rounded-xl items-center justify-center flex-row gap-3"
         >
-          <Text className="text-white text-lg">📷</Text>
+          <FAIcon name="camera" size={16} color="#fff" family="FontAwesome6" />
           <Text className="text-white/80 font-semibold text-sm">
             Scanner un médicament sans se connecter
           </Text>

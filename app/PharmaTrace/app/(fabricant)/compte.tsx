@@ -4,7 +4,9 @@ import {
   ActivityIndicator, Alert,
 } from 'react-native';
 import { router } from 'expo-router';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { supabase, type Utilisateur } from '../../lib/supabase';
+import { FAIcon } from '../../constants/icons';
 
 export default function FabricantCompteScreen() {
   const [user,    setUser]    = useState<Utilisateur | null>(null);
@@ -78,23 +80,26 @@ export default function FabricantCompteScreen() {
       <View style={{ backgroundColor: 'white', margin: 16, borderRadius: 16, padding: 24, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 }}>
         {/* Avatar */}
         <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: '#DCE6F0', borderWidth: 2, borderColor: '#2E6DA4', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-          <Text style={{ fontSize: 32 }}>🏭</Text>
+          <FAIcon name="industry" size={36} color="#1A3A5C" family="FontAwesome6" />
         </View>
         <Text style={{ fontSize: 20, fontWeight: '800', color: '#1A3A5C', marginBottom: 6 }}>
           {user?.nom_entite ?? 'Labo Niger Pharma'}
         </Text>
         <View style={{ backgroundColor: '#E8F8EC', paddingHorizontal: 14, paddingVertical: 4, borderRadius: 100 }}>
-          <Text style={{ color: '#27AE60', fontSize: 12, fontWeight: '700' }}>✓ Fabricant agréé</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <FAIcon name="check" size={12} color="#27AE60" family="FontAwesome6" />
+            <Text style={{ color: '#27AE60', fontSize: 12, fontWeight: '700' }}>Fabricant agréé</Text>
+          </View>
         </View>
       </View>
 
       {/* Informations */}
       <View style={{ backgroundColor: 'white', marginHorizontal: 16, borderRadius: 16, padding: 20, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}>
         <Text style={{ fontSize: 11, fontWeight: '800', color: '#2E6DA4', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 16 }}>INFORMATIONS</Text>
-        <InfoRow icon="📧" label="Email"      value={user?.email         ?? '—'} />
-        <InfoRow icon="📱" label="Téléphone"  value={user?.telephone     ?? '—'} />
-        <InfoRow icon="📍" label="Adresse"    value={user?.adresse ? `${user.adresse}, ${user.ville ?? ''}` : '—'} />
-        <InfoRow icon="🪪" label="N° Agrément" value={user?.numero_agrement ?? '—'} last />
+        <InfoRow iconName="envelope" label="Email"      value={user?.email         ?? '—'} />
+        <InfoRow iconName="phone" label="Téléphone"  value={user?.telephone     ?? '—'} />
+        <InfoRow iconName="map-pin" label="Adresse"    value={user?.adresse ? `${user.adresse}, ${user.ville ?? ''}` : '—'} />
+        <InfoRow iconName="id-card" label="N° Agrément" value={user?.numero_agrement ?? '—'} last />
       </View>
 
       {/* Statistiques */}
@@ -109,10 +114,10 @@ export default function FabricantCompteScreen() {
 
       {/* Menu */}
       <View style={{ backgroundColor: 'white', marginHorizontal: 16, borderRadius: 16, overflow: 'hidden', marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}>
-        <MenuItem icon="🔔" label="Notifications" />
-        <MenuItem icon="🔒" label="Sécurité" />
-        <MenuItem icon="⚙️" label="Paramètres" />
-        <MenuItem icon="❓" label="Aide & Support" last />
+        <MenuItem iconName="bell" label="Notifications" />
+        <MenuItem iconName="lock" label="Sécurité" />
+        <MenuItem iconName="gear" label="Paramètres" />
+        <MenuItem iconName="circle-question" label="Aide & Support" last />
       </View>
 
       {/* Bouton déconnexion */}
@@ -124,7 +129,7 @@ export default function FabricantCompteScreen() {
         {loggingOut
           ? <ActivityIndicator color="#C0392B" size="small" />
           : <>
-              <Text style={{ fontSize: 16 }}>↩️</Text>
+              <FontAwesome6 name="arrow-right-from-bracket" size={16} color="#C0392B" />
               <Text style={{ color: '#C0392B', fontWeight: '700', fontSize: 15 }}>Se déconnecter</Text>
             </>
         }
@@ -133,10 +138,10 @@ export default function FabricantCompteScreen() {
   );
 }
 
-function InfoRow({ icon, label, value, last }: { icon: string; label: string; value: string; last?: boolean }) {
+function InfoRow({ iconName, label, value, last }: { iconName: string; label: string; value: string; last?: boolean }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#F7F9FC', gap: 14 }}>
-      <Text style={{ fontSize: 18, width: 26, textAlign: 'center' }}>{icon}</Text>
+      <FAIcon name={iconName} size={18} color="#2E6DA4" family="FontAwesome6" />
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 11, color: '#999', marginBottom: 2 }}>{label}</Text>
         <Text style={{ fontSize: 14, color: '#1A1A1A', fontWeight: '500' }}>{value}</Text>
@@ -154,15 +159,15 @@ function StatItem({ value, label, color }: { value: string; label: string; color
   );
 }
 
-function MenuItem({ icon, label, last }: { icon: string; label: string; last?: boolean }) {
+function MenuItem({ iconName, label, last }: { iconName: string; label: string; last?: boolean }) {
   return (
     <TouchableOpacity
       style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#F7F9FC', gap: 14 }}
       activeOpacity={0.6}
     >
-      <Text style={{ fontSize: 18, width: 26, textAlign: 'center' }}>{icon}</Text>
+      <FAIcon name={iconName} size={18} color="#2E6DA4" family="FontAwesome6" />
       <Text style={{ flex: 1, fontSize: 15, color: '#1A1A1A' }}>{label}</Text>
-      <Text style={{ color: '#ccc', fontSize: 16 }}>›</Text>
+      <FontAwesome6 name="chevron-right" size={16} color="#ccc" />
     </TouchableOpacity>
   );
 }

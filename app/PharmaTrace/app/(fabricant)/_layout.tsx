@@ -1,9 +1,5 @@
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
-
-function Icon({ label }: { label: string }) {
-  return <Text style={{ fontSize: 20 }}>{label}</Text>;
-}
+import { FAIcon } from "../../constants/icons";
 
 export default function FabricantLayout() {
   return (
@@ -27,7 +23,7 @@ export default function FabricantLayout() {
         options={{
           title: "Tableau de bord",
           tabBarLabel: "Accueil",
-          tabBarIcon: () => <Icon label="📊" />,
+          tabBarIcon: ({ color }) => <FAIcon name="chart-bar" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen
@@ -35,7 +31,7 @@ export default function FabricantLayout() {
         options={{
           title: "Mes Lots",
           tabBarLabel: "Lots",
-          tabBarIcon: () => <Icon label="📦" />,
+          tabBarIcon: ({ color }) => <FAIcon name="box" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen
@@ -43,7 +39,7 @@ export default function FabricantLayout() {
         options={{
           title: "Nouveau lot",
           tabBarLabel: "Créer",
-          tabBarIcon: () => <Icon label="➕" />,
+          tabBarIcon: ({ color }) => <FAIcon name="plus" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen
@@ -51,7 +47,7 @@ export default function FabricantLayout() {
         options={{
           title: "Transferts",
           tabBarLabel: "Transferts",
-          tabBarIcon: () => <Icon label="🔄" />,
+          tabBarIcon: ({ color }) => <FAIcon name="right-left" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen
@@ -59,7 +55,23 @@ export default function FabricantLayout() {
         options={{
           title: "Mon Compte",
           tabBarLabel: "Compte",
-          tabBarIcon: () => <Icon label="👤" />,
+          tabBarIcon: ({ color }) => <FAIcon name="user" size={20} color={color} family="FontAwesome6" />,
+        }}
+      />
+      <Tabs.Screen
+        name="nouveau-transfert"
+        options={{
+          href: null,
+          tabBarItemStyle: { display: 'none' },
+          title: 'Nouveau transfert',
+        }}
+      />
+      <Tabs.Screen
+        name="[id]"
+        options={{
+          href: null,
+          tabBarItemStyle: { display: 'none' },
+          title: 'Détail du lot',
         }}
       />
     </Tabs>

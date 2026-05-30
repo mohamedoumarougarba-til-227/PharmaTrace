@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
+import { FAIcon } from "../../constants/icons";
 
 export default function PharmacieLayout() {
   return (
@@ -23,7 +23,7 @@ export default function PharmacieLayout() {
         options={{
           title: "Tableau de bord",
           tabBarLabel: "Accueil",
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>📊</Text>,
+          tabBarIcon: ({ color }) => <FAIcon name="chart-bar" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen
@@ -31,7 +31,7 @@ export default function PharmacieLayout() {
         options={{
           title: "Transferts entrants",
           tabBarLabel: "Entrants",
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>📥</Text>,
+          tabBarIcon: ({ color }) => <FAIcon name="inbox" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen
@@ -39,7 +39,7 @@ export default function PharmacieLayout() {
         options={{
           title: "Mon Stock",
           tabBarLabel: "Stock",
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>📦</Text>,
+          tabBarIcon: ({ color }) => <FAIcon name="box" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen
@@ -47,7 +47,7 @@ export default function PharmacieLayout() {
         options={{
           title: "Vérification",
           tabBarLabel: "Scanner",
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>🔍</Text>,
+          tabBarIcon: ({ color }) => <FAIcon name="magnifying-glass" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen
@@ -55,7 +55,7 @@ export default function PharmacieLayout() {
         options={{
           title: "Mon Compte",
           tabBarLabel: "Compte",
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>👤</Text>,
+          tabBarIcon: ({ color }) => <FAIcon name="user" size={20} color={color} family="FontAwesome6" />,
         }}
       />
     </Tabs>

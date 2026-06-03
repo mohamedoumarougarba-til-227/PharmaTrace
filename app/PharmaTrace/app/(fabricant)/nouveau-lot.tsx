@@ -4,7 +4,7 @@ import {
   ScrollView, Alert, ActivityIndicator, Modal,
 } from 'react-native';
 import { router } from 'expo-router';
-import { sha256 } from 'js-sha256';
+import * as Crypto from 'expo-crypto';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
 
@@ -163,7 +163,10 @@ export default function NouveauLotScreen() {
         userId,
         createdAt,
       ].join('|');
-      const hashSha256 = sha256(hashSource);
+      const hashSha256 = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        hashSource
+      );
       const qrCodeData = `https://pharmatrace.vercel.app/verify?hash=${hashSha256}`;
       const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrCodeData)}`;
 

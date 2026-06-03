@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../../lib/supabase";
 import { FAIcon } from '../../constants/icons';
 
@@ -39,6 +40,32 @@ export default function VerifyScreen() {
   const [cameraActive, setCameraActive] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const scannedRef = useRef(false); // évite les doubles scans
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const isDemo = await AsyncStorage.getItem('pt_demo_mode') === 'true';
+          if (isDemo) {
+            const role = await AsyncStorage.getItem('pt_demo_role');
+            setUserRole(role);
+          } else {
+            const { data: profile } = await supabase
+              .from('utilisateurs')
+              .select('role')
+              .eq('id', session.user.id)
+              .maybeSingle();
+            setUserRole(profile?.role ?? null);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // ─── Vérification (manuelle ou QR) ───────────────────────────────────────
   const handleVerify = async (hash?: string) => {
@@ -68,6 +95,39 @@ export default function VerifyScreen() {
     setCameraActive(false);
     setResult({ status: "loading" });
 
+    // Déterminer le type de scanneur
+    let typeScanneur = "patient";
+    let scanneurId = null;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+      if (user) {
+        scanneurId = user.id;
+        const isDemo = await AsyncStorage.getItem('pt_demo_mode') === 'true';
+        let role = null;
+        if (isDemo) {
+          role = await AsyncStorage.getItem('pt_demo_role');
+        } else {
+          const { data: profile } = await supabase
+            .from('utilisateurs')
+            .select('role')
+            .eq('id', user.id)
+            .maybeSingle();
+          role = profile?.role;
+        }
+
+        if (role === 'pharmacie') {
+          typeScanneur = 'pharmacien';
+        } else if (role === 'agent_dph') {
+          typeScanneur = 'agent_dph';
+        } else if (role === 'fabricant') {
+          typeScanneur = 'fabricant';
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
     try {
       // Requête Supabase — cherche le lot par numéro ou hash
       const { data: lot, error } = await supabase
@@ -91,7 +151,8 @@ export default function VerifyScreen() {
         // Non trouvé → suspect + enregistre le scan
         await supabase.from("historique_scans").insert({
           hash_scanne: toVerify,
-          type_scanneur: "patient",
+          type_scanneur: typeScanneur,
+          scanneur_id: scanneurId,
           resultat: "non_trouve",
           pays_scan: "Niger",
         });
@@ -107,7 +168,8 @@ export default function VerifyScreen() {
       await supabase.from("historique_scans").insert({
         hash_scanne: toVerify,
         lot_id: lot.id,
-        type_scanneur: "patient",
+        type_scanneur: typeScanneur,
+        scanneur_id: scanneurId,
         resultat: isExpired ? "expire" : "authentique",
         pays_scan: "Niger",
       });
@@ -649,9 +711,17 @@ export default function VerifyScreen() {
           <Text style={{ color: "white", fontWeight: "900", fontSize: 20 }}>
             PharmaTrace
           </Text>
-          <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-            <Text style={{ color: "#2E6DA4", fontSize: 14 }}>Se connecter</Text>
-          </TouchableOpacity>
+          {userRole ? (
+            <View style={{ backgroundColor: userRole === 'agent_dph' ? 'rgba(142,68,173,0.2)' : 'rgba(39,174,96,0.2)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 100 }}>
+              <Text style={{ color: userRole === 'agent_dph' ? '#8E44AD' : '#27AE60', fontSize: 10, fontWeight: '700' }}>
+                {userRole === 'agent_dph' ? 'ESPACE DPH' : 'ESPACE PHARMACIE'}
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
+              <Text style={{ color: "#2E6DA4", fontSize: 14 }}>Se connecter</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Titre */}
@@ -665,7 +735,11 @@ export default function VerifyScreen() {
               lineHeight: 30,
             }}
           >
-            Vérifiez votre médicament
+            {userRole === 'agent_dph'
+              ? "Inspection de Lot"
+              : userRole === 'pharmacie' || userRole === 'pharmacien'
+              ? "Authentification de Lot"
+              : "Vérifiez votre médicament"}
           </Text>
           <Text
             style={{
@@ -675,7 +749,11 @@ export default function VerifyScreen() {
               marginTop: 8,
             }}
           >
-            Scannez le QR code sur l'emballage
+            {userRole === 'agent_dph'
+              ? "Scannez le QR code pour inspecter les détails du lot"
+              : userRole === 'pharmacie' || userRole === 'pharmacien'
+              ? "Scannez le QR code pour vérifier l'authenticité et le statut"
+              : "Scannez le QR code sur l'emballage"}
           </Text>
         </View>
 

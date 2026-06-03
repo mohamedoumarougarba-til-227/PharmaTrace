@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { FontAwesome6 } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
 
@@ -37,7 +38,7 @@ export default function TransfertsEntrantsScreen() {
         .order('date_initiation', { ascending: false });
 
       if (error) throw error;
-      setTransferts((data ?? []) as TransfertRow[]);
+      setTransferts((data ?? []) as unknown as TransfertRow[]);
     } catch (e) {
       console.error(e);
       setTransferts([]);
@@ -98,19 +99,16 @@ export default function TransfertsEntrantsScreen() {
   };
 
   const handleReception = (item: TransfertRow) => {
-    Alert.alert(
-      'Réceptionner le lot',
-      `Confirmez-vous la réception de "${item.lot_id?.nom_medicament ?? 'lot'}" ?\n\nAssurez-vous de scanner le QR code du lot reçu.`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Scanner & Confirmer', onPress: () => {
-          // TODO: ouvrir scanner QR pour confirmer la réception
-          updateTransferAndLot(item.id, item.lot_id?.id ?? null, 'receptionne').then(() => {
-            Alert.alert('Réceptionné', `Le lot ${item.lot_id?.nom_medicament ?? ''} a été réceptionné avec succès.`);
-          });
-        }},
-      ]
-    );
+    if (!item.lot_id?.id) return;
+    router.push({
+      pathname: '/(pharmacie)/verifier',
+      params: {
+        transfertId: item.id,
+        expectedLotId: item.lot_id.id,
+        expectedLotNum: item.lot_id.numero_lot,
+        expectedLotNom: item.lot_id.nom_medicament,
+      }
+    });
   };
 
   const handleRefus = (item: TransfertRow) => {

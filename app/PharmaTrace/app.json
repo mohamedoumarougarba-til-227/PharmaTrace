@@ -30,7 +30,8 @@
         {
           "cameraPermission": "PharmaTrace a besoin d'accéder à votre caméra pour scanner les QR codes des médicaments."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

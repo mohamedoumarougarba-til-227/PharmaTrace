@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, RefreshControl, Modal } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
@@ -10,6 +10,7 @@ export default function StockScreen() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedLot, setSelectedLot] = useState<any | null>(null);
 
   const loadStock = async () => {
     try {
@@ -20,7 +21,7 @@ export default function StockScreen() {
       // Récupère les transferts réceptionnés pour cette pharmacie avec les infos du lot
       const { data, error } = await supabase
         .from('transferts')
-        .select('id, quantite_transferee, date_reception, statut, expediteur_id(nom_entite), lot_id(id, numero_lot, nom_medicament, dosage, date_expiration, quantite_initiale)')
+        .select('id, quantite_transferee, date_reception, statut, expediteur_id(nom_entite), lot_id(id, numero_lot, nom_medicament, dosage, date_expiration, quantite_initiale, hash_sha256)')
         .eq('destinataire_id', session.user.id)
         .eq('statut', 'receptionne')
         .order('date_reception', { ascending: false });
@@ -33,6 +34,9 @@ export default function StockScreen() {
         dosage: r.lot_id?.dosage ?? '—',
         qte: r.quantite_transferee,
         exp: r.lot_id?.date_expiration ? new Date(r.lot_id.date_expiration).toLocaleDateString('fr-FR') : '—',
+        date_reception: r.date_reception ? new Date(r.date_reception).toLocaleDateString('fr-FR') : '—',
+        fabricant: r.expediteur_id?.nom_entite ?? 'Laboratoire Niger Pharma',
+        hash: r.lot_id?.hash_sha256 ?? '',
         alerte: r.lot_id?.date_expiration ? (new Date(r.lot_id.date_expiration) < new Date(Date.now() + 30 * 24 * 3600 * 1000)) : false,
       })));
     } catch (e) {
@@ -102,7 +106,10 @@ export default function StockScreen() {
             <View className="flex-row justify-between items-center pt-2 border-t border-bg">
               <Text className="text-xs text-muted">{lot.qte} unités · Exp : <Text className={lot.alerte ? 'text-pharma-orange font-bold' : 'text-text'}>{lot.exp}</Text></Text>
               <View className="flex-row gap-2">
-                <TouchableOpacity className="px-3 py-1.5 border border-blue-light rounded-lg flex-row items-center gap-1">
+                <TouchableOpacity
+                  onPress={() => setSelectedLot(lot)}
+                  className="px-3 py-1.5 border border-blue-light rounded-lg flex-row items-center gap-1"
+                >
                   <FAIcon name="magnifying-glass" size={12} color="#2E6DA4" family="FontAwesome6" />
                   <Text className="text-blue text-xs font-semibold">Vérifier</Text>
                 </TouchableOpacity>
@@ -112,6 +119,64 @@ export default function StockScreen() {
         ))}
         <View className="h-8" />
       </ScrollView>
+
+      {/* Modal Détails du Lot */}
+      <Modal
+        visible={selectedLot !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSelectedLot(null)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <View className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-xl">
+            <View className="flex-row justify-between items-center mb-4 border-b border-bg pb-3">
+              <Text className="text-navy font-black text-lg">Détails du Lot</Text>
+              <TouchableOpacity onPress={() => setSelectedLot(null)} className="p-1">
+                <FAIcon name="xmark" size={18} color="#C0392B" family="FontAwesome6" />
+              </TouchableOpacity>
+            </View>
+
+            {selectedLot && (
+              <View className="gap-1">
+                <View className="bg-pharma-green/10 p-3 rounded-xl mb-2">
+                  <Text className="text-pharma-green font-bold text-base">{selectedLot.nom}</Text>
+                  <Text className="text-muted text-xs mt-1">{selectedLot.dosage}</Text>
+                </View>
+
+                <DetailRow label="Numéro de lot" value={selectedLot.num} isBold />
+                <DetailRow label="Quantité stockée" value={`${selectedLot.qte} unités`} />
+                <DetailRow label="Date d'arrivée" value={selectedLot.date_reception} />
+                <DetailRow label="Expiration" value={selectedLot.exp} color={selectedLot.alerte ? '#E67E22' : '#27AE60'} isBold={selectedLot.alerte} />
+                <DetailRow label="Fabricant" value={selectedLot.fabricant} />
+                <DetailRow label="Livré par" value={selectedLot.fabricant} />
+                
+                {selectedLot.hash && (
+                  <View className="bg-bg p-3 rounded-lg border border-blue-light mt-2">
+                    <Text className="text-[10px] text-muted font-bold uppercase tracking-wider mb-1">Signature SHA-256</Text>
+                    <Text className="text-[10px] font-mono text-navy select-all" style={{ flexWrap: 'wrap' }}>{selectedLot.hash}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            <TouchableOpacity
+              onPress={() => setSelectedLot(null)}
+              className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center"
+            >
+              <Text className="text-white font-bold text-sm">Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+function DetailRow({ label, value, color, isBold }: { label: string; value: string; color?: string; isBold?: boolean }) {
+  return (
+    <View className="flex-row justify-between py-2 border-b border-bg">
+      <Text className="text-muted text-[10px] uppercase tracking-wider align-middle">{label}</Text>
+      <Text className="text-sm font-semibold text-text text-right flex-1 ml-4" style={{ color, fontWeight: isBold ? '900' : '600' }}>{value}</Text>
     </View>
   );
 }

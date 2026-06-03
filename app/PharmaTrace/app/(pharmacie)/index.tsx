@@ -92,16 +92,20 @@ export default function PharmacieDashboard() {
         </View>
 
         {/* Alerte transferts en attente */}
-        <TouchableOpacity
-          onPress={() => router.push('/(pharmacie)/transferts')}
-          className="bg-pharma-orange/10 border-l-4 border-pharma-orange rounded-r-xl p-4 mb-5"
-        >
-          <View className="flex-row items-center gap-2 mb-1">
-            <FAIcon name="bolt" size={16} color="#E67E22" family="FontAwesome6" />
-            <Text className="text-pharma-orange font-bold text-sm">3 lots attendent votre réception</Text>
-          </View>
-          <Text className="text-muted text-xs mt-1">Appuyez pour voir les transferts entrants →</Text>
-        </TouchableOpacity>
+        {kpis.transferts_attente > 0 && (
+          <TouchableOpacity
+            onPress={() => router.push('/(pharmacie)/transferts')}
+            className="bg-pharma-orange/10 border-l-4 border-pharma-orange rounded-r-xl p-4 mb-5"
+          >
+            <View className="flex-row items-center gap-2 mb-1">
+              <FAIcon name="bolt" size={16} color="#E67E22" family="FontAwesome6" />
+              <Text className="text-pharma-orange font-bold text-sm">
+                {kpis.transferts_attente} lot{kpis.transferts_attente > 1 ? 's attendent' : ' attend'} votre réception
+              </Text>
+            </View>
+            <Text className="text-muted text-xs mt-1">Appuyez pour voir les transferts entrants →</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Actions rapides */}
         <Text className="text-navy font-bold text-base mb-3">Actions rapides</Text>

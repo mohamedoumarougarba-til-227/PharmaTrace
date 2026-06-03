@@ -10,6 +10,7 @@ import {
   Alert,
   Image,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { FAIcon } from '../../constants/icons';
 import { StatusBar } from "expo-status-bar";
@@ -21,12 +22,30 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
 
+  const handleQuickLogin = async (role: "fabricant" | "pharmacie" | "agent_dph") => {
+    setLoading(true);
+    try {
+      await AsyncStorage.setItem("pt_demo_mode", "true");
+      await AsyncStorage.setItem("pt_demo_role", role);
+      if (role === "fabricant") router.replace("/(fabricant)");
+      else if (role === "pharmacie") router.replace("/(pharmacie)");
+      else if (role === "agent_dph") router.replace("/(agent-dph)");
+    } catch (e) {
+      Alert.alert("Erreur", "Impossible d'activer le mode démo.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs.");
       return;
     }
     setLoading(true);
+    try {
+      await AsyncStorage.setItem("pt_demo_mode", "false");
+    } catch (e) {}
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -151,10 +170,7 @@ export default function LoginScreen() {
           {/* Boutons démo */}
           <View className="flex-row justify-between gap-1.5 mt-2">
             <TouchableOpacity
-              onPress={() => {
-                setEmail("fabricant@nigerpharma.ne");
-                setPassword("***REMOVED***");
-              }}
+              onPress={() => handleQuickLogin("fabricant")}
               className="flex-1 bg-navy/5 border border-navy/10 py-2.5 rounded-lg items-center justify-center"
             >
               <FAIcon name="industry" size={12} color="#1A3A5C" family="FontAwesome6" />
@@ -162,10 +178,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => {
-                setEmail("pharmacie@centrale.ne");
-                setPassword("***REMOVED***");
-              }}
+              onPress={() => handleQuickLogin("pharmacie")}
               className="flex-1 bg-pharma-green/5 border border-pharma-green/10 py-2.5 rounded-lg items-center justify-center"
             >
               <FAIcon name="prescription-bottle-medical" size={12} color="#27AE60" family="FontAwesome6" />
@@ -173,10 +186,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => {
-                setEmail("agent@dpn.ne");
-                setPassword("***REMOVED***");
-              }}
+              onPress={() => handleQuickLogin("agent_dph")}
               className="flex-1 bg-pharma-purple/5 border border-pharma-purple/10 py-2.5 rounded-lg items-center justify-center"
             >
               <FAIcon name="shield-halved" size={12} color="#8E44AD" family="FontAwesome6" />

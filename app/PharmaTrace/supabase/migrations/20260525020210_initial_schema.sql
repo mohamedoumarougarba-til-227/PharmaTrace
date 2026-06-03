@@ -269,7 +269,7 @@ ALTER TABLE public.alertes           ENABLE ROW LEVEL SECURITY;
 
 -- Helpers
 CREATE OR REPLACE FUNCTION public.get_my_role()
-RETURNS TEXT LANGUAGE sql STABLE AS $$
+RETURNS TEXT LANGUAGE sql SECURITY DEFINER SET search_path = public STABLE AS $$
   SELECT role::text FROM public.utilisateurs WHERE id = auth.uid()
 $$;
 

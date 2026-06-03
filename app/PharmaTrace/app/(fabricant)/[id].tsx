@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert, Share } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
 import { useFocusEffect, useLocalSearchParams, Link } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
+import { VERIFICATION_BASE_URL } from '../../constants/config';
 
 function formatDate(d?: string | null) {
   if (!d) return '—';
@@ -45,8 +47,12 @@ export default function LotDetailScreen() {
 
   const onShareQR = async () => {
     try {
-      if (!lot.qr_code_url) { Alert.alert('QR absent'); return; }
-      await Share.share({ message: `QR code du lot ${lot.numero_lot} — ${lot.nom_medicament}\n${lot.qr_code_url}` });
+      const qrValue = lot.qr_code_url && lot.qr_code_url.includes('api.qrserver.com')
+        ? decodeURIComponent(lot.qr_code_url.split('data=')[1] || '')
+        : lot.qr_code_url || `${VERIFICATION_BASE_URL}?hash=${lot.hash_sha256}`;
+        
+      if (!qrValue) { Alert.alert('QR absent'); return; }
+      await Share.share({ message: `QR code du lot ${lot.numero_lot} — ${lot.nom_medicament}\n${qrValue}` });
     } catch (e) { console.error(e); }
   };
 
@@ -60,8 +66,15 @@ export default function LotDetailScreen() {
         <View className="bg-white rounded-xl p-6 items-center mb-4">
           <Text className="text-muted text-xs uppercase mb-3">QR code de traçabilité</Text>
           <View style={{ width: 220, height: 220, borderRadius: 12, borderWidth: 1, borderColor: '#E6EEF8', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#fff' }}>
-            {lot.qr_code_url ? (
-              <Image source={{ uri: lot.qr_code_url }} style={{ width: 200, height: 200 }} resizeMode="contain" />
+            {lot.qr_code_url || lot.hash_sha256 ? (
+              <QRCode
+                value={
+                  lot.qr_code_url && lot.qr_code_url.includes('api.qrserver.com')
+                    ? decodeURIComponent(lot.qr_code_url.split('data=')[1] || '')
+                    : lot.qr_code_url || `${VERIFICATION_BASE_URL}?hash=${lot.hash_sha256}`
+                }
+                size={200}
+              />
             ) : (
               <View style={{ alignItems: 'center' }}>
                 <FAIcon name="qrcode" size={64} color="#ccc" family="FontAwesome6" />

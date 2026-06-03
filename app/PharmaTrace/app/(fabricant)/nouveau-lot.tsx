@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
+import { VERIFICATION_BASE_URL } from '../../constants/config';
 
 const FORMES = ['Comprimé', 'Gélule', 'Sirop', 'Injectable', 'Poudre', 'Autre'];
 
@@ -167,8 +168,7 @@ export default function NouveauLotScreen() {
         Crypto.CryptoDigestAlgorithm.SHA256,
         hashSource
       );
-      const qrCodeData = `https://pharmatrace.vercel.app/verify?hash=${hashSha256}`;
-      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrCodeData)}`;
+      const qrCodeUrl = `${VERIFICATION_BASE_URL}?hash=${hashSha256}`;
 
       const { error } = await supabase.from('lots_medicaments').insert({
         numero_lot: form.numero_lot,

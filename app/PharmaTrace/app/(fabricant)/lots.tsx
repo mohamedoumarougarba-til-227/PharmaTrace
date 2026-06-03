@@ -1,15 +1,8 @@
-import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
-import { Link } from 'expo-router';
-import { useState } from 'react';
-
-const LOTS_DEMO = [
-  { id: '1', nom: 'Amoxicilline 500mg',  numero: 'FAB-2026-048', dosage: '500mg',   quantite: 2000, exp: '15/01/2028', statut: 'en_pharmacie'       },
-  { id: '2', nom: 'Paracétamol 1000mg',  numero: 'FAB-2026-047', dosage: '1000mg',  quantite: 1500, exp: '20/03/2028', statut: 'en_transit'         },
-  { id: '3', nom: 'Artéméther 20mg',     numero: 'FAB-2026-046', dosage: '20mg',    quantite: 3000, exp: '10/12/2027', statut: 'en_stock_fabricant' },
-  { id: '4', nom: 'Ivermectine 6mg',     numero: 'FAB-2026-045', dosage: '6mg',     quantite: 5000, exp: '05/09/2027', statut: 'en_stock_fabricant' },
-  { id: '5', nom: 'Cotrimoxazole 480mg', numero: 'FAB-2026-044', dosage: '480mg',   quantite: 800,  exp: '30/06/2026', statut: 'expire_bientot'    },
-  { id: '6', nom: 'Chloroquine 250mg',   numero: 'FAB-2026-030', dosage: '250mg',   quantite: 0,    exp: '01/01/2025', statut: 'archive'            },
-];
+import { useCallback, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
+import { Link, router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { supabase } from '../../lib/supabase';
 
 const STATUT_MAP: Record<string, { label: string; bg: string; text: string }> = {
   en_stock_fabricant: { label: 'En stock',       bg: '#EEF4FB', text: '#2E6DA4' },
@@ -19,13 +12,71 @@ const STATUT_MAP: Record<string, { label: string; bg: string; text: string }> = 
   archive:            { label: 'Archivé',        bg: '#F0F0F0', text: '#999'    },
 };
 
+type LotRow = {
+  id: string;
+  nom_medicament: string;
+  numero_lot: string;
+  dosage: string | null;
+  quantite_initiale: number;
+  date_expiration: string;
+  statut_actuel: string;
+};
+
 export default function LotsScreen() {
   const [search, setSearch] = useState('');
+  const [lots, setLots] = useState<LotRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const filtered = LOTS_DEMO.filter(l =>
-    l.nom.toLowerCase().includes(search.toLowerCase()) ||
-    l.numero.toLowerCase().includes(search.toLowerCase())
+  const loadLots = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setLots([]);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('lots_medicaments')
+        .select('id, nom_medicament, numero_lot, dosage, quantite_initiale, date_expiration, statut_actuel')
+        .eq('fabricant_id', session.user.id)
+        .eq('is_archived', false)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setLots((data ?? []) as LotRow[]);
+    } catch (error) {
+      console.error(error);
+      setLots([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadLots();
+    }, []),
   );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadLots();
+  };
+
+  const filtered = lots.filter(l =>
+    l.nom_medicament.toLowerCase().includes(search.toLowerCase()) ||
+    l.numero_lot.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg">
+        <ActivityIndicator color="#1A3A5C" size="large" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-bg">
@@ -40,12 +91,24 @@ export default function LotsScreen() {
         />
       </View>
 
-      <ScrollView className="flex-1 px-4 pt-3">
+      <ScrollView
+        className="flex-1 px-4 pt-3"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A3A5C" />}
+      >
         <Text className="text-muted text-xs mb-3">{filtered.length} lot(s) trouvé(s)</Text>
 
+        {filtered.length === 0 && (
+          <View className="bg-white rounded-xl p-4 mb-2 border border-blue-light">
+            <Text className="text-navy font-semibold text-sm">Aucun lot enregistré</Text>
+            <Text className="text-muted text-xs mt-1">
+              Créez un lot depuis le bouton + pour le retrouver ici.
+            </Text>
+          </View>
+        )}
+
         {filtered.map(lot => {
-          const s = STATUT_MAP[lot.statut] ?? STATUT_MAP['archive'];
-          const expired = lot.statut === 'expire_bientot';
+          const s = STATUT_MAP[lot.statut_actuel] ?? STATUT_MAP['archive'];
+          const expired = new Date(lot.date_expiration) < new Date();
           return (
             <View
               key={lot.id}
@@ -53,21 +116,27 @@ export default function LotsScreen() {
             >
               <View className="flex-row justify-between items-start mb-2">
                 <View className="flex-1 mr-3">
-                  <Text className="text-navy font-bold text-sm">{lot.nom}</Text>
-                  <Text className="text-muted text-xs mt-1">{lot.numero}  ·  {lot.dosage}  ·  {lot.quantite} unités</Text>
+                  <Text className="text-navy font-bold text-sm">{lot.nom_medicament}</Text>
+                  <Text className="text-muted text-xs mt-1">{lot.numero_lot}  ·  {lot.dosage ?? '—'}  ·  {lot.quantite_initiale} unités</Text>
                 </View>
                 <View className="px-2 py-1 rounded-full" style={{ backgroundColor: s.bg }}>
                   <Text className="text-xs font-bold" style={{ color: s.text }}>{s.label}</Text>
                 </View>
               </View>
               <View className="flex-row justify-between items-center pt-2 border-t border-bg">
-                <Text className="text-xs text-muted">Exp : <Text className={expired ? 'text-pharma-orange font-bold' : 'text-text'}>{lot.exp}</Text></Text>
+                <Text className="text-xs text-muted">Exp : <Text className={expired ? 'text-pharma-orange font-bold' : 'text-text'}>{new Date(lot.date_expiration).toLocaleDateString('fr-FR')}</Text></Text>
                 <View className="flex-row gap-2">
-                  <TouchableOpacity className="px-3 py-1.5 rounded-lg border border-blue-light">
+                  <TouchableOpacity
+                    className="px-3 py-1.5 rounded-lg border border-blue-light"
+                    onPress={() => router.push({ pathname: '/(fabricant)/[id]', params: { id: lot.id } })}
+                  >
                     <Text className="text-blue text-xs font-semibold">Voir</Text>
                   </TouchableOpacity>
-                  {lot.statut !== 'archive' && (
-                    <TouchableOpacity className="px-3 py-1.5 rounded-lg bg-navy">
+                  {lot.statut_actuel !== 'archive' && (
+                    <TouchableOpacity
+                      className="px-3 py-1.5 rounded-lg bg-navy"
+                      onPress={() => router.push({ pathname: '/(fabricant)/nouveau-transfert', params: { lotId: lot.id } })}
+                    >
                       <Text className="text-white text-xs font-semibold">Transférer</Text>
                     </TouchableOpacity>
                   )}

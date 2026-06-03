@@ -1,7 +1,9 @@
 import { Tabs } from "expo-router";
 import { Text, TouchableOpacity, Alert } from "react-native";
 import { router } from "expo-router";
+import { FontAwesome6 } from "@expo/vector-icons";
 import { supabase } from "../../lib/supabase";
+import { FAIcon } from "../../constants/icons";
 
 function LogoutButton() {
   const handleLogout = () => {
@@ -20,7 +22,7 @@ function LogoutButton() {
 
   return (
     <TouchableOpacity onPress={handleLogout} style={{ marginRight: 16 }}>
-      <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 22 }}>↩️</Text>
+      <FontAwesome6 name="arrow-right-from-bracket" size={20} color="rgba(255,255,255,0.85)" />
     </TouchableOpacity>
   );
 }
@@ -48,7 +50,7 @@ export default function AgentDPHLayout() {
         options={{
           title: "Surveillance nationale",
           tabBarLabel: "Accueil",
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏛️</Text>,
+          tabBarIcon: ({ color }) => <FAIcon name="gopuram" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen
@@ -56,7 +58,7 @@ export default function AgentDPHLayout() {
         options={{
           title: "Alertes",
           tabBarLabel: "Alertes",
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>🚨</Text>,
+          tabBarIcon: ({ color }) => <FAIcon name="triangle-exclamation" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen
@@ -64,7 +66,7 @@ export default function AgentDPHLayout() {
         options={{
           title: "Tous les lots",
           tabBarLabel: "Lots",
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>📦</Text>,
+          tabBarIcon: ({ color }) => <FAIcon name="box" size={20} color={color} family="FontAwesome6" />,
         }}
       />
     </Tabs>

@@ -12,6 +12,7 @@ import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { supabase } from "../../lib/supabase";
+import { FAIcon } from '../../constants/icons';
 
 type VerifyResult =
   | { status: "idle" }
@@ -184,7 +185,7 @@ export default function VerifyScreen() {
                 justifyContent: "center",
               }}
             >
-              <Text style={{ fontSize: 48, color: "#27AE60" }}>✓</Text>
+              <FAIcon name="check" size={48} color="#27AE60" family="FontAwesome6" />
             </View>
           </View>
           <Text
@@ -416,7 +417,7 @@ export default function VerifyScreen() {
               <Text
                 style={{ color: "#E67E22", fontWeight: "900", fontSize: 15 }}
               >
-                ⚠️ NE PAS CONSOMMER
+                NE PAS CONSOMMER
               </Text>
               <Text
                 style={{
@@ -474,7 +475,7 @@ export default function VerifyScreen() {
                 justifyContent: "center",
               }}
             >
-              <Text style={{ fontSize: 48, color: "#C0392B" }}>✕</Text>
+              <FAIcon name="xmark" size={48} color="#C0392B" family="FontAwesome6" />
             </View>
           </View>
           <Text
@@ -508,17 +509,19 @@ export default function VerifyScreen() {
               marginTop: 24,
             }}
           >
-            <Text
-              style={{
-                color: "#C0392B",
-                fontWeight: "700",
-                fontSize: 13,
-                textTransform: "uppercase",
-                marginBottom: 12,
-              }}
-            >
-              ⚠ Médicament non enregistré
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <FAIcon name="triangle-exclamation" size={13} color="#C0392B" family="FontAwesome6" />
+              <Text
+                style={{
+                  color: "#C0392B",
+                  fontWeight: "700",
+                  fontSize: 13,
+                  textTransform: "uppercase",
+                }}
+              >
+                Médicament non enregistré
+              </Text>
+            </View>
             <Text style={{ color: "#1A1A1A", fontSize: 15, lineHeight: 24 }}>
               Ce médicament n'est pas enregistré dans le système officiel de
               traçabilité PharmaTrace.
@@ -535,7 +538,7 @@ export default function VerifyScreen() {
               <Text
                 style={{ color: "#C0392B", fontWeight: "900", fontSize: 16 }}
               >
-                ⛔ NE LE CONSOMMEZ PAS
+                NE LE CONSOMMEZ PAS
               </Text>
               <Text
                 style={{
@@ -681,11 +684,14 @@ export default function VerifyScreen() {
                 onPress={() => setCameraActive(false)}
                 style={styles.cancelBtn}
               >
-                <Text
-                  style={{ color: "white", fontSize: 12, fontWeight: "600" }}
-                >
-                  ✕ Annuler
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <FAIcon name="xmark" size={12} color="#fff" family="FontAwesome6" />
+                  <Text
+                    style={{ color: "white", fontSize: 12, fontWeight: "600" }}
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
           ) : (
@@ -695,7 +701,7 @@ export default function VerifyScreen() {
               style={styles.cameraFrame}
               activeOpacity={0.85}
             >
-              <Text style={{ fontSize: 52 }}>📷</Text>
+              <FAIcon name="camera" size={52} color="#2E6DA4" family="FontAwesome6" />
               <Text
                 style={{
                   color: "#2E6DA4",

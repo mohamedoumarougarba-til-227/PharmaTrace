@@ -1,16 +1,74 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { Link, router } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { supabase } from '../../lib/supabase';
+
+type LotSummary = {
+  id: string;
+  nom_medicament: string;
+  numero_lot: string;
+  dosage: string | null;
+  statut_actuel: string;
+};
 
 export default function FabricantDashboard() {
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [kpis, setKpis] = useState({ total: 0, stock: 0, transit: 0, pharmacie: 0 });
+  const [lots, setLots] = useState<LotSummary[]>([]);
+
+  const loadDashboard = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setLots([]);
+        setKpis({ total: 0, stock: 0, transit: 0, pharmacie: 0 });
+        return;
+      }
+
+      const [lotsRes, stockRes, transitRes, pharmacieRes] = await Promise.all([
+        supabase.from('lots_medicaments').select('id, nom_medicament, numero_lot, dosage, statut_actuel').eq('fabricant_id', session.user.id).eq('is_archived', false).order('created_at', { ascending: false }).limit(5),
+        supabase.from('lots_medicaments').select('id', { count: 'exact', head: true }).eq('fabricant_id', session.user.id).eq('statut_actuel', 'en_stock_fabricant').eq('is_archived', false),
+        supabase.from('lots_medicaments').select('id', { count: 'exact', head: true }).eq('fabricant_id', session.user.id).eq('statut_actuel', 'en_transit').eq('is_archived', false),
+        supabase.from('lots_medicaments').select('id', { count: 'exact', head: true }).eq('fabricant_id', session.user.id).eq('statut_actuel', 'en_pharmacie').eq('is_archived', false),
+      ]);
+
+      setLots((lotsRes.data ?? []) as LotSummary[]);
+      setKpis({
+        total: (stockRes.count ?? 0) + (transitRes.count ?? 0) + (pharmacieRes.count ?? 0),
+        stock: stockRes.count ?? 0,
+        transit: transitRes.count ?? 0,
+        pharmacie: pharmacieRes.count ?? 0,
+      });
+    } catch (error) {
+      console.error(error);
+      setLots([]);
+      setKpis({ total: 0, stock: 0, transit: 0, pharmacie: 0 });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboard();
+    }, []),
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // TODO: recharger depuis Supabase
-    await new Promise(r => setTimeout(r, 800));
-    setRefreshing(false);
+    await loadDashboard();
   };
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg">
+        <ActivityIndicator color="#1A3A5C" size="large" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -28,10 +86,10 @@ export default function FabricantDashboard() {
         {/* KPI Cards */}
         <Text className="text-navy font-bold text-base mb-3">Vue d'ensemble</Text>
         <View className="flex-row flex-wrap gap-3 mb-6">
-          <KPICard label="Total lots"   value="48" color="#2E6DA4" bg="#EEF4FB" />
-          <KPICard label="En stock"     value="22" color="#27AE60" bg="#E8F8EC" />
-          <KPICard label="En transit"   value="8"  color="#E67E22" bg="#FEF4E0" />
-          <KPICard label="En pharmacie" value="18" color="#8E44AD" bg="#F5EEFF" />
+          <KPICard label="Total lots"   value={String(kpis.total)} color="#2E6DA4" bg="#EEF4FB" />
+          <KPICard label="En stock"     value={String(kpis.stock)} color="#27AE60" bg="#E8F8EC" />
+          <KPICard label="En transit"   value={String(kpis.transit)} color="#E67E22" bg="#FEF4E0" />
+          <KPICard label="En pharmacie" value={String(kpis.pharmacie)} color="#8E44AD" bg="#F5EEFF" />
         </View>
 
         {/* Action principale */}
@@ -43,19 +101,26 @@ export default function FabricantDashboard() {
 
         {/* Derniers lots */}
         <Text className="text-navy font-bold text-base mt-4 mb-3">Mes 5 derniers lots</Text>
-        {LOT_DEMO.map(lot => (
+        {lots.map(lot => (
           <TouchableOpacity
             key={lot.id}
             className="bg-white rounded-xl px-4 py-4 mb-2 shadow-sm flex-row justify-between items-center"
-            onPress={() => {/* TODO: naviguer vers détail lot */}}
+            onPress={() => router.push({ pathname: '/(fabricant)/[id]', params: { id: lot.id } })}
           >
             <View className="flex-1">
-              <Text className="text-navy font-bold text-sm">{lot.nom}</Text>
-              <Text className="text-muted text-xs mt-1">{lot.numero} · {lot.dosage}</Text>
+              <Text className="text-navy font-bold text-sm">{lot.nom_medicament}</Text>
+              <Text className="text-muted text-xs mt-1">{lot.numero_lot} · {lot.dosage ?? '—'}</Text>
             </View>
-            <StatusBadge statut={lot.statut} />
+            <StatusBadge statut={lot.statut_actuel} />
           </TouchableOpacity>
         ))}
+
+        {lots.length === 0 && (
+          <View className="bg-white rounded-xl p-4 mb-2 border border-blue-light">
+            <Text className="text-navy font-semibold text-sm">Aucun lot pour le moment</Text>
+            <Text className="text-muted text-xs mt-1">Créez votre premier lot pour le voir apparaître ici.</Text>
+          </View>
+        )}
 
         <Link href="/(fabricant)/lots" asChild>
           <TouchableOpacity className="mt-2 items-center py-3">
@@ -93,10 +158,3 @@ function StatusBadge({ statut }: { statut: string }) {
   );
 }
 
-const LOT_DEMO = [
-  { id: '1', nom: 'Amoxicilline 500mg',  numero: 'FAB-2026-048', dosage: '500mg', statut: 'en_pharmacie'       },
-  { id: '2', nom: 'Paracétamol 1000mg',  numero: 'FAB-2026-047', dosage: '1g',    statut: 'en_transit'         },
-  { id: '3', nom: 'Artéméther 20mg',     numero: 'FAB-2026-046', dosage: '20mg',  statut: 'en_stock_fabricant' },
-  { id: '4', nom: 'Cotrimoxazole 480mg', numero: 'FAB-2026-045', dosage: '480mg', statut: 'en_pharmacie'       },
-  { id: '5', nom: 'Ivermectine 6mg',     numero: 'FAB-2026-044', dosage: '6mg',   statut: 'en_stock_fabricant' },
-];

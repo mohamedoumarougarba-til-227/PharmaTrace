@@ -12,8 +12,10 @@ A exclure de github/
 .env.production
 # .env.example EST inclus (valeurs vides — pas de secrets)
 
+# ── Dépendances Node (ignorer à tous les niveaux) ────
+node_modules/
+
 # ── Expo / React Native ──────────────────────────────
-app/PharmaTrace/node_modules/
 app/PharmaTrace/.expo/
 app/PharmaTrace/android/
 app/PharmaTrace/ios/

@@ -42,8 +42,27 @@ export default function VerifyScreen() {
 
   // ─── Vérification (manuelle ou QR) ───────────────────────────────────────
   const handleVerify = async (hash?: string) => {
-    const toVerify = (hash ?? input).trim();
+    let toVerify = (hash ?? input).trim();
     if (!toVerify) return;
+
+    // Si c'est une URL, on extrait le paramètre 'hash' ou le dernier segment du path
+    if (toVerify.startsWith("http://") || toVerify.startsWith("https://")) {
+      try {
+        // Remplacement simple de RegExp ou URL parser
+        const match = toVerify.match(/[?&]hash=([^&]+)/);
+        if (match && match[1]) {
+          toVerify = match[1];
+        } else {
+          const parts = toVerify.split("/");
+          const lastPart = parts[parts.length - 1];
+          if (lastPart) {
+            toVerify = lastPart;
+          }
+        }
+      } catch (e) {
+        // fallback
+      }
+    }
 
     scannedRef.current = true;
     setCameraActive(false);

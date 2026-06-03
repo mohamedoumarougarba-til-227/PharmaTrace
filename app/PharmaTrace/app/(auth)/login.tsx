@@ -133,13 +133,56 @@ export default function LoginScreen() {
           <TouchableOpacity
             onPress={handleLogin}
             disabled={loading}
-            className="w-full h-12 bg-navy rounded-lg items-center justify-center"
+            className="w-full h-12 bg-navy rounded-lg items-center justify-center mb-4"
             style={{ opacity: loading ? 0.7 : 1 }}
           >
             <Text className="text-white font-bold text-base">
               {loading ? "Connexion..." : "Se connecter"}
             </Text>
           </TouchableOpacity>
+
+          {/* Séparateur pour Démo */}
+          <View className="flex-row items-center gap-2 my-2">
+            <View className="flex-1 h-px bg-blue-light" />
+            <Text className="text-muted text-[10px] font-bold uppercase tracking-wider">Accès Démo (Jury)</Text>
+            <View className="flex-1 h-px bg-blue-light" />
+          </View>
+
+          {/* Boutons démo */}
+          <View className="flex-row justify-between gap-1.5 mt-2">
+            <TouchableOpacity
+              onPress={() => {
+                setEmail("fabricant@nigerpharma.ne");
+                setPassword("***REMOVED***");
+              }}
+              className="flex-1 bg-navy/5 border border-navy/10 py-2.5 rounded-lg items-center justify-center"
+            >
+              <FAIcon name="industry" size={12} color="#1A3A5C" family="FontAwesome6" />
+              <Text className="text-navy font-bold text-[10px] mt-1 text-center">Fabricant</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setEmail("pharmacie@centrale.ne");
+                setPassword("***REMOVED***");
+              }}
+              className="flex-1 bg-pharma-green/5 border border-pharma-green/10 py-2.5 rounded-lg items-center justify-center"
+            >
+              <FAIcon name="prescription-bottle-medical" size={12} color="#27AE60" family="FontAwesome6" />
+              <Text className="text-pharma-green font-bold text-[10px] mt-1 text-center">Pharmacie</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setEmail("agent@dpn.ne");
+                setPassword("***REMOVED***");
+              }}
+              className="flex-1 bg-pharma-purple/5 border border-pharma-purple/10 py-2.5 rounded-lg items-center justify-center"
+            >
+              <FAIcon name="shield-halved" size={12} color="#8E44AD" family="FontAwesome6" />
+              <Text className="text-pharma-purple font-bold text-[10px] mt-1 text-center">Agent DPH</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Note accès restreint */}

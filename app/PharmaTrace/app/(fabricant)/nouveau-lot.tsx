@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  ScrollView, Alert, ActivityIndicator, Modal,
+  ScrollView, Alert, ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
 import { VERIFICATION_BASE_URL } from '../../constants/config';
+import CustomDatePicker from '../../components/CustomDatePicker';
 
 const FORMES = ['Comprimé', 'Gélule', 'Sirop', 'Injectable', 'Poudre', 'Autre'];
 
@@ -65,39 +66,11 @@ export default function NouveauLotScreen() {
 
   // Modals pour sélecteurs de date
   const [datePickerField, setDatePickerField] = useState<'date_fabrication' | 'date_expiration' | null>(null);
-  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const openDatePicker = (field: 'date_fabrication' | 'date_expiration') => {
-    setDatePickerField(field);
-    const currentValue = form[field];
-    const dateParts = currentValue.split('/');
-    if (dateParts.length === 3) {
-      const d = parseInt(dateParts[0], 10);
-      const m = parseInt(dateParts[1], 10);
-      const y = parseInt(dateParts[2], 10);
-      if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
-        setSelectedDay(d);
-        setSelectedMonth(m);
-        setSelectedYear(y);
-        return;
-      }
-    }
-    const today = new Date();
-    setSelectedDay(today.getDate());
-    setSelectedMonth(today.getMonth() + 1);
-    setSelectedYear(today.getFullYear() + (field === 'date_expiration' ? 2 : 0));
-  };
-
-  const confirmDatePicker = () => {
+  const handleDateChange = (date: string) => {
     if (datePickerField) {
-      const dayStr = String(selectedDay).padStart(2, '0');
-      const monthStr = String(selectedMonth).padStart(2, '0');
-      const value = `${dayStr}/${monthStr}/${selectedYear}`;
-      setForm(f => ({ ...f, [datePickerField]: value }));
+      setForm(f => ({ ...f, [datePickerField]: date }));
     }
-    setDatePickerField(null);
   };
 
   const update = (key: keyof typeof form) => (val: string) =>
@@ -281,10 +254,10 @@ export default function NouveauLotScreen() {
           value={form.numero_amm} onChange={update('numero_amm')} />
 
         <DateField label="Date de fabrication * (JJ/MM/AAAA)" placeholder="15/01/2026"
-          value={form.date_fabrication} onChange={update('date_fabrication')} onOpenPicker={() => openDatePicker('date_fabrication')} />
+          value={form.date_fabrication} onChange={update('date_fabrication')} onOpenPicker={() => setDatePickerField('date_fabrication')} />
 
         <DateField label="Date d'expiration * (JJ/MM/AAAA)" placeholder="15/01/2028"
-          value={form.date_expiration} onChange={update('date_expiration')} onOpenPicker={() => openDatePicker('date_expiration')} />
+          value={form.date_expiration} onChange={update('date_expiration')} onOpenPicker={() => setDatePickerField('date_expiration')} />
 
         {/* Note immuabilité */}
         <View className="bg-orange/10 border-l-4 border-pharma-orange rounded-r-lg p-4 mt-4">
@@ -310,82 +283,13 @@ export default function NouveauLotScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Modal Date Picker */}
-      <Modal
+      <CustomDatePicker
         visible={datePickerField !== null}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setDatePickerField(null)}
-      >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 }}>
-          <View className="bg-white w-full rounded-2xl p-6 shadow-xl max-w-sm">
-            <Text className="text-navy font-black text-lg text-center mb-4">
-              Choisir une date
-            </Text>
-            
-            {/* Colonnes de sélection */}
-            <View className="flex-row justify-between gap-2 mb-6">
-              {/* Jour */}
-              <View className="flex-1 items-center">
-                <Text className="text-muted text-[10px] font-bold uppercase tracking-wider mb-2">Jour</Text>
-                <View className="flex-row items-center border border-blue-light rounded-lg px-2 py-1 bg-bg w-full justify-between">
-                  <TouchableOpacity onPress={() => setSelectedDay(d => Math.max(1, d - 1))} className="p-1">
-                    <Text className="text-blue font-bold text-lg">◀</Text>
-                  </TouchableOpacity>
-                  <Text className="text-navy font-bold text-base">{selectedDay}</Text>
-                  <TouchableOpacity onPress={() => setSelectedDay(d => Math.min(31, d + 1))} className="p-1">
-                    <Text className="text-blue font-bold text-lg">▶</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Mois */}
-              <View className="flex-1 items-center">
-                <Text className="text-muted text-[10px] font-bold uppercase tracking-wider mb-2">Mois</Text>
-                <View className="flex-row items-center border border-blue-light rounded-lg px-2 py-1 bg-bg w-full justify-between">
-                  <TouchableOpacity onPress={() => setSelectedMonth(m => Math.max(1, m - 1))} className="p-1">
-                    <Text className="text-blue font-bold text-lg">◀</Text>
-                  </TouchableOpacity>
-                  <Text className="text-navy font-bold text-base">{selectedMonth}</Text>
-                  <TouchableOpacity onPress={() => setSelectedMonth(m => Math.min(12, m + 1))} className="p-1">
-                    <Text className="text-blue font-bold text-lg">▶</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Année */}
-              <View className="flex-1 items-center min-w-[90px]">
-                <Text className="text-muted text-[10px] font-bold uppercase tracking-wider mb-2">Année</Text>
-                <View className="flex-row items-center border border-blue-light rounded-lg px-2 py-1 bg-bg w-full justify-between">
-                  <TouchableOpacity onPress={() => setSelectedYear(y => y - 1)} className="p-1">
-                    <Text className="text-blue font-bold text-lg">◀</Text>
-                  </TouchableOpacity>
-                  <Text className="text-navy font-bold text-base">{selectedYear}</Text>
-                  <TouchableOpacity onPress={() => setSelectedYear(y => y + 1)} className="p-1">
-                    <Text className="text-blue font-bold text-lg">▶</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-
-            {/* Boutons d'action */}
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                onPress={() => setDatePickerField(null)}
-                className="flex-1 h-12 bg-bg border border-blue-light rounded-xl items-center justify-center"
-              >
-                <Text className="text-text font-bold text-sm">Annuler</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={confirmDatePicker}
-                className="flex-1 h-12 bg-blue rounded-xl items-center justify-center"
-              >
-                <Text className="text-white font-bold text-sm">Confirmer</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setDatePickerField(null)}
+        value={datePickerField ? form[datePickerField] : ''}
+        onChange={handleDateChange}
+        title={datePickerField === 'date_fabrication' ? 'Date de fabrication' : 'Date d’expiration'}
+      />
     </ScrollView>
   );
 }

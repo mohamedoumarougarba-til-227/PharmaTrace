@@ -25,9 +25,9 @@ export default function NouveauTransfertScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [pharmacies, setPharmacies] = useState<PharmacieOption[]>([]);
-  const [selectedPharmacieId, setSelectedPharmacieId] = useState('');
+  const [selectedDestinations, setSelectedDestinations] = useState<{ pharmacieId: string; quantite: string }[]>([]);
   const [showPicker, setShowPicker] = useState(false);
-  const [quantite, setQuantite] = useState('1');
+  const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState('');
   const [lot, setLot] = useState<LotInfo | null>(null);
 
@@ -36,10 +36,19 @@ export default function NouveauTransfertScreen() {
     return lot.quantite_actuelle ?? lot.quantite_initiale;
   }, [lot]);
 
-  const selectedPharmacie = useMemo(
-    () => pharmacies.find((p) => p.id === selectedPharmacieId) ?? null,
-    [pharmacies, selectedPharmacieId],
-  );
+  const filteredPharmacies = useMemo(() => {
+    return pharmacies.filter(p => 
+      p.nom_entite.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.ville && p.ville.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  }, [pharmacies, searchQuery]);
+
+  const totalQty = useMemo(() => {
+    return selectedDestinations.reduce((sum, dest) => {
+      const q = Number.parseInt(dest.quantite, 10) || 0;
+      return sum + q;
+    }, 0);
+  }, [selectedDestinations]);
 
   const loadData = async () => {
     try {
@@ -72,9 +81,6 @@ export default function NouveauTransfertScreen() {
 
       const dataPharmacies = (pharmaciesRes.data ?? []) as PharmacieOption[];
       setPharmacies(dataPharmacies);
-      if (!selectedPharmacieId && dataPharmacies.length > 0) {
-        setSelectedPharmacieId(dataPharmacies[0].id);
-      }
 
       if (lotRes?.data) {
         setLot(lotRes.data as LotInfo);
@@ -93,28 +99,64 @@ export default function NouveauTransfertScreen() {
     }, [lotId]),
   );
 
-  const adjustQty = (delta: number) => {
-    const current = Number.parseInt(quantite || '0', 10) || 0;
-    const next = Math.max(1, current + delta);
-    setQuantite(String(next));
+  const togglePharmacie = (id: string) => {
+    setSelectedDestinations(prev => {
+      const exists = prev.some(d => d.pharmacieId === id);
+      if (exists) {
+        return prev.filter(d => d.pharmacieId !== id);
+      } else {
+        return [...prev, { pharmacieId: id, quantite: '1' }];
+      }
+    });
+  };
+
+  const adjustQty = (pharmacieId: string, delta: number) => {
+    setSelectedDestinations(prev =>
+      prev.map(d => {
+        if (d.pharmacieId === pharmacieId) {
+          const current = Number.parseInt(d.quantite || '0', 10) || 0;
+          const next = Math.max(1, current + delta);
+          return { ...d, quantite: String(next) };
+        }
+        return d;
+      })
+    );
+  };
+
+  const updateDestQty = (pharmacieId: string, text: string) => {
+    const cleaned = text.replace(/[^0-9]/g, '');
+    setSelectedDestinations(prev =>
+      prev.map(d => (d.pharmacieId === pharmacieId ? { ...d, quantite: cleaned } : d))
+    );
+  };
+
+  const removeDestination = (pharmacieId: string) => {
+    setSelectedDestinations(prev => prev.filter(d => d.pharmacieId !== pharmacieId));
   };
 
   const handleSubmit = async () => {
-    const qte = Number.parseInt(quantite, 10);
     if (!lot) {
       Alert.alert('Lot manquant', 'Veuillez ouvrir ce formulaire depuis le détail d\'un lot.');
       return;
     }
-    if (!selectedPharmacieId) {
-      Alert.alert('Destination requise', 'Veuillez sélectionner une pharmacie destinataire.');
+    if (selectedDestinations.length === 0) {
+      Alert.alert('Destination requise', 'Veuillez sélectionner au moins une pharmacie destinataire.');
       return;
     }
-    if (!Number.isFinite(qte) || qte <= 0) {
-      Alert.alert('Quantité invalide', 'La quantité doit être supérieure à 0.');
-      return;
+    
+    // Validate quantities
+    for (const dest of selectedDestinations) {
+      const qte = Number.parseInt(dest.quantite, 10);
+      const pharm = pharmacies.find(p => p.id === dest.pharmacieId);
+      const name = pharm?.nom_entite ?? 'Pharmacie';
+      if (!Number.isFinite(qte) || qte <= 0) {
+        Alert.alert('Quantité invalide', `Veuillez spécifier une quantité valide pour ${name}.`);
+        return;
+      }
     }
-    if (qte > availableQty) {
-      Alert.alert('Stock insuffisant', `Vous ne pouvez pas transférer plus de ${availableQty} unités.`);
+
+    if (totalQty > availableQty) {
+      Alert.alert('Stock insuffisant', `Le stock disponible est de ${availableQty} unités. Vous essayez de transférer ${totalQty} unités.`);
       return;
     }
 
@@ -126,26 +168,37 @@ export default function NouveauTransfertScreen() {
         return;
       }
 
-      const insertRes = await supabase.from('transferts').insert({
+      // 1. Insert transfers
+      const transferRows = selectedDestinations.map(dest => ({
         lot_id: lot.id,
         expediteur_id: session.user.id,
-        destinataire_id: selectedPharmacieId,
-        quantite_transferee: qte,
+        destinataire_id: dest.pharmacieId,
+        quantite_transferee: Number.parseInt(dest.quantite, 10),
         statut: 'en_attente',
         notes_expediteur: notes.trim() || null,
-      });
+      }));
 
+      const insertRes = await supabase.from('transferts').insert(transferRows);
       if (insertRes.error) throw insertRes.error;
+
+      // 2. Decrement lot quantity in database
+      const newQty = availableQty - totalQty;
+      const lotUpdatePayload: any = {
+        quantite_actuelle: newQty,
+      };
+      if (newQty === 0) {
+        lotUpdatePayload.statut_actuel = 'en_transit';
+      }
 
       const updateLotRes = await supabase
         .from('lots_medicaments')
-        .update({ statut_actuel: 'en_transit' })
+        .update(lotUpdatePayload)
         .eq('id', lot.id)
         .eq('fabricant_id', session.user.id);
 
       if (updateLotRes.error) throw updateLotRes.error;
 
-      Alert.alert('Transfert créé', 'Le transfert a été enregistré avec succès.', [
+      Alert.alert('Transfert(s) créé(s)', 'Le(s) transfert(s) a/ont été enregistré(s) avec succès.', [
         { text: 'OK', onPress: () => router.replace('/(fabricant)/transferts') },
       ]);
     } catch (e) {
@@ -176,6 +229,8 @@ export default function NouveauTransfertScreen() {
   return (
     <View className="flex-1 bg-bg">
       <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 140 }}>
+        
+        {/* En-tête Lot Info */}
         <View className="bg-[#EEF4FB] border border-blue-light rounded-2xl p-4 mb-4">
           <Text className="text-blue uppercase text-xs font-bold tracking-widest mb-2">Lot à transférer</Text>
           <Text className="text-navy font-black text-[32px]">{lot.nom_medicament}</Text>
@@ -187,69 +242,162 @@ export default function NouveauTransfertScreen() {
           </View>
         </View>
 
+        {/* Section Sélection des Pharmacies */}
         <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-navy font-bold text-base mb-3">Pharmacie destinataire *</Text>
-
+          <Text className="text-navy font-bold text-base mb-3">Sélectionner les pharmacies *</Text>
+          
           <TouchableOpacity
-            className="h-12 border border-blue-light rounded-xl px-3 flex-row items-center justify-between"
-            onPress={() => setShowPicker((v) => !v)}
+            className="h-12 border border-blue-light rounded-xl px-3 flex-row items-center justify-between bg-bg/50 active:bg-blue-light/10"
+            onPress={() => {
+              setShowPicker(v => !v);
+              setSearchQuery('');
+            }}
           >
-            <Text className="text-navy font-semibold flex-1 mr-2" numberOfLines={1}>
-              {selectedPharmacie?.nom_entite ?? 'Sélectionner une pharmacie'}
+            <Text className="text-navy font-semibold flex-1" numberOfLines={1}>
+              {selectedDestinations.length > 0 
+                ? `${selectedDestinations.length} pharmacie(s) sélectionnée(s)` 
+                : 'Ajouter des destinataires...'}
             </Text>
             <FAIcon name={showPicker ? 'chevron-up' : 'chevron-down'} size={14} color="#6B7D90" family="FontAwesome6" />
           </TouchableOpacity>
 
+          {/* Liste déroulante avec barre de recherche */}
           {showPicker && (
-            <View className="mt-2 border border-blue-light rounded-xl overflow-hidden">
-              {pharmacies.map((p) => {
-                const active = p.id === selectedPharmacieId;
-                return (
-                  <TouchableOpacity
-                    key={p.id}
-                    className={`px-3 py-3 border-b border-bg ${active ? 'bg-[#F3F8FF]' : 'bg-white'}`}
-                    onPress={() => {
-                      setSelectedPharmacieId(p.id);
-                      setShowPicker(false);
-                    }}
-                  >
-                    <View className="flex-row items-start justify-between">
-                      <View className="flex-1 pr-3">
-                        <View className="flex-row items-center gap-2">
-                          <FAIcon name="pills" size={12} color="#1A3A5C" family="FontAwesome6" />
-                          <Text className="text-navy font-bold text-sm">{p.nom_entite}</Text>
-                        </View>
-                        <Text className="text-muted text-xs mt-1">{[p.adresse, p.ville].filter(Boolean).join(', ') || 'Adresse non renseignée'}</Text>
-                      </View>
-                      {active && <FAIcon name="check" size={13} color="#2E6DA4" family="FontAwesome6" />}
-                    </View>
+            <View className="mt-2 border border-blue-light rounded-xl overflow-hidden bg-white shadow-sm max-h-72">
+              {/* Barre de recherche */}
+              <View className="flex-row items-center border-b border-blue-light px-3 bg-bg">
+                <FAIcon name="magnifying-glass" size={12} color="#6B7D90" family="FontAwesome6" />
+                <TextInput
+                  className="flex-1 h-10 px-2 text-navy font-semibold text-xs"
+                  placeholder="Rechercher une pharmacie (nom, ville)..."
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoCapitalize="none"
+                />
+                {searchQuery ? (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <FAIcon name="xmark" size={12} color="#6B7D90" family="FontAwesome6" />
                   </TouchableOpacity>
-                );
-              })}
+                ) : null}
+              </View>
+
+              <ScrollView nestedScrollEnabled className="flex-grow max-h-60">
+                {filteredPharmacies.length === 0 ? (
+                  <View className="p-4 items-center">
+                    <Text className="text-muted text-xs">Aucune pharmacie trouvée</Text>
+                  </View>
+                ) : (
+                  filteredPharmacies.map((p) => {
+                    const isSelected = selectedDestinations.some(d => d.pharmacieId === p.id);
+                    return (
+                      <TouchableOpacity
+                        key={p.id}
+                        className={`px-3 py-3 border-b border-bg ${isSelected ? 'bg-[#F3F8FF]' : 'bg-white'}`}
+                        onPress={() => togglePharmacie(p.id)}
+                      >
+                        <View className="flex-row items-center justify-between">
+                          <View className="flex-1 pr-3">
+                            <View className="flex-row items-center gap-2">
+                              <FAIcon name="pills" size={12} color={isSelected ? '#2E6DA4' : '#1A3A5C'} family="FontAwesome6" />
+                              <Text className={`font-bold text-sm ${isSelected ? 'text-blue' : 'text-navy'}`}>{p.nom_entite}</Text>
+                            </View>
+                            <Text className="text-muted text-xs mt-1">{[p.adresse, p.ville].filter(Boolean).join(', ') || 'Adresse non renseignée'}</Text>
+                          </View>
+                          {isSelected ? (
+                            <FAIcon name="check" size={13} color="#2E6DA4" family="FontAwesome6" />
+                          ) : (
+                            <View className="w-4 h-4 border border-blue-light rounded-sm" />
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })
+                )}
+              </ScrollView>
             </View>
           )}
+        </View>
 
-          <Text className="text-navy font-bold text-base mt-5 mb-2">Quantité à transférer *</Text>
-          <View className="flex-row items-center border border-blue-light rounded-xl overflow-hidden">
-            <TouchableOpacity className="w-12 h-12 items-center justify-center border-r border-blue-light" onPress={() => adjustQty(-1)}>
-              <FAIcon name="minus" size={14} color="#1A3A5C" family="FontAwesome6" />
-            </TouchableOpacity>
-            <TextInput
-              className="flex-1 h-12 text-center text-navy font-bold"
-              keyboardType="number-pad"
-              value={quantite}
-              onChangeText={setQuantite}
-              placeholder="0"
-              placeholderTextColor="#9AA9B8"
-            />
-            <TouchableOpacity className="w-12 h-12 items-center justify-center border-l border-blue-light" onPress={() => adjustQty(1)}>
-              <FAIcon name="plus" size={14} color="#1A3A5C" family="FontAwesome6" />
-            </TouchableOpacity>
+        {/* Liste des destinations sélectionnées avec saisie de quantité */}
+        {selectedDestinations.length > 0 && (
+          <View className="bg-white rounded-2xl p-4 mb-4">
+            <Text className="text-navy font-bold text-base mb-3">Quantités par pharmacie</Text>
+            
+            {selectedDestinations.map((dest, idx) => {
+              const p = pharmacies.find(item => item.id === dest.pharmacieId);
+              if (!p) return null;
+
+              return (
+                <View key={dest.pharmacieId} className={`py-3 ${idx > 0 ? 'border-t border-bg' : ''}`}>
+                  <View className="flex-row justify-between items-start mb-2">
+                    <View className="flex-1 pr-2">
+                      <Text className="text-navy font-bold text-sm">{p.nom_entite}</Text>
+                      <Text className="text-muted text-[10px]">{p.ville || 'Niger'}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => removeDestination(dest.pharmacieId)} className="p-1">
+                      <FAIcon name="trash" size={12} color="#C0392B" family="FontAwesome" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Contrôle de quantité */}
+                  <View className="flex-row items-center justify-between bg-bg border border-blue-light rounded-lg px-2 py-1">
+                    <Text className="text-muted text-xs font-semibold">Unités à livrer :</Text>
+                    <View className="flex-row items-center">
+                      <TouchableOpacity 
+                        className="w-8 h-8 items-center justify-center bg-white border border-blue-light rounded-md" 
+                        onPress={() => adjustQty(dest.pharmacieId, -1)}
+                      >
+                        <FAIcon name="minus" size={10} color="#1A3A5C" family="FontAwesome6" />
+                      </TouchableOpacity>
+                      <TextInput
+                        className="w-16 h-8 text-center text-navy font-extrabold text-sm"
+                        keyboardType="number-pad"
+                        value={dest.quantite}
+                        onChangeText={(t) => updateDestQty(dest.pharmacieId, t)}
+                      />
+                      <TouchableOpacity 
+                        className="w-8 h-8 items-center justify-center bg-white border border-blue-light rounded-md" 
+                        onPress={() => adjustQty(dest.pharmacieId, 1)}
+                      >
+                        <FAIcon name="plus" size={10} color="#1A3A5C" family="FontAwesome6" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+
+            {/* Note sur les totaux */}
+            <View className="mt-4 pt-3 border-t border-bg">
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-muted text-xs">Total à transférer :</Text>
+                <Text className={`font-extrabold text-xs ${totalQty > availableQty ? 'text-pharma-red' : 'text-navy'}`}>
+                  {totalQty.toLocaleString('fr-FR')} unités
+                </Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-muted text-xs">Stock restant après transfert :</Text>
+                <Text className={`font-extrabold text-xs ${availableQty - totalQty < 0 ? 'text-pharma-red' : 'text-green-600'}`}>
+                  {(availableQty - totalQty).toLocaleString('fr-FR')} unités
+                </Text>
+              </View>
+            </View>
+
+            {totalQty > availableQty && (
+              <View className="bg-red-50 border border-red-200 rounded-xl p-3 mt-3">
+                <Text className="text-pharma-red text-xs font-bold text-center">
+                  ⚠️ Stock insuffisant : Veuillez réduire les quantités.
+                </Text>
+              </View>
+            )}
           </View>
+        )}
 
+        {/* Note RLS & Instruction */}
+        <View className="bg-white rounded-2xl p-4 mb-4">
           <TextInput
-            className="mt-4 border border-blue-light rounded-xl p-3 text-text"
-            placeholder="Note (optionnel)"
+            className="border border-blue-light rounded-xl p-3 text-text"
+            placeholder="Note d'accompagnement (optionnel)"
             placeholderTextColor="#9AA9B8"
             value={notes}
             onChangeText={setNotes}
@@ -261,19 +409,35 @@ export default function NouveauTransfertScreen() {
           <View className="bg-[#FFF8E9] border-l-4 border-[#F5A623] rounded-r-xl p-3 mt-4">
             <View className="flex-row items-start gap-2">
               <FAIcon name="triangle-exclamation" size={12} color="#8A6A00" family="FontAwesome6" />
-              <Text className="text-[#8A6A00] text-sm flex-1">Le lot passera en statut En transit. La pharmacie devra confirmer la réception par scan.</Text>
+              <Text className="text-[#8A6A00] text-xs flex-1">
+                Les lots transférés passeront en statut "En transit". Chaque pharmacie recevra une notification et devra valider la réception par scan pour confirmer.
+              </Text>
             </View>
           </View>
         </View>
+
       </ScrollView>
 
+      {/* Bouton de confirmation permanent en bas */}
       <View className="absolute bottom-0 left-0 right-0 p-4 bg-bg border-t border-blue-light">
         <TouchableOpacity
-          className={`h-12 rounded-xl items-center justify-center ${saving ? 'bg-navy/60' : 'bg-navy'}`}
+          className={`h-12 rounded-xl items-center justify-center ${
+            saving || selectedDestinations.length === 0 || totalQty > availableQty
+              ? 'bg-navy/40' 
+              : 'bg-navy'
+          }`}
           onPress={handleSubmit}
-          disabled={saving}
+          disabled={saving || selectedDestinations.length === 0 || totalQty > availableQty}
         >
-          {saving ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-base">Confirmer le transfert →</Text>}
+          {saving ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-white font-bold text-base">
+              {selectedDestinations.length > 1 
+                ? `Confirmer les ${selectedDestinations.length} transferts →` 
+                : 'Confirmer le transfert →'}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

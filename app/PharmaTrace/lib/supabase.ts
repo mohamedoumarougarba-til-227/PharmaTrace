@@ -184,7 +184,8 @@ export let MOCK_USERS: any[] = [
     pays: "Niger",
     numero_agrement: "AGR-FAB-2022-005",
     telephone: "+227 20 73 45 67",
-    adresse: "Zone Industrielle, Niamey"
+    adresse: "Zone Industrielle, Niamey",
+    statut: "actif"
   },
   {
     id: "mock-user-id-pharmacie",
@@ -194,7 +195,8 @@ export let MOCK_USERS: any[] = [
     pays: "Niger",
     numero_agrement: "AGR-PHA-2023-018",
     telephone: "+227 20 72 34 56",
-    adresse: "Avenue du Fleuve, Niamey"
+    adresse: "Avenue du Fleuve, Niamey",
+    statut: "actif"
   },
   {
     id: "mock-user-id-agent_dph",
@@ -204,7 +206,8 @@ export let MOCK_USERS: any[] = [
     pays: "Niger",
     numero_agrement: "DPH-GOV-NIG",
     telephone: "+227 20 73 35 12",
-    adresse: "Ministère de la Santé Publique, Niamey"
+    adresse: "Ministère de la Santé Publique, Niamey",
+    statut: "actif"
   }
 ];
 

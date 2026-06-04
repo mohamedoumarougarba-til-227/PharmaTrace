@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useRef } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert, Share } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert, Share, Platform } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useFocusEffect, useLocalSearchParams, Link } from 'expo-router';
 import { supabase } from '../../lib/supabase';
@@ -57,19 +57,52 @@ export default function LotDetailScreen() {
 
     qrRef.current.toDataURL(async (base64Data: string) => {
       try {
-        const filename = `${FileSystem.cacheDirectory}QR_${lot.numero_lot}.png`;
-        await FileSystem.writeAsStringAsync(filename, base64Data, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
+        if (Platform.OS === 'android') {
+          // Android : Utiliser le Storage Access Framework pour enregistrer directement dans le dossier choisi (ex: Downloads)
+          const { StorageAccessFramework } = FileSystem;
+          const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
+          
+          if (permissions.granted) {
+            const directoryUri = permissions.directoryUri;
+            const fileUri = await StorageAccessFramework.createFileAsync(
+              directoryUri, 
+              `QR_${lot.numero_lot}`, 
+              'image/png'
+            );
+            
+            await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+            
+            Alert.alert('Succès', 'Le QR code a été téléchargé et enregistré dans votre dossier.');
+          } else {
+            // Si l'utilisateur refuse la sélection de dossier, on fallback sur le partage natif pour ne pas le bloquer
+            const filename = `${FileSystem.cacheDirectory}QR_${lot.numero_lot}.png`;
+            await FileSystem.writeAsStringAsync(filename, base64Data, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+            await Sharing.shareAsync(filename, {
+              mimeType: 'image/png',
+              dialogTitle: `Télécharger le QR Code du lot ${lot.numero_lot}`,
+              UTI: 'public.png',
+            });
+          }
+        } else {
+          // iOS : Utiliser le partage natif (qui intègre l'option "Enregistrer l'image" dans Photos de façon native)
+          const filename = `${FileSystem.cacheDirectory}QR_${lot.numero_lot}.png`;
+          await FileSystem.writeAsStringAsync(filename, base64Data, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
 
-        await Sharing.shareAsync(filename, {
-          mimeType: 'image/png',
-          dialogTitle: `Télécharger le QR Code du lot ${lot.numero_lot}`,
-          UTI: 'public.png',
-        });
+          await Sharing.shareAsync(filename, {
+            mimeType: 'image/png',
+            dialogTitle: `Télécharger le QR Code du lot ${lot.numero_lot}`,
+            UTI: 'public.png',
+          });
+        }
       } catch (e) {
         console.error(e);
-        Alert.alert('Erreur', 'Impossible de télécharger le QR code.');
+        Alert.alert('Erreur', 'Le téléchargement a échoué.');
       }
     });
   };
@@ -219,7 +252,9 @@ export default function LotDetailScreen() {
           </html>
         `;
         
-        await Print.printAsync({ html });
+        // Android/iOS crash fix: print directly via generated PDF file instead of passing raw HTML to print manager
+        const { uri } = await Print.printToFileAsync({ html });
+        await Print.printAsync({ uri });
       } catch (error) {
         console.error(error);
         Alert.alert('Erreur', "L'impression a échoué.");

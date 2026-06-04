@@ -3286,6 +3286,7 @@
                 var img = card.querySelector(".mockup-screenshot");
                 if (!img) return;
 
+                // Survol avec délai de 2 secondes
                 card.addEventListener("mouseenter", function () {
                     if (zoomTimeout) {
                         clearTimeout(zoomTimeout);
@@ -3296,6 +3297,17 @@
                     }, 2000);
                 });
 
+                // Clic pour ouvrir immédiatement
+                card.addEventListener("click", function () {
+                    if (zoomTimeout) {
+                        clearTimeout(zoomTimeout);
+                        zoomTimeout = null;
+                    }
+                    zoomOverlayImg.src = img.src;
+                    zoomOverlay.classList.add("active");
+                });
+
+                // Fermeture quand la souris sort de la carte
                 card.addEventListener("mouseleave", function () {
                     if (zoomTimeout) {
                         clearTimeout(zoomTimeout);

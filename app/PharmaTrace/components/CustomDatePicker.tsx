@@ -290,7 +290,7 @@ export default function CustomDatePicker({
                     const isToday = isTodayCell(cell.day, cell.month, cell.year);
 
                     return (
-                      <View key={index} className="w-[14.28%] aspect-square items-center justify-center p-0.5">
+                      <View key={index} style={{ width: '14.28%', height: 38, alignItems: 'center', justifyContent: 'center' }}>
                         <TouchableOpacity
                           onPress={() => handleDaySelect(cell.day, cell.isCurrentMonth, cell.month, cell.year)}
                           className={`w-8 h-8 rounded-full items-center justify-center ${

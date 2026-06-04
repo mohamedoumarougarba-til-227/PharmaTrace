@@ -17,6 +17,7 @@ export default function RootLayout() {
               <Stack.Screen name="(fabricant)" />
               <Stack.Screen name="(pharmacie)" />
               <Stack.Screen name="(agent-dph)" />
+              <Stack.Screen name="+not-found" />
             </Stack>
           </View>
         </View>
@@ -34,6 +35,7 @@ export default function RootLayout() {
         <Stack.Screen name="(fabricant)" />
         <Stack.Screen name="(pharmacie)" />
         <Stack.Screen name="(agent-dph)" />
+        <Stack.Screen name="+not-found" />
       </Stack>
     </>
   );

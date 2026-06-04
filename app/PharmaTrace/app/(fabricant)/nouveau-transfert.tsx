@@ -329,13 +329,11 @@ export default function NouveauTransfertScreen() {
 
               return (
                 <View key={dest.pharmacieId} className={`py-3 ${idx > 0 ? 'border-t border-bg' : ''}`}>
-                  <View className="flex-row items-center gap-2 mb-2">
-                    <View className="flex-row items-center gap-2 flex-1">
-                      <Text className="text-navy font-bold text-sm">{p.nom_entite}</Text>
-                      <Text className="text-muted text-[10px]">· {p.ville || 'Niger'}</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => removeDestination(dest.pharmacieId)} className="p-1">
-                      <FAIcon name="trash" size={12} color="#C0392B" family="FontAwesome" />
+                  <View className="flex-row items-center gap-1.5 mb-2 flex-wrap">
+                    <Text className="text-navy font-bold text-sm">{p.nom_entite}</Text>
+                    <Text className="text-muted text-[10px]">· {p.ville || 'Niger'}</Text>
+                    <TouchableOpacity onPress={() => removeDestination(dest.pharmacieId)} style={{ marginLeft: 4, padding: 3 }}>
+                      <FAIcon name="trash" size={11} color="#C0392B" family="FontAwesome" />
                     </TouchableOpacity>
                   </View>
 

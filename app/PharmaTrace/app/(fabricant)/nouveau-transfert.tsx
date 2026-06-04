@@ -25,10 +25,9 @@ export default function NouveauTransfertScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [pharmacies, setPharmacies] = useState<PharmacieOption[]>([]);
-  const [selectedDestinations, setSelectedDestinations] = useState<{ pharmacieId: string; quantite: string }[]>([]);
+  const [selectedDestinations, setSelectedDestinations] = useState<{ pharmacieId: string; quantite: string; note: string }[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [notes, setNotes] = useState('');
   const [lot, setLot] = useState<LotInfo | null>(null);
 
   const availableQty = useMemo(() => {
@@ -105,7 +104,7 @@ export default function NouveauTransfertScreen() {
       if (exists) {
         return prev.filter(d => d.pharmacieId !== id);
       } else {
-        return [...prev, { pharmacieId: id, quantite: '1' }];
+        return [...prev, { pharmacieId: id, quantite: '1', note: '' }];
       }
     });
   };
@@ -132,6 +131,12 @@ export default function NouveauTransfertScreen() {
 
   const removeDestination = (pharmacieId: string) => {
     setSelectedDestinations(prev => prev.filter(d => d.pharmacieId !== pharmacieId));
+  };
+
+  const updateDestNote = (pharmacieId: string, text: string) => {
+    setSelectedDestinations(prev =>
+      prev.map(d => (d.pharmacieId === pharmacieId ? { ...d, note: text } : d))
+    );
   };
 
   const handleSubmit = async () => {
@@ -175,7 +180,7 @@ export default function NouveauTransfertScreen() {
         destinataire_id: dest.pharmacieId,
         quantite_transferee: Number.parseInt(dest.quantite, 10),
         statut: 'en_attente',
-        notes_expediteur: notes.trim() || null,
+        notes_expediteur: dest.note.trim() || null,
       }));
 
       const insertRes = await supabase.from('transferts').insert(transferRows);
@@ -364,6 +369,19 @@ export default function NouveauTransfertScreen() {
                       </TouchableOpacity>
                     </View>
                   </View>
+
+                  {/* Note individuelle */}
+                  <TextInput
+                    className="border border-blue-light rounded-xl px-3 py-2 text-text text-xs mt-2"
+                    placeholder="Note d'accompagnement (optionnel)"
+                    placeholderTextColor="#9AA9B8"
+                    value={dest.note}
+                    onChangeText={(t) => updateDestNote(dest.pharmacieId, t)}
+                    multiline
+                    numberOfLines={1}
+                    textAlignVertical="top"
+                    style={{ minHeight: 34 }}
+                  />
                 </View>
               );
             })}
@@ -394,20 +412,9 @@ export default function NouveauTransfertScreen() {
           </View>
         )}
 
-        {/* Note RLS & Instruction */}
+        {/* Instruction */}
         <View className="bg-white rounded-2xl p-4 mb-4">
-          <TextInput
-            className="border border-blue-light rounded-xl p-3 text-text"
-            placeholder="Note d'accompagnement (optionnel)"
-            placeholderTextColor="#9AA9B8"
-            value={notes}
-            onChangeText={setNotes}
-            multiline
-            numberOfLines={3}
-            textAlignVertical="top"
-          />
-
-          <View className="bg-[#FFF8E9] border-l-4 border-[#F5A623] rounded-r-xl p-3 mt-4">
+          <View className="bg-[#FFF8E9] border-l-4 border-[#F5A623] rounded-r-xl p-3">
             <View className="flex-row items-start gap-2">
               <FAIcon name="triangle-exclamation" size={12} color="#8A6A00" family="FontAwesome6" />
               <Text className="text-[#8A6A00] text-xs flex-1">

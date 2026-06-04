@@ -92,21 +92,21 @@ export default function LoginScreen() {
         className="px-5 py-4 md:py-2"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-col md:flex-row md:items-center md:justify-between md:gap-16 w-full max-w-5xl">
+        <View className="flex-col md:flex-row md:items-start md:justify-between md:gap-16 w-full max-w-5xl">
           {/* Bloc Gauche : Logo + Infos + Scanner (desktop) */}
           <View 
-            className="flex-1 mb-8 md:mb-0 md:max-w-md"
-            style={{ alignItems: isDesktop ? 'flex-start' : 'center' }}
+            className="flex-1 mb-8 md:mb-0 md:max-w-md items-center"
+            style={{ alignItems: 'center' }}
           >
             <Text 
-              className="text-white font-black text-4xl"
-              style={{ textAlign: isDesktop ? 'left' : 'center' }}
+              className="text-white font-black text-4xl text-center"
+              style={{ textAlign: 'center', alignSelf: 'center' }}
             >
               PharmaTrace
             </Text>
             <Text 
-              className="text-white/50 text-sm mt-2 max-w-xs leading-relaxed"
-              style={{ textAlign: isDesktop ? 'left' : 'center' }}
+              className="text-white/50 text-sm mt-2 max-w-xs leading-relaxed text-center"
+              style={{ textAlign: 'center', alignSelf: 'center' }}
             >
               Réservé aux acteurs agréés de la chaîne pharmaceutique nigérienne
             </Text>
@@ -114,7 +114,7 @@ export default function LoginScreen() {
             {/* Image médicament */}
             <Image
               source={require("../../assets/images/medicament.png")}
-              style={{ width: 120, height: 120, marginTop: 24, alignSelf: isDesktop ? 'flex-start' : 'center' }}
+              style={{ width: 120, height: 120, marginTop: 24, alignSelf: 'center' }}
               resizeMode="contain"
             />
 
@@ -122,7 +122,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               onPress={() => router.replace("/(public)/verify")}
               className="hidden md:flex mt-8 w-full max-w-xs h-14 border-2 border-white/30 rounded-xl items-center justify-center flex-row gap-3 active:bg-white/10"
-              style={{ alignSelf: isDesktop ? 'flex-start' : 'center' }}
+              style={{ alignSelf: 'center' }}
             >
               <FAIcon name="camera" size={16} color="#fff" family="FontAwesome6" />
               <Text className="text-white/85 font-semibold text-sm">
@@ -135,8 +135,8 @@ export default function LoginScreen() {
           <View className="flex-1 w-full md:max-w-md">
             {/* Carte formulaire */}
             <View className="bg-white rounded-2xl p-5 shadow-lg">
-              <Text className="text-navy font-black text-2xl mb-0.5">Connexion</Text>
-              <Text className="text-muted text-sm mb-4">
+              <Text className="text-navy font-black text-2xl mb-0.5 text-center">Connexion</Text>
+              <Text className="text-muted text-sm mb-4 text-center">
                 Accédez à votre espace
               </Text>
 
@@ -228,9 +228,15 @@ export default function LoginScreen() {
 
             {/* Note accès restreint */}
             <View className="bg-navy/30 rounded-xl p-3 mt-3">
-              <View className="flex-row items-start gap-2">
+              <View 
+                className="flex-row items-center justify-center gap-2"
+                style={{ flexWrap: 'wrap' }}
+              >
                 <FAIcon name="lock" size={12} color="rgba(255,255,255,0.5)" family="FontAwesome6" />
-                <Text className="text-white/50 text-xs leading-relaxed flex-1">
+                <Text 
+                  className="text-white/50 text-xs leading-relaxed text-center"
+                  style={{ textAlign: 'center' }}
+                >
                   L'accès est validé manuellement par l'administrateur. Seuls les
                   acteurs agréés peuvent se connecter.
                 </Text>

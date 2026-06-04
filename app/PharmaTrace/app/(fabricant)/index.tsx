@@ -23,6 +23,7 @@ export default function FabricantDashboard() {
   const [lots, setLots] = useState<LotSummary[]>([]);
   const [manufacturerName, setManufacturerName] = useState('NIPHAR (La Nigérienne)');
   const [manufacturerCity, setManufacturerCity] = useState('Niamey');
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const loadDashboard = async () => {
     try {
@@ -143,7 +144,6 @@ export default function FabricantDashboard() {
   );
 
   // ─── Section: Historique lots ────────────────────────────────────────
-  const [showTooltip, setShowTooltip] = useState(false);
 
   const lotsSection = (
     <View style={isDesktop ? { flex: 1 } : undefined}>

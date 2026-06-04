@@ -56,6 +56,7 @@ export default function TransfertsEntrantsScreen() {
     transfertId: string,
     lotId: string | null,
     statut: 'receptionne' | 'refuse',
+    quantite?: number,
   ) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -78,17 +79,38 @@ export default function TransfertsEntrantsScreen() {
       if (transferError) throw transferError;
 
       if (lotId) {
-        const lotUpdate =
-          statut === 'receptionne'
-            ? { statut_actuel: 'en_pharmacie' }
-            : { statut_actuel: 'en_stock_fabricant' };
+        if (statut === 'refuse' && quantite) {
+          // Récupérer la quantité actuelle du lot pour lui restituer les unités refusées
+          const { data: lotData } = await supabase
+            .from('lots_medicaments')
+            .select('quantite_actuelle')
+            .eq('id', lotId)
+            .single();
 
-        const { error: lotError } = await supabase
-          .from('lots_medicaments')
-          .update(lotUpdate)
-          .eq('id', lotId);
+          const currentQty = lotData?.quantite_actuelle ?? 0;
 
-        if (lotError) throw lotError;
+          const { error: lotError } = await supabase
+            .from('lots_medicaments')
+            .update({
+              statut_actuel: 'en_stock_fabricant',
+              quantite_actuelle: currentQty + quantite,
+            })
+            .eq('id', lotId);
+
+          if (lotError) throw lotError;
+        } else {
+          const lotUpdate =
+            statut === 'receptionne'
+              ? { statut_actuel: 'en_pharmacie' }
+              : { statut_actuel: 'en_stock_fabricant' };
+
+          const { error: lotError } = await supabase
+            .from('lots_medicaments')
+            .update(lotUpdate)
+            .eq('id', lotId);
+
+          if (lotError) throw lotError;
+        }
       }
 
       await loadTransferts();
@@ -118,8 +140,8 @@ export default function TransfertsEntrantsScreen() {
         text: 'Refuser',
         style: 'destructive',
         onPress: () => {
-          updateTransferAndLot(item.id, item.lot_id?.id ?? null, 'refuse').then(() => {
-            Alert.alert('Lot refusé', 'Le transfert a été refusé et le statut a été mis à jour.');
+          updateTransferAndLot(item.id, item.lot_id?.id ?? null, 'refuse', item.quantite_transferee).then(() => {
+            Alert.alert('Lot refusé', 'Le transfert a été refusé et les stocks ont été restitués au fabricant.');
           });
         },
       },

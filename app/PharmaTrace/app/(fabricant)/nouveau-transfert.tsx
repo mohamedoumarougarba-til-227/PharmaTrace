@@ -338,9 +338,9 @@ export default function NouveauTransfertScreen() {
                   </View>
 
                   {/* Contrôle de quantité — compact */}
-                  <View className="flex-row items-center bg-bg border border-blue-light rounded-xl px-3 py-1.5 gap-3">
+                  <View className="flex-row items-center bg-bg border border-blue-light rounded-xl px-3 py-1.5 gap-2">
                     <Text className="text-muted text-xs font-bold">Unités à livrer :</Text>
-                    <View className="flex-row items-center flex-1 justify-end">
+                    <View className="flex-row items-center">
                       <TouchableOpacity 
                         style={{ width: 38, height: 38 }}
                         className="items-center justify-center bg-white border border-blue-light rounded-xl active:bg-blue-light/30" 
@@ -370,13 +370,13 @@ export default function NouveauTransfertScreen() {
 
             {/* Note sur les totaux — plus visible */}
             <View className="mt-4 pt-3 border-t border-bg">
-              <View className="flex-row justify-between items-center mb-2">
+              <View className="flex-row items-center gap-2 mb-2">
                 <Text className="text-muted text-sm font-semibold">Total à transférer :</Text>
                 <Text className={`font-black text-xl ${totalQty > availableQty ? 'text-pharma-red' : 'text-navy'}`}>
                   {totalQty.toLocaleString('fr-FR')} unités
                 </Text>
               </View>
-              <View className="flex-row justify-between items-center">
+              <View className="flex-row items-center gap-2">
                 <Text className="text-muted text-sm font-semibold">Stock restant après transfert :</Text>
                 <Text className={`font-black text-xl ${availableQty - totalQty < 0 ? 'text-pharma-red' : 'text-green-600'}`}>
                   {(availableQty - totalQty).toLocaleString('fr-FR')} unités

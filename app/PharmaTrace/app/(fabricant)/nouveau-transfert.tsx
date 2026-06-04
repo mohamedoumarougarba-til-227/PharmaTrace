@@ -342,46 +342,48 @@ export default function NouveauTransfertScreen() {
                     </TouchableOpacity>
                   </View>
 
-                  {/* Contrôle de quantité — compact */}
-                  <View className="flex-row items-center bg-bg border border-blue-light rounded-xl px-3 py-1.5 gap-2">
-                    <Text className="text-muted text-xs font-bold">Unités à livrer :</Text>
-                    <View className="flex-row items-center">
-                      <TouchableOpacity 
-                        style={{ width: 38, height: 38 }}
-                        className="items-center justify-center bg-white border border-blue-light rounded-xl active:bg-blue-light/30" 
-                        onPress={() => adjustQty(dest.pharmacieId, -1)}
-                      >
-                        <FAIcon name="minus" size={13} color="#1A3A5C" family="FontAwesome6" />
-                      </TouchableOpacity>
-                      <TextInput
-                        style={{ width: 70, height: 38, padding: 0, marginHorizontal: 6 }}
-                        className="text-center text-navy font-black text-lg bg-white border border-blue-light rounded-xl"
-                        keyboardType="number-pad"
-                        value={dest.quantite}
-                        onChangeText={(t) => updateDestQty(dest.pharmacieId, t)}
-                      />
-                      <TouchableOpacity 
-                        style={{ width: 38, height: 38 }}
-                        className="items-center justify-center bg-white border border-blue-light rounded-xl active:bg-blue-light/30" 
-                        onPress={() => adjustQty(dest.pharmacieId, 1)}
-                      >
-                        <FAIcon name="plus" size={13} color="#1A3A5C" family="FontAwesome6" />
-                      </TouchableOpacity>
+                  <View className="flex-row flex-wrap items-center gap-3">
+                    {/* Contrôle de quantité — compact */}
+                    <View className="flex-row items-center bg-bg border border-blue-light rounded-xl px-3 py-1.5 gap-2" style={{ flex: 1, minWidth: 260 }}>
+                      <Text className="text-muted text-xs font-bold">Unités à livrer :</Text>
+                      <View className="flex-row items-center">
+                        <TouchableOpacity 
+                          style={{ width: 38, height: 38 }}
+                          className="items-center justify-center bg-white border border-blue-light rounded-xl active:bg-blue-light/30" 
+                          onPress={() => adjustQty(dest.pharmacieId, -1)}
+                        >
+                          <FAIcon name="minus" size={13} color="#1A3A5C" family="FontAwesome6" />
+                        </TouchableOpacity>
+                        <TextInput
+                          style={{ width: 70, height: 38, padding: 0, marginHorizontal: 6 }}
+                          className="text-center text-navy font-black text-lg bg-white border border-blue-light rounded-xl"
+                          keyboardType="number-pad"
+                          value={dest.quantite}
+                          onChangeText={(t) => updateDestQty(dest.pharmacieId, t)}
+                        />
+                        <TouchableOpacity 
+                          style={{ width: 38, height: 38 }}
+                          className="items-center justify-center bg-white border border-blue-light rounded-xl active:bg-blue-light/30" 
+                          onPress={() => adjustQty(dest.pharmacieId, 1)}
+                        >
+                          <FAIcon name="plus" size={13} color="#1A3A5C" family="FontAwesome6" />
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
 
-                  {/* Note individuelle */}
-                  <TextInput
-                    className="border border-blue-light rounded-xl px-3 py-2 text-text text-xs mt-2"
-                    placeholder="Note d'accompagnement (optionnel)"
-                    placeholderTextColor="#9AA9B8"
-                    value={dest.note}
-                    onChangeText={(t) => updateDestNote(dest.pharmacieId, t)}
-                    multiline
-                    numberOfLines={1}
-                    textAlignVertical="top"
-                    style={{ minHeight: 34 }}
-                  />
+                    {/* Note individuelle */}
+                    <TextInput
+                      className="border border-blue-light rounded-xl px-3 py-2 text-text text-xs bg-bg"
+                      placeholder="Note d'accompagnement (optionnel)"
+                      placeholderTextColor="#9AA9B8"
+                      value={dest.note}
+                      onChangeText={(t) => updateDestNote(dest.pharmacieId, t)}
+                      multiline
+                      numberOfLines={1}
+                      textAlignVertical="center"
+                      style={{ flex: 1, minWidth: 200, height: 52 }}
+                    />
+                  </View>
                 </View>
               );
             })}

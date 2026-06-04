@@ -329,40 +329,40 @@ export default function NouveauTransfertScreen() {
 
               return (
                 <View key={dest.pharmacieId} className={`py-3 ${idx > 0 ? 'border-t border-bg' : ''}`}>
-                  <View className="flex-row justify-between items-start mb-2">
-                    <View className="flex-1 pr-2">
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <View className="flex-row items-center gap-2 flex-1">
                       <Text className="text-navy font-bold text-sm">{p.nom_entite}</Text>
-                      <Text className="text-muted text-[10px]">{p.ville || 'Niger'}</Text>
+                      <Text className="text-muted text-[10px]">· {p.ville || 'Niger'}</Text>
                     </View>
                     <TouchableOpacity onPress={() => removeDestination(dest.pharmacieId)} className="p-1">
                       <FAIcon name="trash" size={12} color="#C0392B" family="FontAwesome" />
                     </TouchableOpacity>
                   </View>
 
-                  {/* Contrôle de quantité */}
-                  <View className="flex-row items-center justify-between bg-bg border border-blue-light rounded-xl px-3 py-1.5">
+                  {/* Contrôle de quantité — compact */}
+                  <View className="flex-row items-center bg-bg border border-blue-light rounded-xl px-3 py-1.5 gap-3">
                     <Text className="text-muted text-xs font-bold">Unités à livrer :</Text>
-                    <View className="flex-row items-center">
+                    <View className="flex-row items-center flex-1 justify-end">
                       <TouchableOpacity 
-                        style={{ width: 44, height: 44 }}
+                        style={{ width: 38, height: 38 }}
                         className="items-center justify-center bg-white border border-blue-light rounded-xl active:bg-blue-light/30" 
                         onPress={() => adjustQty(dest.pharmacieId, -1)}
                       >
-                        <FAIcon name="minus" size={14} color="#1A3A5C" family="FontAwesome6" />
+                        <FAIcon name="minus" size={13} color="#1A3A5C" family="FontAwesome6" />
                       </TouchableOpacity>
                       <TextInput
-                        style={{ width: 90, height: 44, padding: 0, marginHorizontal: 10 }}
+                        style={{ width: 70, height: 38, padding: 0, marginHorizontal: 6 }}
                         className="text-center text-navy font-black text-lg bg-white border border-blue-light rounded-xl"
                         keyboardType="number-pad"
                         value={dest.quantite}
                         onChangeText={(t) => updateDestQty(dest.pharmacieId, t)}
                       />
                       <TouchableOpacity 
-                        style={{ width: 44, height: 44 }}
+                        style={{ width: 38, height: 38 }}
                         className="items-center justify-center bg-white border border-blue-light rounded-xl active:bg-blue-light/30" 
                         onPress={() => adjustQty(dest.pharmacieId, 1)}
                       >
-                        <FAIcon name="plus" size={14} color="#1A3A5C" family="FontAwesome6" />
+                        <FAIcon name="plus" size={13} color="#1A3A5C" family="FontAwesome6" />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -370,17 +370,17 @@ export default function NouveauTransfertScreen() {
               );
             })}
 
-            {/* Note sur les totaux */}
+            {/* Note sur les totaux — plus visible */}
             <View className="mt-4 pt-3 border-t border-bg">
-              <View className="flex-row justify-between mb-1">
-                <Text className="text-muted text-xs">Total à transférer :</Text>
-                <Text className={`font-extrabold text-xs ${totalQty > availableQty ? 'text-pharma-red' : 'text-navy'}`}>
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="text-muted text-sm font-semibold">Total à transférer :</Text>
+                <Text className={`font-black text-xl ${totalQty > availableQty ? 'text-pharma-red' : 'text-navy'}`}>
                   {totalQty.toLocaleString('fr-FR')} unités
                 </Text>
               </View>
-              <View className="flex-row justify-between">
-                <Text className="text-muted text-xs">Stock restant après transfert :</Text>
-                <Text className={`font-extrabold text-xs ${availableQty - totalQty < 0 ? 'text-pharma-red' : 'text-green-600'}`}>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-muted text-sm font-semibold">Stock restant après transfert :</Text>
+                <Text className={`font-black text-xl ${availableQty - totalQty < 0 ? 'text-pharma-red' : 'text-green-600'}`}>
                   {(availableQty - totalQty).toLocaleString('fr-FR')} unités
                 </Text>
               </View>

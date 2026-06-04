@@ -192,33 +192,74 @@ function Sidebar({
         ))}
       </View>
 
-      {/* ── Collapse/Expand Toggle ── */}
-      <TouchableOpacity
-        onPress={onToggle}
-        activeOpacity={0.7}
-        style={{
-          alignItems: "center",
-          justifyContent: "center",
-          paddingVertical: 10,
-          marginHorizontal: collapsed ? 8 : 16,
-          borderRadius: 8,
-          backgroundColor: collapseHovered ? "rgba(255,255,255,0.08)" : "transparent",
-        }}
-        {...(Platform.OS === "web"
-          ? {
-              // @ts-ignore
-              onMouseEnter: () => setCollapseHovered(true),
-              onMouseLeave: () => setCollapseHovered(false),
+      {/* ── Bottom Section (Logout & Collapse Toggle) ── */}
+      <View style={{ gap: 4 }}>
+        {/* Logout Button */}
+        <TouchableOpacity
+          onPress={async () => {
+            if (Platform.OS === 'web') {
+              const confirmLogout = window.confirm("Voulez-vous vraiment vous déconnecter ?");
+              if (!confirmLogout) return;
             }
-          : {})}
-      >
-        <FAIcon
-          name={collapsed ? "angles-right" : "angles-left"}
-          size={12}
-          color="rgba(255,255,255,0.35)"
-          family="FontAwesome6"
-        />
-      </TouchableOpacity>
+            await supabase.auth.signOut();
+            router.replace("/(auth)/login");
+          }}
+          activeOpacity={0.7}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 11,
+            paddingHorizontal: collapsed ? 0 : 20,
+            justifyContent: collapsed ? "center" : "flex-start",
+            backgroundColor: "transparent",
+            marginLeft: 3,
+            marginBottom: 6,
+          }}
+        >
+          <FAIcon name="arrow-right-from-bracket" size={16} color="#E74C3C" family="FontAwesome6" />
+          {!collapsed && (
+            <Text
+              style={{
+                color: "#E74C3C",
+                fontWeight: "600",
+                fontSize: 13,
+                marginLeft: 14,
+                letterSpacing: 0.2,
+              }}
+            >
+              Se déconnecter
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        {/* ── Collapse/Expand Toggle ── */}
+        <TouchableOpacity
+          onPress={onToggle}
+          activeOpacity={0.7}
+          style={{
+            alignItems: "center",
+            justifyContent: "center",
+            paddingVertical: 10,
+            marginHorizontal: collapsed ? 8 : 16,
+            borderRadius: 8,
+            backgroundColor: collapseHovered ? "rgba(255,255,255,0.08)" : "transparent",
+          }}
+          {...(Platform.OS === "web"
+            ? {
+                // @ts-ignore
+                onMouseEnter: () => setCollapseHovered(true),
+                onMouseLeave: () => setCollapseHovered(false),
+              }
+            : {})}
+        >
+          <FAIcon
+            name={collapsed ? "angles-right" : "angles-left"}
+            size={12}
+            color="rgba(255,255,255,0.35)"
+            family="FontAwesome6"
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

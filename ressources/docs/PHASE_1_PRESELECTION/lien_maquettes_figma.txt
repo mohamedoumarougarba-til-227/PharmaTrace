@@ -1,0 +1,16 @@
+Lien des maquettes Figma interactives :
+https://www.figma.com/make/h0zh0456vNjLFcppysg7lK/PharmatraceTrustGrid?t=FpRCbmCGeRh6gruQ-1
+
+================================================================================
+⚠️ NOTE IMPORTANTE POUR LE JURY (NB) - NAVIGATION DANS LES MAQUETTES INTERACTIVES
+================================================================================
+
+Les maquettes Figma de PharmaTrace sont entièrement interactives (prototypées). 
+
+Pour faciliter votre évaluation et vous éviter toute saisie manuelle :
+1. AUCUN LOGIN NI MOT DE PASSE N'EST REQUIS : Vous pouvez vous connecter sans rien saisir dans les champs d'email et de mot de passe.
+2. SÉLECTION DES RÔLES : Sur la page de connexion (Login), vous disposez de boutons de rôles actifs :
+   - Cliquez sur le bouton "Fabricant" puis sur "Se connecter" pour accéder directement à l'espace Fabricant.
+   - Cliquez sur le bouton "Pharmacie" puis sur "Se connecter" pour accéder directement à l'espace Pharmacie.
+   - Cliquez sur le bouton "Scanner un médicament" en bas pour voir la vue Patient (sans connexion).
+3. TOUS LES BOUTONS DE NAVIGATION SONT ACTIFS : Vous pouvez cliquer sur les différents onglets de la barre de navigation (Accueil, Lots, Transferts, Stock, Compte, etc.) et sur les boutons d'action (comme "Créer un lot" ou "Transférer") pour naviguer naturellement entre les écrans comme s'il s'agissait d'une application réelle.

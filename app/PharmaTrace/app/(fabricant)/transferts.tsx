@@ -16,10 +16,11 @@ import CustomDatePicker from '../../components/CustomDatePicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 
-const STATUT_MAP: Record<string, { label: string; bg: string; text: string }> = {
-  en_attente:  { label: 'En attente',   bg: '#FEF4E0', text: '#E67E22' },
-  receptionne: { label: 'Réceptionné',  bg: '#E8F8EC', text: '#27AE60' },
-  refuse:      { label: 'Refusé',       bg: '#FDE8E8', text: '#C0392B' },
+const STATUT_MAP: Record<string, { label: string; bg: string; text: string; color: string }> = {
+  en_attente:  { label: 'En attente',   bg: '#FEF4E0', text: '#E67E22', color: '#E67E22' },
+  receptionne: { label: 'Réceptionné',  bg: '#E8F8EC', text: '#27AE60', color: '#27AE60' },
+  refuse:      { label: 'Refusé',       bg: '#FDE8E8', text: '#C0392B', color: '#C0392B' },
+  annule:      { label: 'Annulé',       bg: '#F0F4F8', text: '#6B7D90', color: '#8A9BA8' },
 };
 
 export default function TransfertsScreen() {
@@ -71,11 +72,11 @@ export default function TransfertsScreen() {
         return;
       }
 
-      // 1. Mettre à jour le statut du transfert à "refuse" (annulation)
+      // 1. Mettre à jour le statut du transfert à "annule" (annulation)
       const { error: transferError } = await supabase
         .from('transferts')
         .update({
-          statut: 'refuse',
+          statut: 'annule',
           notes_expediteur: 'Annulé par le fabricant',
           date_reception: new Date().toISOString(),
         })
@@ -309,8 +310,8 @@ export default function TransfertsScreen() {
         )}
 
         {/* Pilules de Statut */}
-        <View className="flex-row gap-1.5 mt-3">
-          {['tous', 'en_attente', 'receptionne', 'refuse'].map((st) => {
+        <View className="flex-row flex-wrap gap-1.5 mt-3">
+          {['tous', 'en_attente', 'receptionne', 'refuse', 'annule'].map((st) => {
             const isActive = selectedStatut === st;
             let label = 'Tous';
             let activeBg = 'bg-navy';
@@ -328,13 +329,17 @@ export default function TransfertsScreen() {
               label = 'Refusés';
               activeBg = 'bg-[#FDE8E8] border border-[#C0392B]/30';
               activeText = 'text-[#C0392B]';
+            } else if (st === 'annule') {
+              label = 'Annulés';
+              activeBg = 'bg-[#F0F4F8] border border-[#6B7D90]/30';
+              activeText = 'text-[#6B7D90]';
             }
 
             return (
               <TouchableOpacity
                 key={st}
                 onPress={() => setSelectedStatut(st)}
-                className={`flex-1 py-1.5 rounded-lg items-center justify-center border ${
+                className={`py-1.5 px-2.5 rounded-lg items-center justify-center border ${
                   isActive 
                     ? activeBg + ' border-transparent' 
                     : 'bg-bg border-blue-light'
@@ -367,11 +372,15 @@ export default function TransfertsScreen() {
         )}
 
         {filteredTransferts.map(t => {
-          const s = STATUT_MAP[t.statut] || { label: t.statut, bg: '#eee', text: '#333' };
+          const s = STATUT_MAP[t.statut] || { label: t.statut, bg: '#eee', text: '#333', color: '#ccc' };
           const formattedDate = new Date(t.date_initiation).toLocaleDateString('fr-FR');
           
           return (
-            <View key={t.id} className="mb-3 rounded-2xl bg-white shadow-sm border border-[#E6EEF8]" style={{ overflow: 'hidden' }}>
+            <View 
+              key={t.id} 
+              className="mb-3 rounded-2xl bg-white shadow-sm border border-[#E6EEF8] border-l-[5px]" 
+              style={{ overflow: 'hidden', borderLeftColor: s.color, opacity: t.statut === 'annule' ? 0.55 : 1 }}
+            >
               <Swipeable
                 renderRightActions={() => {
                   if (t.statut !== 'en_attente') return null;

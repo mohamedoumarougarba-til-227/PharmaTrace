@@ -520,7 +520,8 @@ export type StatutTransfert =
   | "en_attente"
   | "receptionne"
   | "refuse"
-  | "archive";
+  | "archive"
+  | "annule";
 export type NiveauAlerte = "info" | "avertissement" | "critique";
 export type StatutAlerte =
   | "ouverte"

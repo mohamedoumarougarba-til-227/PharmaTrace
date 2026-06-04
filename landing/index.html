@@ -3280,17 +3280,27 @@
             var zoomOverlay = document.getElementById("mockup-zoom-overlay");
             var zoomOverlayImg = document.getElementById("zoom-overlay-img");
             var mockupCards = document.querySelectorAll(".mockup-card");
+            var zoomTimeout = null;
 
             mockupCards.forEach(function (card) {
                 var img = card.querySelector(".mockup-screenshot");
                 if (!img) return;
 
                 card.addEventListener("mouseenter", function () {
-                    zoomOverlayImg.src = img.src;
-                    zoomOverlay.classList.add("active");
+                    if (zoomTimeout) {
+                        clearTimeout(zoomTimeout);
+                    }
+                    zoomTimeout = setTimeout(function () {
+                        zoomOverlayImg.src = img.src;
+                        zoomOverlay.classList.add("active");
+                    }, 2000);
                 });
 
                 card.addEventListener("mouseleave", function () {
+                    if (zoomTimeout) {
+                        clearTimeout(zoomTimeout);
+                        zoomTimeout = null;
+                    }
                     zoomOverlay.classList.remove("active");
                 });
             });

@@ -324,15 +324,30 @@ export default function LotDetailScreen() {
       `;
 
       try {
-        const { uri } = await Print.printToFileAsync({ html });
-        await Sharing.shareAsync(uri, {
-          mimeType: 'application/pdf',
-          dialogTitle: `Certificat du lot ${lot.numero_lot}`,
-          UTI: 'com.adobe.pdf',
-        });
-      } catch (error) {
-        console.error("Error during PDF generation or sharing:", error);
-        Alert.alert('Erreur', "L'impression ou le partage a échoué.");
+        // 1. Tenter l'impression directe (avec le HTML simplifié et sans flexbox)
+        await Print.printAsync({ html });
+      } catch (printErr) {
+        console.error("Direct printing failed, falling back to PDF sharing:", printErr);
+        try {
+          // 2. Fallback : Générer un fichier PDF, le copier sous un nom propre et ouvrir le partage
+          const printResult = await Print.printToFileAsync({ html });
+          const cleanUri = `${FileSystem.cacheDirectory}Certificat_Lot_${lot.numero_lot}.pdf`;
+          
+          // Copier vers un nom de fichier lisible au lieu du UUID temporaire
+          await FileSystem.copyAsync({
+            from: printResult.uri,
+            to: cleanUri
+          });
+
+          await Sharing.shareAsync(cleanUri, {
+            mimeType: 'application/pdf',
+            dialogTitle: `Certificat du lot ${lot.numero_lot}`,
+            UTI: 'com.adobe.pdf',
+          });
+        } catch (err) {
+          console.error("Error during fallback PDF generation or sharing:", err);
+          Alert.alert('Erreur', "L'impression ou le partage a échoué.");
+        }
       }
     });
   };

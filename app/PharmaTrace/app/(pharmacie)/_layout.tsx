@@ -1,7 +1,56 @@
-import { Tabs } from "expo-router";
+import { Tabs, router } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { FAIcon } from "../../constants/icons";
+import { supabase } from "../../lib/supabase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function PharmacieLayout() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          router.replace("/(auth)/login");
+          return;
+        }
+
+        const isDemo = await AsyncStorage.getItem('pt_demo_mode') === 'true';
+        let role = null;
+        if (isDemo) {
+          role = await AsyncStorage.getItem('pt_demo_role');
+        } else {
+          const { data: profile } = await supabase
+            .from("utilisateurs")
+            .select("role")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          role = profile?.role;
+        }
+
+        if (role !== "pharmacie") {
+          router.replace("/(auth)/login");
+        } else {
+          setLoading(false);
+        }
+      } catch (err) {
+        router.replace("/(auth)/login");
+      }
+    };
+
+    checkAccess();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#27AE60" }}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
   return (
     <Tabs
       screenOptions={{

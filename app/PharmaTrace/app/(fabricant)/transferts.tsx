@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { FAIcon } from '../../constants/icons';
@@ -57,6 +58,76 @@ export default function TransfertsScreen() {
       setLoading(false);
       setRefreshing(false);
     }
+  };
+
+  const cancelTransferExecution = async (transfertId: string, lotId: string | null, quantite: number) => {
+    try {
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        Alert.alert('Session expirée', 'Veuillez vous reconnecter.');
+        return;
+      }
+
+      // 1. Mettre à jour le statut du transfert à "refuse" (annulation)
+      const { error: transferError } = await supabase
+        .from('transferts')
+        .update({
+          statut: 'refuse',
+          notes_expediteur: 'Annulé par le fabricant',
+          date_reception: new Date().toISOString(),
+        })
+        .eq('id', transfertId)
+        .eq('expediteur_id', session.user.id);
+
+      if (transferError) throw transferError;
+
+      // 2. Restituer le stock au lot
+      if (lotId) {
+        const { data: lotData, error: fetchLotError } = await supabase
+          .from('lots_medicaments')
+          .select('quantite_actuelle')
+          .eq('id', lotId)
+          .single();
+
+        if (fetchLotError) throw fetchLotError;
+
+        const currentQty = lotData?.quantite_actuelle ?? 0;
+
+        const { error: lotError } = await supabase
+          .from('lots_medicaments')
+          .update({
+            statut_actuel: 'en_stock_fabricant',
+            quantite_actuelle: currentQty + quantite,
+          })
+          .eq('id', lotId);
+
+        if (lotError) throw lotError;
+      }
+
+      Alert.alert('Succès', 'Le transfert a été annulé avec succès et la quantité a été restituée au lot.');
+      await loadTransferts();
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Erreur', "Impossible d'annuler le transfert.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelTransfer = (t: any) => {
+    Alert.alert(
+      'Annuler le transfert',
+      `Voulez-vous vraiment annuler le transfert de ${t.quantite_transferee} unités de "${t.lot_id?.nom_medicament ?? ''}" vers "${t.destinataire_id?.nom_entite ?? ''}" ?\n\nCette action restituera les unités au stock de ce lot.`,
+      [
+        { text: 'Retour', style: 'cancel' },
+        {
+          text: 'Confirmer l\'annulation',
+          style: 'destructive',
+          onPress: () => cancelTransferExecution(t.id, t.lot_id?.id, t.quantite_transferee),
+        }
+      ]
+    );
   };
 
   useFocusEffect(
@@ -331,6 +402,18 @@ export default function TransfertsScreen() {
                   Le {formattedDate}
                 </Text>
               </View>
+              
+              {t.statut === 'en_attente' && (
+                <View className="pt-3 mt-3 border-t border-bg flex-row justify-end">
+                  <TouchableOpacity
+                    onPress={() => handleCancelTransfer(t)}
+                    className="px-4 py-1.5 border border-pharma-red/30 bg-pharma-red/5 rounded-lg flex-row items-center gap-1.5"
+                  >
+                    <FAIcon name="trash" size={10} color="#C0392B" family="FontAwesome" />
+                    <Text className="text-[#C0392B] text-xs font-semibold">Annuler le transfert</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           );
         })}

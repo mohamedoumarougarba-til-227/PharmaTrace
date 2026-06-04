@@ -1,10 +1,13 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert, Share } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useFocusEffect, useLocalSearchParams, Link } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
 import { VERIFICATION_BASE_URL } from '../../constants/config';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+import * as Print from 'expo-print';
 
 function formatDate(d?: string | null) {
   if (!d) return '—';
@@ -15,6 +18,7 @@ export default function LotDetailScreen() {
   const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [lot, setLot] = useState<any | null>(null);
+  const qrRef = useRef<any>(null);
 
   const load = useCallback(async () => {
     try {
@@ -45,19 +49,182 @@ export default function LotDetailScreen() {
 
   const expired = lot.date_expiration ? new Date(lot.date_expiration) < new Date() : false;
 
-  const onShareQR = async () => {
-    try {
-      const qrValue = lot.qr_code_url && lot.qr_code_url.includes('api.qrserver.com')
-        ? decodeURIComponent(lot.qr_code_url.split('data=')[1] || '')
-        : lot.qr_code_url || `${VERIFICATION_BASE_URL}?hash=${lot.hash_sha256}`;
-        
-      if (!qrValue) { Alert.alert('QR absent'); return; }
-      await Share.share({ message: `QR code du lot ${lot.numero_lot} — ${lot.nom_medicament}\n${qrValue}` });
-    } catch (e) { console.error(e); }
+  const onDownloadQR = async () => {
+    if (!qrRef.current) {
+      Alert.alert('Erreur', 'QR code non disponible pour téléchargement.');
+      return;
+    }
+
+    qrRef.current.toDataURL(async (base64Data: string) => {
+      try {
+        const filename = `${FileSystem.cacheDirectory}QR_${lot.numero_lot}.png`;
+        await FileSystem.writeAsStringAsync(filename, base64Data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        await Sharing.shareAsync(filename, {
+          mimeType: 'image/png',
+          dialogTitle: `Télécharger le QR Code du lot ${lot.numero_lot}`,
+          UTI: 'public.png',
+        });
+      } catch (e) {
+        console.error(e);
+        Alert.alert('Erreur', 'Impossible de télécharger le QR code.');
+      }
+    });
   };
 
   const onPrint = () => {
-    Alert.alert('Imprimer', 'Impression non implémentée dans cette démo.');
+    if (!qrRef.current) {
+      Alert.alert('Erreur', 'QR code non disponible pour impression.');
+      return;
+    }
+
+    qrRef.current.toDataURL(async (base64Data: string) => {
+      try {
+        const html = `
+          <html>
+            <head>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+              <style>
+                body {
+                  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                  padding: 40px;
+                  color: #1A3A5C;
+                  background-color: #fff;
+                  text-align: center;
+                }
+                .header {
+                  font-size: 28px;
+                  font-weight: 800;
+                  letter-spacing: 1px;
+                  margin-bottom: 5px;
+                  color: #1A3A5C;
+                }
+                .tagline {
+                  font-size: 12px;
+                  color: #6B7D90;
+                  text-transform: uppercase;
+                  letter-spacing: 2px;
+                  margin-bottom: 30px;
+                  font-weight: bold;
+                }
+                .qr-container {
+                  border: 2px solid #E6EEF8;
+                  border-radius: 20px;
+                  padding: 20px;
+                  background-color: #fff;
+                  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                  margin-bottom: 30px;
+                  display: inline-block;
+                }
+                .qr-image {
+                  width: 250px;
+                  height: 250px;
+                }
+                .lot-number {
+                  font-size: 22px;
+                  font-weight: bold;
+                  margin-bottom: 5px;
+                  color: #1A3A5C;
+                }
+                .med-name {
+                  font-size: 16px;
+                  color: #6B7D90;
+                  margin-bottom: 25px;
+                }
+                .info-box {
+                  width: 100%;
+                  max-width: 400px;
+                  border-top: 1px solid #E6EEF8;
+                  padding-top: 20px;
+                  margin-bottom: 25px;
+                }
+                .info-row {
+                  display: flex;
+                  justify-content: space-between;
+                  margin-bottom: 8px;
+                  font-size: 13px;
+                }
+                .info-label {
+                  color: #9AA9B8;
+                }
+                .info-value {
+                  font-weight: 600;
+                  color: #1A3A5C;
+                }
+                .signature-container {
+                  background-color: #F7F9FC;
+                  border-radius: 12px;
+                  padding: 12px 20px;
+                  width: 100%;
+                  max-width: 400px;
+                  border: 1px solid #E6EEF8;
+                }
+                .signature-title {
+                  font-size: 10px;
+                  font-weight: bold;
+                  color: #9AA9B8;
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                  margin-bottom: 5px;
+                }
+                .signature-hash {
+                  font-size: 11px;
+                  font-family: monospace;
+                  color: #1A3A5C;
+                  word-break: break-all;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="header">PharmaTrace</div>
+              <div class="tagline">Certificat de Traçabilité Immuable</div>
+              
+              <div class="qr-container">
+                <img class="qr-image" src="data:image/png;base64,${base64Data}" />
+              </div>
+              
+              <div class="lot-number">LOT ${lot.numero_lot}</div>
+              <div class="med-name">${lot.nom_medicament} ${lot.dosage ? `(${lot.dosage})` : ''}</div>
+              
+              <div class="info-box">
+                <div class="info-row">
+                  <span class="info-label">Fabricant :</span>
+                  <span class="info-value">${lot.fabricant_nom || 'Laboratoire Agréé'}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Date de Fabrication :</span>
+                  <span class="info-value">${formatDate(lot.date_fabrication)}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Date d'Expiration :</span>
+                  <span class="info-value">${formatDate(lot.date_expiration)}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Quantité Initiale :</span>
+                  <span class="info-value">${lot.quantite_initiale?.toLocaleString?.() ?? lot.quantite_initiale} unités</span>
+                </div>
+              </div>
+              
+              <div class="signature-container">
+                <div class="signature-title">Signature Numérique SHA-256</div>
+                <div class="signature-hash">${lot.hash_sha256}</div>
+              </div>
+            </body>
+          </html>
+        `;
+        
+        await Print.printAsync({ html });
+      } catch (error) {
+        console.error(error);
+        Alert.alert('Erreur', "L'impression a échoué.");
+      }
+    });
   };
 
   return (
@@ -68,6 +235,7 @@ export default function LotDetailScreen() {
           <View style={{ width: 220, height: 220, borderRadius: 12, borderWidth: 1, borderColor: '#E6EEF8', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#fff' }}>
             {lot.qr_code_url || lot.hash_sha256 ? (
               <QRCode
+                getRef={(c) => (qrRef.current = c)}
                 value={
                   lot.qr_code_url && lot.qr_code_url.includes('api.qrserver.com')
                     ? decodeURIComponent(lot.qr_code_url.split('data=')[1] || '')
@@ -82,12 +250,12 @@ export default function LotDetailScreen() {
               </View>
             )}
           </View>
-
+ 
           <Text className="text-navy font-semibold text-base mt-3">{lot.numero_lot}</Text>
           <Text className="text-muted text-sm">{lot.nom_medicament}</Text>
-
+ 
           <View style={{ width: '100%', marginTop: 16 }}>
-            <TouchableOpacity onPress={onShareQR} className="w-full bg-white border border-blue-light rounded-xl py-3 items-center mb-3 flex-row justify-center gap-2">
+            <TouchableOpacity onPress={onDownloadQR} className="w-full bg-white border border-blue-light rounded-xl py-3 items-center mb-3 flex-row justify-center gap-2">
               <FAIcon name="download" size={14} color="#1A3A5C" family="FontAwesome6" />
               <Text className="text-navy font-semibold">Télécharger</Text>
             </TouchableOpacity>

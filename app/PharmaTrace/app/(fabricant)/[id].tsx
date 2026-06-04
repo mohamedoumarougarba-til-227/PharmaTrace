@@ -144,6 +144,16 @@ export default function LotDetailScreen() {
 
     qrRef.current.toDataURL(async (base64Data: string) => {
       try {
+        if (Platform.OS === 'web') {
+          const link = window.document.createElement('a');
+          link.href = `data:image/png;base64,${base64Data}`;
+          link.download = `QR_${lot.numero_lot}.png`;
+          window.document.body.appendChild(link);
+          link.click();
+          window.document.body.removeChild(link);
+          return;
+        }
+
         if (Platform.OS === 'android') {
           Alert.alert(
             'Télécharger le QR Code',
@@ -324,6 +334,27 @@ export default function LotDetailScreen() {
           </body>
         </html>
       `;
+
+      if (Platform.OS === 'web') {
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(html);
+          printWindow.document.close();
+          printWindow.onload = () => {
+            printWindow.print();
+          };
+          setTimeout(() => {
+            try {
+              printWindow.print();
+            } catch (e) {
+              console.error(e);
+            }
+          }, 500);
+        } else {
+          Alert.alert('Erreur', "Le bloqueur de fenêtres pop-up a empêché l'ouverture de la fenêtre d'impression.");
+        }
+        return;
+      }
 
       try {
         // 1. Tenter l'impression directe (avec le HTML simplifié et sans flexbox)

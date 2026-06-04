@@ -13,6 +13,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { FAIcon } from '../../constants/icons';
 import { supabase } from '../../lib/supabase';
 import CustomDatePicker from '../../components/CustomDatePicker';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 
 const STATUT_MAP: Record<string, { label: string; bg: string; text: string }> = {
   en_attente:  { label: 'En attente',   bg: '#FEF4E0', text: '#E67E22' },
@@ -220,7 +222,8 @@ export default function TransfertsScreen() {
   }
 
   return (
-    <View className="flex-1 bg-bg">
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View className="flex-1 bg-bg">
       {/* Barre de recherche et bouton de filtres */}
       <View className="bg-white border-b border-blue-light px-4 py-3 shadow-sm">
         <View className="flex-row items-center gap-2">
@@ -368,52 +371,63 @@ export default function TransfertsScreen() {
           const formattedDate = new Date(t.date_initiation).toLocaleDateString('fr-FR');
           
           return (
-            <View key={t.id} className="bg-white rounded-2xl p-4 mb-3 shadow-sm border border-[#E6EEF8]">
-              <View className="flex-row justify-between items-start mb-2">
-                <View className="flex-1 mr-3">
-                  <Text className="text-navy font-black text-sm">{t.lot_id?.nom_medicament ?? 'Lot'}</Text>
-                  <Text className="text-muted text-xs mt-0.5">
-                    {t.lot_id?.numero_lot ?? '—'}  ·  <Text className="font-extrabold text-navy">{t.quantite_transferee}</Text> unités
-                  </Text>
-                </View>
-                <View className="px-2 py-1 rounded-full" style={{ backgroundColor: s.bg }}>
-                  <Text className="text-[10px] font-extrabold uppercase" style={{ color: s.text }}>{s.label}</Text>
-                </View>
-              </View>
-              
-              <View className="pt-2 mt-2 border-t border-bg flex-row justify-between items-end">
-                <View className="flex-1 pr-2">
-                  <View className="flex-row items-center gap-1.5 mb-1">
-                    <FAIcon name="hospital" size={10} color="#2E6DA4" family="FontAwesome6" />
-                    <Text className="text-xs text-navy font-bold">{t.destinataire_id?.nom_entite ?? 'Pharmacie'}</Text>
-                  </View>
-                  
-                  {(t.destinataire_id?.ville || t.destinataire_id?.pays) && (
-                    <View className="flex-row items-center gap-1.5">
-                      <FAIcon name="map-pin" size={10} color="#6B7D90" family="FontAwesome6" />
-                      <Text className="text-[10px] text-muted font-semibold">
-                        {[t.destinataire_id?.ville, t.destinataire_id?.pays].filter(Boolean).join(', ')}
+            <View key={t.id} className="mb-3 rounded-2xl bg-white shadow-sm border border-[#E6EEF8]" style={{ overflow: 'hidden' }}>
+              <Swipeable
+                renderRightActions={() => {
+                  if (t.statut !== 'en_attente') return null;
+                  return (
+                    <TouchableOpacity
+                      onPress={() => handleCancelTransfer(t)}
+                      style={{
+                        backgroundColor: '#C0392B',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: 80,
+                        height: '100%',
+                      }}
+                    >
+                      <FAIcon name="trash" size={18} color="#fff" family="FontAwesome" />
+                      <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700', marginTop: 4 }}>Annuler</Text>
+                    </TouchableOpacity>
+                  );
+                }}
+              >
+                <View className="bg-white p-4">
+                  <View className="flex-row justify-between items-start mb-2">
+                    <View className="flex-1 mr-3">
+                      <Text className="text-navy font-black text-sm">{t.lot_id?.nom_medicament ?? 'Lot'}</Text>
+                      <Text className="text-muted text-xs mt-0.5">
+                        {t.lot_id?.numero_lot ?? '—'}  ·  <Text className="font-extrabold text-navy">{t.quantite_transferee}</Text> unités
                       </Text>
                     </View>
-                  )}
+                    <View className="px-2 py-1 rounded-full" style={{ backgroundColor: s.bg }}>
+                      <Text className="text-[10px] font-extrabold uppercase" style={{ color: s.text }}>{s.label}</Text>
+                    </View>
+                  </View>
+                  
+                  <View className="pt-2 mt-2 border-t border-bg flex-row justify-between items-end">
+                    <View className="flex-1 pr-2">
+                      <View className="flex-row items-center gap-1.5 mb-1">
+                        <FAIcon name="hospital" size={10} color="#2E6DA4" family="FontAwesome6" />
+                        <Text className="text-xs text-navy font-bold">{t.destinataire_id?.nom_entite ?? 'Pharmacie'}</Text>
+                      </View>
+                      
+                      {(t.destinataire_id?.ville || t.destinataire_id?.pays) && (
+                        <View className="flex-row items-center gap-1.5">
+                          <FAIcon name="map-pin" size={10} color="#6B7D90" family="FontAwesome6" />
+                          <Text className="text-[10px] text-muted font-semibold">
+                            {[t.destinataire_id?.ville, t.destinataire_id?.pays].filter(Boolean).join(', ')}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    
+                    <Text className="text-[9px] text-muted font-bold uppercase tracking-wide">
+                      Le {formattedDate}
+                    </Text>
+                  </View>
                 </View>
-                
-                <Text className="text-[9px] text-muted font-bold uppercase tracking-wide">
-                  Le {formattedDate}
-                </Text>
-              </View>
-              
-              {t.statut === 'en_attente' && (
-                <View className="pt-3 mt-3 border-t border-bg flex-row justify-end">
-                  <TouchableOpacity
-                    onPress={() => handleCancelTransfer(t)}
-                    className="px-4 py-1.5 border border-pharma-red/30 bg-pharma-red/5 rounded-lg flex-row items-center gap-1.5"
-                  >
-                    <FAIcon name="trash" size={10} color="#C0392B" family="FontAwesome" />
-                    <Text className="text-[#C0392B] text-xs font-semibold">Annuler le transfert</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              </Swipeable>
             </View>
           );
         })}
@@ -435,5 +449,6 @@ export default function TransfertsScreen() {
         title="Filtrer jusqu'au"
       />
     </View>
+  </GestureHandlerRootView>
   );
 }

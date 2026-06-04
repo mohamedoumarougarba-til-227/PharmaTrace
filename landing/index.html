@@ -350,11 +350,11 @@
     ============================================================ */
             #hero {
                 background: #0d1b2a;
-                min-height: 100vh;
+                min-height: calc(100vh - 64px);
                 display: flex;
                 flex-direction: column;
+                justify-content: space-between;
                 align-items: center;
-                justify-content: center;
                 position: relative;
                 overflow: hidden;
             }
@@ -368,12 +368,12 @@
                         ellipse 60% 50% at 70% 50%,
                         rgba(46, 109, 164, 0.18) 0%,
                         transparent 70%
-                    ),
+                     ),
                     radial-gradient(
                         ellipse 40% 40% at 20% 80%,
                         rgba(26, 58, 92, 0.4) 0%,
                         transparent 60%
-                    );
+                     );
                 pointer-events: none;
             }
 
@@ -381,12 +381,13 @@
                 width: 100%;
                 max-width: 1140px;
                 margin: 0 auto;
-                padding: 100px 24px 60px;
+                padding: 16px 24px 24px;
                 display: flex;
                 align-items: center;
                 gap: 60px;
                 position: relative;
                 z-index: 1;
+                flex: 1;
             }
 
             .hero-content {
@@ -407,7 +408,7 @@
                 text-transform: uppercase;
                 padding: 6px 14px;
                 border-radius: 100px;
-                margin-bottom: 28px;
+                margin-bottom: 12px;
             }
 
             .hero-badge::before {
@@ -436,7 +437,7 @@
                 font-weight: 900;
                 color: var(--orange);
                 line-height: 1;
-                margin-bottom: 12px;
+                margin-bottom: 6px;
                 letter-spacing: -3px;
             }
 
@@ -445,7 +446,7 @@
                 font-weight: 800;
                 color: var(--white);
                 line-height: 1.2;
-                margin-bottom: 20px;
+                margin-bottom: 10px;
             }
 
             .hero-subtitle {
@@ -453,14 +454,14 @@
                 color: rgba(255, 255, 255, 0.72);
                 line-height: 1.7;
                 max-width: 540px;
-                margin-bottom: 36px;
+                margin-bottom: 16px;
             }
 
             .hero-buttons {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 12px;
-                margin-bottom: 56px;
+                margin-bottom: 20px;
             }
 
             .hero-buttons .btn-primary {
@@ -562,17 +563,17 @@
                 text-align: center;
             }
 
-            /* Hero stats counter */
             .hero-stats {
                 display: flex;
                 gap: 0;
                 border-top: 1px solid rgba(255, 255, 255, 0.1);
-                padding-top: 32px;
+                padding-top: 20px;
+                padding-bottom: 20px;
                 position: relative;
                 z-index: 1;
                 width: 100%;
                 max-width: 1140px;
-                margin: 0 auto;
+                margin: 16px auto 0;
                 padding-left: 24px;
                 padding-right: 24px;
             }
@@ -622,6 +623,13 @@
                 padding: 28px;
                 position: relative;
                 overflow: hidden;
+                transition: transform var(--transition), box-shadow var(--transition);
+                cursor: pointer;
+            }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-lg);
             }
 
             .stat-card::before {
@@ -659,6 +667,14 @@
                 line-height: 1;
                 margin-bottom: 8px;
                 letter-spacing: -1px;
+            }
+
+            .stat-card-title {
+                font-size: clamp(20px, 3vw, 24px);
+                font-weight: 800;
+                line-height: 1.2;
+                margin-bottom: 10px;
+                letter-spacing: -0.5px;
             }
 
             .stat-card-desc {
@@ -728,16 +744,34 @@
                 display: flex;
                 flex-direction: column;
                 gap: 12px;
+                transition: transform var(--transition), box-shadow var(--transition), background-color var(--transition);
+                cursor: pointer;
+            }
+
+            .solution-card:hover {
+                transform: translateY(-6px);
+                box-shadow: var(--shadow-lg);
             }
 
             .solution-card-blue {
                 background: #dceeff;
             }
+            .solution-card-blue:hover {
+                background: #c9e4ff;
+            }
+
             .solution-card-green {
                 background: #d5f5e3;
             }
+            .solution-card-green:hover {
+                background: #c2f0d5;
+            }
+
             .solution-card-orange {
                 background: #fdebd0;
+            }
+            .solution-card-orange:hover {
+                background: #fae1bb;
             }
 
             .solution-card-number {
@@ -809,6 +843,14 @@
                 border-radius: var(--radius-md);
                 background: var(--bg);
                 border: 1px solid #e8ecf1;
+                transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+                cursor: pointer;
+            }
+
+            .step-card:hover {
+                transform: translateY(-6px);
+                box-shadow: var(--shadow-lg);
+                border-color: var(--blue);
             }
 
             .step-number-circle {
@@ -2030,36 +2072,34 @@
                 <!-- Stat cards grid -->
                 <div class="problem-grid">
                     <div class="stat-card stat-card-red reveal reveal-delay-1">
-                        <div class="stat-card-number">30–60%</div>
+                        <div class="stat-card-title">Danger Vital</div>
                         <div class="stat-card-desc">
-                            des médicaments contrefaits en Afrique subsaharienne
+                            Des comprimés faits de craie ou de substances toxiques remplacent les antibiotiques et antipaludiques vitaux.
                         </div>
-                        <div class="stat-card-source">Source : OMS</div>
+                        <div class="stat-card-source">Impact Sanitaire</div>
                     </div>
                     <div
                         class="stat-card stat-card-orange reveal reveal-delay-2"
                     >
-                        <div class="stat-card-number">500 000</div>
+                        <div class="stat-card-title">Marché Noir Criminel</div>
                         <div class="stat-card-desc">
-                            décès par an liés aux faux médicaments
+                            Le commerce de la contrefaçon médicale est extrêmement lucratif et cible en priorité les populations vulnérables.
                         </div>
-                        <div class="stat-card-source">Source : OMS</div>
+                        <div class="stat-card-source">Interpol 2023</div>
                     </div>
                     <div class="stat-card stat-card-blue reveal reveal-delay-3">
-                        <div class="stat-card-number">&lt; 10%</div>
+                        <div class="stat-card-title">Frontières &amp; Circuits</div>
                         <div class="stat-card-desc">
-                            des médicaments traçables au Niger
+                            Les faux médicaments transitent par les frontières terrestres et inondent les marchés de brousse et de rue.
                         </div>
-                        <div class="stat-card-source">Source : DPN Niger</div>
+                        <div class="stat-card-source">Canaux d'Infiltration</div>
                     </div>
                     <div class="stat-card stat-card-dark reveal reveal-delay-4">
-                        <div class="stat-card-number">200 Mds $</div>
+                        <div class="stat-card-title">Zéro Traçabilité</div>
                         <div class="stat-card-desc">
-                            marché mondial des contrefaçons pharmaceutiques
+                            Sans outil d'authentification cryptographique, il est impossible de prouver la provenance réelle d'une boîte.
                         </div>
-                        <div class="stat-card-source">
-                            Source : Interpol 2023
-                        </div>
+                        <div class="stat-card-source">Défaillance Logistique</div>
                     </div>
                 </div>
 

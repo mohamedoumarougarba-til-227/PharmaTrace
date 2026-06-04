@@ -324,35 +324,15 @@ export default function LotDetailScreen() {
       `;
 
       try {
-        await Print.printAsync({ html });
-      } catch (printErr) {
-        console.error("Direct printing failed, falling back to PDF sharing", printErr);
-        Alert.alert(
-          'Impression directe impossible',
-          "Le service d'impression n'a pas pu traiter la demande directement. Souhaitez-vous partager ou enregistrer le certificat sous format PDF ?",
-          [
-            {
-              text: 'Partager / Enregistrer le PDF',
-              onPress: async () => {
-                try {
-                  const { uri } = await Print.printToFileAsync({ html });
-                  await Sharing.shareAsync(uri, {
-                    mimeType: 'application/pdf',
-                    dialogTitle: `Certificat du lot ${lot.numero_lot}`,
-                    UTI: 'com.adobe.pdf',
-                  });
-                } catch (pdfErr) {
-                  console.error(pdfErr);
-                  Alert.alert('Erreur', 'Impossible de générer le document PDF.');
-                }
-              }
-            },
-            {
-              text: 'Annuler',
-              style: 'cancel'
-            }
-          ]
-        );
+        const { uri } = await Print.printToFileAsync({ html });
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: `Certificat du lot ${lot.numero_lot}`,
+          UTI: 'com.adobe.pdf',
+        });
+      } catch (error) {
+        console.error("Error during PDF generation or sharing:", error);
+        Alert.alert('Erreur', "L'impression ou le partage a échoué.");
       }
     });
   };

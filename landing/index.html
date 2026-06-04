@@ -381,7 +381,7 @@
                 width: 100%;
                 max-width: 1140px;
                 margin: 0 auto;
-                padding: 16px 24px 24px;
+                padding: 4px 24px 24px;
                 display: flex;
                 align-items: center;
                 gap: 60px;
@@ -433,12 +433,12 @@
             }
 
             .hero-stat-giant {
-                font-size: clamp(72px, 12vw, 110px);
+                font-size: clamp(54px, 8vw, 76px);
                 font-weight: 900;
                 color: var(--orange);
-                line-height: 1;
+                line-height: 1.1;
                 margin-bottom: 6px;
-                letter-spacing: -3px;
+                letter-spacing: -1.5px;
             }
 
             .hero-title {
@@ -605,7 +605,7 @@
     ============================================================ */
             #problem {
                 background: var(--white);
-                padding: 96px 0;
+                padding: 16px 0 80px;
             }
 
             .problem-grid {
@@ -718,7 +718,7 @@
     ============================================================ */
             #solution {
                 background: var(--bg);
-                padding: 96px 0;
+                padding: 16px 0 80px;
             }
 
             .solution-subtitle-italic {
@@ -802,7 +802,7 @@
     ============================================================ */
             #how {
                 background: var(--white);
-                padding: 96px 0;
+                padding: 16px 0 80px;
             }
 
             .steps-wrapper {
@@ -1050,7 +1050,7 @@
     ============================================================ */
             #interfaces {
                 background: var(--bg);
-                padding: 96px 0;
+                padding: 16px 0 80px;
             }
 
             .interfaces-cards {
@@ -1197,7 +1197,7 @@
     ============================================================ */
             #team {
                 background: var(--white);
-                padding: 96px 0;
+                padding: 16px 0 80px;
             }
 
             .team-badge {
@@ -1515,6 +1515,46 @@
 
             section {
                 scroll-margin-top: 64px;
+                padding-top: 16px;
+            }
+
+            /* Bouton Retour en Haut */
+            .back-to-top {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: var(--blue);
+                color: var(--white);
+                border: none;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: var(--shadow-md);
+                z-index: 999;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(10px);
+                transition: all var(--transition);
+            }
+
+            .back-to-top.visible {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+
+            .back-to-top:hover {
+                background: var(--navy);
+                transform: translateY(-3px);
+                box-shadow: 0 6px 16px rgba(46, 109, 164, 0.4);
+            }
+
+            .back-to-top:active {
+                transform: translateY(-1px);
             }
         </style>
     </head>
@@ -2996,6 +3036,13 @@
         <!-- Verify anchor target -->
         <div id="verify" style="display: none"></div>
 
+        <!-- Bouton Retour en Haut -->
+        <button id="back-to-top" class="back-to-top" aria-label="Retour en haut">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 15l-6-6-6 6"/>
+            </svg>
+        </button>
+
         <!-- ================================================================
      JAVASCRIPT
 ================================================================ -->
@@ -3165,19 +3212,25 @@
             function highlightActiveLink() {
                 var scrollY = window.scrollY;
                 var windowHeight = window.innerHeight;
+                var scrollHeight = document.documentElement.scrollHeight;
                 var activeId = null;
 
-                sections.forEach(function (section) {
-                    var sectionTop = section.offsetTop - 80;
-                    var sectionHeight = section.offsetHeight;
+                // Si l'utilisateur est tout en bas du défilement, forcer l'état actif sur la section "Équipe" (#team)
+                if (scrollY + windowHeight >= scrollHeight - 80) {
+                    activeId = "team";
+                } else {
+                    sections.forEach(function (section) {
+                        var sectionTop = section.offsetTop - 80;
+                        var sectionHeight = section.offsetHeight;
 
-                    if (
-                        scrollY >= sectionTop &&
-                        scrollY < sectionTop + sectionHeight
-                    ) {
-                        activeId = section.getAttribute("id");
-                    }
-                });
+                        if (
+                            scrollY >= sectionTop &&
+                            scrollY < sectionTop + sectionHeight
+                        ) {
+                            activeId = section.getAttribute("id");
+                        }
+                    });
+                }
 
                 navLinks.forEach(function (link) {
                     link.classList.remove("active");
@@ -3192,6 +3245,26 @@
                 passive: true,
             });
             highlightActiveLink();
+
+            /* ---------------------------------------------------------------
+             7. Bouton Retour en Haut
+            --------------------------------------------------------------- */
+            var backToTopBtn = document.getElementById("back-to-top");
+
+            window.addEventListener("scroll", function () {
+                if (window.scrollY > 400) {
+                    backToTopBtn.classList.add("visible");
+                } else {
+                    backToTopBtn.classList.remove("visible");
+                }
+            }, { passive: true });
+
+            backToTopBtn.addEventListener("click", function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            });
         </script>
     </body>
 </html>

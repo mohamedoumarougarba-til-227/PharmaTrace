@@ -29,12 +29,16 @@ export default function AgentLotsScreen() {
           nom_medicament, 
           date_expiration, 
           statut_actuel, 
+          quantite_initiale,
+          quantite_actuelle,
+          pays_origine,
           fabricant_nom, 
           fabricant_ville,
           created_at,
           transferts (
             statut,
-            destinataire:utilisateurs!destinataire_id (nom_entite, ville)
+            quantite_transferee,
+            destinataire:utilisateurs!destinataire_id (nom_entite, ville, pays)
           )
         `)
         .order('created_at', { ascending: false });
@@ -53,30 +57,39 @@ export default function AgentLotsScreen() {
 
   const onRefresh = async () => { setRefreshing(true); await loadLots(); };
 
-  // Filtrer par onglet de statut
+  // Filtrer par onglet de statut (basé sur la localisation réelle des unités du lot)
   const statusFiltered = lots.filter(l => {
     if (filterStatut === 'tous') return true;
-    return l.statut_actuel === filterStatut;
+    if (filterStatut === 'en_stock_fabricant') {
+      return (l.quantite_actuelle > 0 || l.statut_actuel === 'en_stock_fabricant');
+    }
+    if (filterStatut === 'en_transit') {
+      return l.transferts?.some((t: any) => t.statut === 'en_attente');
+    }
+    if (filterStatut === 'en_pharmacie') {
+      return l.transferts?.some((t: any) => t.statut === 'receptionne');
+    }
+    return true;
   });
 
-  // Filtrer par barre de recherche
+  // Filtrer par barre de recherche (recherche par médicament, fabricant, pharmacie, ville ou pays)
   const filtered = statusFiltered.filter(l => {
     const s = search.toLowerCase();
     
-    // Trouver le nom de la pharmacie dans les transferts
-    let rxPharmacieNom = '';
-    const activeTransfer = l.transferts?.find((t: any) => 
-      l.statut_actuel === 'en_pharmacie' ? t.statut === 'receptionne' : t.statut === 'en_attente'
+    // Vérifier s'il y a correspondance dans les transferts liés au lot
+    const transferMatch = l.transferts?.some((t: any) => 
+      t.destinataire?.nom_entite?.toLowerCase().includes(s) ||
+      t.destinataire?.ville?.toLowerCase().includes(s) ||
+      t.destinataire?.pays?.toLowerCase().includes(s)
     );
-    if (activeTransfer && activeTransfer.destinataire) {
-      rxPharmacieNom = activeTransfer.destinataire.nom_entite;
-    }
 
     return (
       l.nom_medicament.toLowerCase().includes(s) ||
-      l.fabricant_nom?.toLowerCase().includes(s) ||
       l.numero_lot?.toLowerCase().includes(s) ||
-      rxPharmacieNom.toLowerCase().includes(s)
+      l.fabricant_nom?.toLowerCase().includes(s) ||
+      l.fabricant_ville?.toLowerCase().includes(s) ||
+      l.pays_origine?.toLowerCase().includes(s) ||
+      transferMatch
     );
   });
 
@@ -84,24 +97,24 @@ export default function AgentLotsScreen() {
 
   return (
     <View className="flex-1 bg-bg">
-      {/* Barre de recherche */}
+      {/* Barre de recherche multi-critères */}
       <View className="bg-white px-4 pt-3 pb-2 border-b border-[#E6EEF8]">
         <TextInput
           className="bg-bg border border-[#E6EEF8] rounded-xl h-10 px-4 text-sm text-navy"
-          placeholder="Rechercher par fabricant, pharmacie, lot..."
+          placeholder="Médicament, Ville, Pays, Fabricant, Pharmacie..."
           placeholderTextColor="#BACAD6"
           value={search}
           onChangeText={setSearch}
         />
       </View>
 
-      {/* Onglets de filtrage */}
+      {/* Onglets de filtrage par état de distribution */}
       <View className="bg-white border-b border-[#E6EEF8] px-4 py-2.5 flex-row gap-2">
         {[
           { key: 'tous', label: 'Tous' },
-          { key: 'en_stock_fabricant', label: 'Fabricants' },
-          { key: 'en_transit', label: 'Transit' },
-          { key: 'en_pharmacie', label: 'Pharmacies' }
+          { key: 'en_stock_fabricant', label: 'Chez Fabricants' },
+          { key: 'en_transit', label: 'En Transit' },
+          { key: 'en_pharmacie', label: 'En Pharmacies' }
         ].map(item => {
           const isActive = filterStatut === item.key;
           return (
@@ -116,81 +129,80 @@ export default function AgentLotsScreen() {
         })}
       </View>
 
-      {/* Liste des lots */}
+      {/* Liste des lots surveillés */}
       <ScrollView className="flex-1 px-4 pt-3" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         <Text className="text-muted text-xs mb-3">{filtered.length} lot(s) trouvé(s)</Text>
         
         {filtered.map(lot => {
-          const s = STATUT_MAP[lot.statut_actuel] ?? STATUT_MAP['archive'];
           const expired = lot.date_expiration ? new Date(lot.date_expiration) < new Date() : false;
 
-          // Détecter la pharmacie destinataire
-          let destPharmacieNom = '';
-          let destPharmacieVille = '';
-          if (lot.statut_actuel === 'en_pharmacie' || lot.statut_actuel === 'en_transit') {
-            const tx = lot.transferts?.find((t: any) => 
-              lot.statut_actuel === 'en_pharmacie' ? t.statut === 'receptionne' : t.statut === 'en_attente'
-            );
-            if (tx && tx.destinataire) {
-              destPharmacieNom = tx.destinataire.nom_entite;
-              destPharmacieVille = tx.destinataire.ville;
-            }
-          }
+          // Distribution des unités du lot
+          const qtyAtFabricant = lot.quantite_actuelle ?? 0;
+          const transitTransfers = lot.transferts?.filter((t: any) => t.statut === 'en_attente') || [];
+          const receivedTransfers = lot.transferts?.filter((t: any) => t.statut === 'receptionne') || [];
 
           return (
             <View key={lot.id} className="bg-white rounded-xl p-4 mb-3 shadow-sm border border-[#E6EEF8]">
-              {/* En-tête : Nom + Statut */}
+              {/* En-tête : Médicament + Pays d'origine */}
               <View className="flex-row justify-between items-start mb-2">
                 <View className="flex-1 mr-2">
                   <Text className="text-navy font-bold text-base">{lot.nom_medicament}</Text>
                   <Text className="text-muted text-xs font-mono mt-0.5">N° LOT : {lot.numero_lot}</Text>
                 </View>
-                <View className="px-2 py-1 rounded-full" style={{ backgroundColor: s.bg }}>
-                  <Text className="text-[10px] font-extrabold" style={{ color: s.text }}>{s.label.toUpperCase()}</Text>
+                <View className="bg-pharma-purple/10 px-2 py-0.5 rounded-full">
+                  <Text className="text-[9px] font-extrabold text-pharma-purple">{lot.pays_origine?.toUpperCase()}</Text>
                 </View>
               </View>
 
-              {/* Ligne Fabricant d'origine */}
+              {/* Origine du Fabricant */}
               <View className="flex-row items-center gap-2 mt-2 pt-2 border-t border-bg">
                 <View className="w-5 items-center">
                   <FAIcon name="industry" size={11} color="#9AA9B8" family="FontAwesome6" />
                 </View>
                 <Text className="text-xs text-muted">
-                  Fabricant d'origine : <Text className="font-semibold text-navy">{lot.fabricant_nom}</Text> ({lot.fabricant_ville})
+                  Fabricant : <Text className="font-semibold text-navy">{lot.fabricant_nom}</Text> ({lot.fabricant_ville})
                 </Text>
               </View>
 
-              {/* Ligne Localisation / Pharmacie Actuelle */}
-              {lot.statut_actuel === 'en_pharmacie' && destPharmacieNom ? (
-                <View className="flex-row items-center gap-2 mt-1.5">
-                  <View className="w-5 items-center">
-                    <FAIcon name="house-medical" size={11} color="#27AE60" family="FontAwesome6" />
-                  </View>
-                  <Text className="text-xs text-muted">
-                    Pharmacie détentrice : <Text className="font-semibold text-green-600">{destPharmacieNom}</Text> ({destPharmacieVille})
-                  </Text>
-                </View>
-              ) : lot.statut_actuel === 'en_transit' && destPharmacieNom ? (
-                <View className="flex-row items-center gap-2 mt-1.5">
-                  <View className="w-5 items-center">
-                    <FAIcon name="truck-ramp-box" size={11} color="#E67E22" family="FontAwesome6" />
-                  </View>
-                  <Text className="text-xs text-muted">
-                    En transit vers : <Text className="font-semibold text-pharma-orange">{destPharmacieNom}</Text> ({destPharmacieVille})
-                  </Text>
-                </View>
-              ) : lot.statut_actuel === 'en_stock_fabricant' ? (
+              {/* SECTION LOCALISATION DYNAMIQUE DES UNITÉS */}
+              
+              {/* 1. Unités chez le fabricant */}
+              {qtyAtFabricant > 0 && (
                 <View className="flex-row items-center gap-2 mt-1.5">
                   <View className="w-5 items-center">
                     <FAIcon name="boxes-stacked" size={11} color="#2E6DA4" family="FontAwesome6" />
                   </View>
                   <Text className="text-xs text-muted">
-                    Localisation : <Text className="font-semibold text-blue">{lot.fabricant_nom}</Text> (En stock usine)
+                    Stock usine : <Text className="font-semibold text-blue">{qtyAtFabricant.toLocaleString('fr-FR')}</Text> unités
                   </Text>
                 </View>
-              ) : null}
+              )}
 
-              {/* Date d'expiration */}
+              {/* 2. Unités en transit */}
+              {transitTransfers.map((t: any, idx: number) => (
+                <View key={`transit-${idx}`} className="flex-row items-center gap-2 mt-1.5">
+                  <View className="w-5 items-center">
+                    <FAIcon name="truck-ramp-box" size={11} color="#E67E22" family="FontAwesome6" />
+                  </View>
+                  <Text className="text-xs text-muted">
+                    En transit : <Text className="font-semibold text-pharma-orange">{t.quantite_transferee.toLocaleString('fr-FR')}</Text> unités vers <Text className="font-semibold text-navy">{t.destinataire?.nom_entite}</Text> ({t.destinataire?.ville})
+                  </Text>
+                </View>
+              ))}
+
+              {/* 3. Unités en pharmacie */}
+              {receivedTransfers.map((t: any, idx: number) => (
+                <View key={`received-${idx}`} className="flex-row items-center gap-2 mt-1.5">
+                  <View className="w-5 items-center">
+                    <FAIcon name="house-medical" size={11} color="#27AE60" family="FontAwesome6" />
+                  </View>
+                  <Text className="text-xs text-muted">
+                    En pharmacie : <Text className="font-semibold text-green-600">{t.quantite_transferee.toLocaleString('fr-FR')}</Text> unités chez <Text className="font-semibold text-navy">{t.destinataire?.nom_entite}</Text> ({t.destinataire?.ville})
+                  </Text>
+                </View>
+              ))}
+
+              {/* Date d'expiration et Alerte de péremption */}
               <View className="flex-row items-center justify-between mt-3 pt-2 border-t border-bg">
                 <View className="flex-row items-center gap-1.5">
                   <FAIcon name="calendar-days" size={11} color="#9AA9B8" family="FontAwesome6" />
@@ -212,7 +224,7 @@ export default function AgentLotsScreen() {
           <View className="items-center justify-center py-12">
             <FAIcon name="cubes" size={48} color="#BACAD6" family="FontAwesome6" />
             <Text className="text-navy font-bold mt-3">Aucun lot trouvé</Text>
-            <Text className="text-muted text-xs mt-1">Essayez d'autres mots-clés ou filtrez autrement.</Text>
+            <Text className="text-muted text-xs mt-1">Aucune correspondance ou filtre trop restrictif.</Text>
           </View>
         )}
         <View className="h-8" />

@@ -359,6 +359,12 @@ function getMockDataForTable(tableName: string, calls: any[]) {
         if (item[col] === undefined) return true;
         return item[col] >= val;
       });
+    } else if (call.method === 'gt') {
+      const [col, val] = call.args;
+      data = data.filter((item: any) => {
+        if (item[col] === undefined) return true;
+        return item[col] > val;
+      });
     }
   }
   return data;
@@ -377,6 +383,7 @@ class MockQueryBuilder {
   select(...args: any[]) { this.calls.push({ method: 'select', args }); return this; }
   eq(...args: any[]) { this.calls.push({ method: 'eq', args }); return this; }
   gte(...args: any[]) { this.calls.push({ method: 'gte', args }); return this; }
+  gt(...args: any[]) { this.calls.push({ method: 'gt', args }); return this; }
   order(...args: any[]) { this.calls.push({ method: 'order', args }); return this; }
   limit(...args: any[]) { this.calls.push({ method: 'limit', args }); return this; }
   or(...args: any[]) { this.calls.push({ method: 'or', args }); return this; }

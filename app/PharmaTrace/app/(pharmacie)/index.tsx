@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
+import Svg, { Path, Defs, LinearGradient, Stop, Line, Circle } from 'react-native-svg';
 
 export default function PharmacieDashboard() {
   const [loading, setLoading] = useState(true);
@@ -85,10 +86,50 @@ export default function PharmacieDashboard() {
       <View className="p-5">
         {/* KPIs */}
         <View className="flex-row flex-wrap gap-3 mb-5">
-          <KPICard label="Transferts en attente" value={String(kpis.transferts_attente)} color="#E67E22" bg="#FEF4E0" />
-          <KPICard label="Lots en stock"          value={String(kpis.lots_stock)} color="#27AE60" bg="#E8F8EC" />
-          <KPICard label="Scans aujourd'hui"      value={String(kpis.scans_today)} color="#2E6DA4" bg="#EEF4FB" />
-          <KPICard label="Alertes actives"        value={String(kpis.alertes)}  color="#C0392B" bg="#FDE8E8" />
+          <KPICard 
+            label="Transferts en cours" 
+            value={String(kpis.transferts_attente)} 
+            color="#E67E22" 
+            trend={kpis.transferts_attente > 0 ? "Lots entrants" : "Aucun flux"}
+            isUp={kpis.transferts_attente > 0}
+            svgPath={kpis.transferts_attente > 0 ? "M 15 25 C 35 20, 55 35, 75 18 C 95 8, 105 14, 115 12" : "M 15 15 C 35 18, 55 22, 75 28 C 95 32, 105 35, 115 35"}
+            svgFillPath={kpis.transferts_attente > 0 ? "M 15 25 C 35 20, 55 35, 75 18 C 95 8, 105 14, 115 12 L 115 40 L 15 40 Z" : "M 15 15 C 35 18, 55 22, 75 28 C 95 32, 105 35, 115 35 L 115 40 L 15 40 Z"}
+            gradientId="pharma-transit"
+            endY={kpis.transferts_attente > 0 ? 12 : 35}
+          />
+          <KPICard 
+            label="Lots en stock" 
+            value={String(kpis.lots_stock)} 
+            color="#27AE60" 
+            trend={kpis.lots_stock > 0 ? "+4% ce mois" : "Stock vide"}
+            isUp={kpis.lots_stock > 0}
+            svgPath={kpis.lots_stock > 0 ? "M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35"}
+            svgFillPath={kpis.lots_stock > 0 ? "M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
+            gradientId="pharma-stock"
+            endY={kpis.lots_stock > 0 ? 8 : 35}
+          />
+          <KPICard 
+            label="Scans aujourd'hui" 
+            value={String(kpis.scans_today)} 
+            color="#2E6DA4" 
+            trend={kpis.scans_today > 0 ? "+8% vs hier" : "Aucun scan"}
+            isUp={kpis.scans_today > 0}
+            svgPath={kpis.scans_today > 0 ? "M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35"}
+            svgFillPath={kpis.scans_today > 0 ? "M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
+            gradientId="pharma-scans"
+            endY={kpis.scans_today > 0 ? 10 : 35}
+          />
+          <KPICard 
+            label="Alertes actives" 
+            value={String(kpis.alertes)} 
+            color="#C0392B" 
+            trend={kpis.alertes > 0 ? "Risque critique" : "Sécurisé"}
+            isUp={kpis.alertes > 0}
+            svgPath={kpis.alertes > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35"}
+            svgFillPath={kpis.alertes > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
+            gradientId="pharma-alertes"
+            endY={kpis.alertes > 0 ? 5 : 35}
+          />
         </View>
 
         {/* Alerte transferts en attente */}
@@ -128,11 +169,83 @@ export default function PharmacieDashboard() {
   );
 }
 
-function KPICard({ label, value, color, bg }: { label: string; value: string; color: string; bg: string }) {
+function KPICard({ 
+  label, 
+  value, 
+  color, 
+  trend, 
+  isUp, 
+  svgPath, 
+  svgFillPath, 
+  gradientId,
+  endY
+}: { 
+  label: string; 
+  value: string; 
+  color: string; 
+  trend: string; 
+  isUp: boolean;
+  svgPath: string;
+  svgFillPath: string;
+  gradientId: string;
+  endY: number;
+}) {
   return (
-    <View className="flex-1 rounded-xl p-4 min-w-[44%]" style={{ backgroundColor: bg }}>
-      <Text className="font-black text-3xl" style={{ color }}>{value}</Text>
-      <Text className="text-muted text-xs mt-1">{label}</Text>
+    <View className="flex-1 rounded-2xl p-4 min-w-[44%] relative overflow-hidden bg-white border border-[#E6EEF8] shadow-sm" style={{ height: 106 }}>
+      {/* Label & Valeur */}
+      <View className="z-10 justify-between h-full">
+        <View>
+          <Text className="text-muted text-[10px] font-bold uppercase tracking-wider">{label}</Text>
+          <Text className="font-black text-3xl mt-0.5" style={{ color }}>{value}</Text>
+        </View>
+        
+        {/* Trend Indicator */}
+        <View className="flex-row items-center gap-1">
+          <FAIcon 
+            name={isUp ? 'arrow-trend-up' : 'arrow-trend-down'} 
+            size={9} 
+            color={isUp ? '#27AE60' : '#E67E22'} 
+            family="FontAwesome6" 
+          />
+          <Text className={`text-[9px] font-extrabold ${isUp ? 'text-green-600' : 'text-pharma-orange'}`}>
+            {trend}
+          </Text>
+        </View>
+      </View>
+      
+      {/* Background Sparkline SVG */}
+      <View className="absolute bottom-0 right-0 w-24 h-12 opacity-80 pointer-events-none">
+        <Svg width="100%" height="100%" viewBox="0 0 120 40">
+          <Defs>
+            <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0%" stopColor={color} stopOpacity="0.22" />
+              <Stop offset="100%" stopColor={color} stopOpacity="0.0" />
+            </LinearGradient>
+          </Defs>
+          
+          {/* Y-Axis Line */}
+          <Line x1="15" y1="5" x2="15" y2="35" stroke="#E6EEF8" strokeWidth="1" />
+          
+          {/* Horizontal Gridlines */}
+          <Line x1="15" y1="10" x2="115" y2="10" stroke="#F1F5FA" strokeWidth="0.8" strokeDasharray="2,2" />
+          <Line x1="15" y1="22" x2="115" y2="22" stroke="#F1F5FA" strokeWidth="0.8" strokeDasharray="2,2" />
+          <Line x1="15" y1="34" x2="115" y2="34" stroke="#F1F5FA" strokeWidth="0.8" strokeDasharray="2,2" />
+          
+          {/* Y-Axis Tick Marks */}
+          <Line x1="11" y1="10" x2="15" y2="10" stroke="#BACAD6" strokeWidth="1" />
+          <Line x1="11" y1="22" x2="15" y2="22" stroke="#BACAD6" strokeWidth="1" />
+          <Line x1="11" y1="34" x2="15" y2="34" stroke="#BACAD6" strokeWidth="1" />
+
+          {/* Remplissage de dégradé sous la courbe */}
+          <Path d={svgFillPath} fill={`url(#${gradientId})`} />
+          {/* Ligne de tendance */}
+          <Path d={svgPath} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          
+          {/* Glowing dot at endpoint */}
+          <Circle cx="115" cy={endY} r="4" fill={color} opacity="0.3" />
+          <Circle cx="115" cy={endY} r="2" fill={color} />
+        </Svg>
+      </View>
     </View>
   );
 }

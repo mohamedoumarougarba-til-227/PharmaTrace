@@ -82,7 +82,7 @@ export default function FabricantCompteScreen() {
         <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: '#DCE6F0', borderWidth: 2, borderColor: '#2E6DA4', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
           <FAIcon name="industry" size={36} color="#1A3A5C" family="FontAwesome6" />
         </View>
-        <Text style={{ fontSize: 20, fontWeight: '800', color: '#1A3A5C', marginBottom: 6 }}>
+        <Text style={{ fontSize: 20, fontWeight: '800', color: '#1A3A5C', marginBottom: 6, textAlign: 'center' }}>
           {user?.nom_entite ?? 'Labo Niger Pharma'}
         </Text>
         <View style={{ backgroundColor: '#E8F8EC', paddingHorizontal: 14, paddingVertical: 4, borderRadius: 100 }}>

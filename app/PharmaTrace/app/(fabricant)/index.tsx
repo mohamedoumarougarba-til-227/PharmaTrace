@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -15,6 +15,8 @@ type LotSummary = {
 };
 
 export default function FabricantDashboard() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [kpis, setKpis] = useState({ total: 0, stock: 0, transit: 0, pharmacie: 0 });
@@ -111,104 +113,142 @@ export default function FabricantDashboard() {
     );
   }
 
-  return (
-    <ScrollView
-      className="flex-1 bg-bg"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A3A5C" />}
-    >
+  // ─── KPI cards data ────────────────────────────────────────────────────
+  const kpiCards = [
+    { label: 'Total lots', value: String(kpis.total), color: '#2E6DA4', trend: '+12% ce mois', isUp: true, svgPath: 'M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10', svgFillPath: 'M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10 L 115 40 L 15 40 Z', gradientId: 'grad-total', endY: 10 },
+    { label: 'En stock', value: String(kpis.stock), color: '#27AE60', trend: '+5% cette sem.', isUp: true, svgPath: 'M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8', svgFillPath: 'M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8 L 115 40 L 15 40 Z', gradientId: 'grad-stock', endY: 8 },
+    { label: 'En transit', value: String(kpis.transit), color: '#E67E22', trend: kpis.transit > 0 ? 'En livraison' : 'Aucun flux', isUp: kpis.transit > 0, svgPath: kpis.transit > 0 ? 'M 15 25 C 35 20, 55 35, 75 18 C 95 8, 105 14, 115 12' : 'M 15 15 C 35 18, 55 22, 75 28 C 95 32, 105 35, 115 35', svgFillPath: kpis.transit > 0 ? 'M 15 25 C 35 20, 55 35, 75 18 C 95 8, 105 14, 115 12 L 115 40 L 15 40 Z' : 'M 15 15 C 35 18, 55 22, 75 28 C 95 32, 105 35, 115 35 L 115 40 L 15 40 Z', gradientId: 'grad-transit', endY: kpis.transit > 0 ? 12 : 35 },
+    { label: 'En pharmacie', value: String(kpis.pharmacie), color: '#8E44AD', trend: kpis.pharmacie > 0 ? '+18% cumulé' : 'Aucun lot reçu', isUp: kpis.pharmacie > 0, svgPath: kpis.pharmacie > 0 ? 'M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5' : 'M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35', svgFillPath: kpis.pharmacie > 0 ? 'M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5 L 115 40 L 15 40 Z' : 'M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z', gradientId: 'grad-pharma', endY: kpis.pharmacie > 0 ? 5 : 35 },
+  ];
+
+  // ─── Section: Vue d'ensemble ─────────────────────────────────────────
+  const overviewSection = (
+    <View style={isDesktop ? { flex: 1 } : undefined}>
       {/* Header coloré dynamique */}
-      <View className="px-5 pt-6 pb-6 bg-navy">
+      <View className="px-5 pt-6 pb-6 bg-navy" style={isDesktop ? { borderRadius: 16 } : undefined}>
         <Text className="text-white/60 text-xs font-bold uppercase tracking-wider">Bienvenue,</Text>
         <Text className="text-white font-black text-xl mt-1">{manufacturerName}</Text>
         <Text className="text-white/40 text-xs mt-1">Fabricant agréé · {manufacturerCity}</Text>
       </View>
 
-      <View className="p-5">
-        {/* KPI Cards avec micro-graphiques premium */}
+      <View style={isDesktop ? { paddingTop: 20 } : { padding: 20, paddingBottom: 0 }}>
         <Text className="text-navy font-bold text-base mb-3">Vue d'ensemble</Text>
-        <View className="flex-row flex-wrap gap-3 mb-6">
-          <KPICard 
-            label="Total lots"   
-            value={String(kpis.total)} 
-            color="#2E6DA4" 
-            trend="+12% ce mois"
-            isUp={true}
-            svgPath="M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10"
-            svgFillPath="M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10 L 115 40 L 15 40 Z"
-            gradientId="grad-total"
-            endY={10}
-          />
-          <KPICard 
-            label="En stock"     
-            value={String(kpis.stock)} 
-            color="#27AE60" 
-            trend="+5% cette sem."
-            isUp={true}
-            svgPath="M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8"
-            svgFillPath="M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8 L 115 40 L 15 40 Z"
-            gradientId="grad-stock"
-            endY={8}
-          />
-          <KPICard 
-            label="En transit"   
-            value={String(kpis.transit)} 
-            color="#E67E22" 
-            trend={kpis.transit > 0 ? "En livraison" : "Aucun flux"}
-            isUp={kpis.transit > 0}
-            svgPath={kpis.transit > 0 ? "M 15 25 C 35 20, 55 35, 75 18 C 95 8, 105 14, 115 12" : "M 15 15 C 35 18, 55 22, 75 28 C 95 32, 105 35, 115 35"}
-            svgFillPath={kpis.transit > 0 ? "M 15 25 C 35 20, 55 35, 75 18 C 95 8, 105 14, 115 12 L 115 40 L 15 40 Z" : "M 15 15 C 35 18, 55 22, 75 28 C 95 32, 105 35, 115 35 L 115 40 L 15 40 Z"}
-            gradientId="grad-transit"
-            endY={kpis.transit > 0 ? 12 : 35}
-          />
-          <KPICard 
-            label="En pharmacie" 
-            value={String(kpis.pharmacie)} 
-            color="#8E44AD" 
-            trend={kpis.pharmacie > 0 ? "+18% cumulé" : "Aucun lot reçu"}
-            isUp={kpis.pharmacie > 0}
-            svgPath={kpis.pharmacie > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35"}
-            svgFillPath={kpis.pharmacie > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
-            gradientId="grad-pharma"
-            endY={kpis.pharmacie > 0 ? 5 : 35}
-          />
+        <View className="flex-row flex-wrap gap-3">
+          {kpiCards.map((kpi) => (
+            <KPICard key={kpi.label} {...kpi} />
+          ))}
         </View>
-
-        {/* Action principale */}
-        <Link href="/(fabricant)/nouveau-lot" asChild>
-          <TouchableOpacity className="w-full h-14 bg-navy rounded-xl items-center justify-center mb-3 shadow-sm active:opacity-95">
-            <Text className="text-white font-bold text-base">+ Enregistrer un nouveau lot</Text>
-          </TouchableOpacity>
-        </Link>
-
-        {/* Derniers lots */}
-        <Text className="text-navy font-bold text-base mt-4 mb-3">Mes 5 derniers lots</Text>
-        {lots.map(lot => (
-          <TouchableOpacity
-            key={lot.id}
-            className="bg-white rounded-xl px-4 py-4 mb-2 shadow-sm flex-row justify-between items-center border border-[#E6EEF8] active:bg-[#F3F8FF]"
-            onPress={() => router.push({ pathname: '/(fabricant)/[id]', params: { id: lot.id } })}
-          >
-            <View className="flex-1">
-              <Text className="text-navy font-black text-sm">{lot.nom_medicament}</Text>
-              <Text className="text-muted text-xs mt-1">{lot.numero_lot} · {lot.dosage ?? '—'}</Text>
-            </View>
-            <StatusBadge statut={lot.statut_actuel} />
-          </TouchableOpacity>
-        ))}
-
-        {lots.length === 0 && (
-          <View className="bg-white rounded-xl p-4 mb-2 border border-blue-light">
-            <Text className="text-navy font-semibold text-sm">Aucun lot pour le moment</Text>
-            <Text className="text-muted text-xs mt-1">Créez votre premier lot pour le voir apparaître ici.</Text>
-          </View>
-        )}
-
-        <Link href="/(fabricant)/lots" asChild>
-          <TouchableOpacity className="mt-2 items-center py-3 active:opacity-80">
-            <Text className="text-blue text-sm font-semibold">Voir tous mes lots →</Text>
-          </TouchableOpacity>
-        </Link>
       </View>
+    </View>
+  );
+
+  // ─── Section: Historique lots ────────────────────────────────────────
+  const lotsSection = (
+    <View style={isDesktop ? { flex: 1 } : undefined}>
+      {/* Action principale — bouton créer en haut */}
+      <Link href="/(fabricant)/nouveau-lot" asChild>
+        <TouchableOpacity className="w-full h-14 bg-navy rounded-xl items-center justify-center mb-4 shadow-sm active:opacity-95">
+          <Text className="text-white font-bold text-base">+ Enregistrer un nouveau lot</Text>
+        </TouchableOpacity>
+      </Link>
+
+      {/* Derniers lots */}
+      <Text className="text-navy font-bold text-base mb-3">Mes 5 derniers lots</Text>
+      {lots.map(lot => (
+        <TouchableOpacity
+          key={lot.id}
+          className="bg-white rounded-xl px-4 py-4 mb-2 shadow-sm flex-row justify-between items-center border border-[#E6EEF8] active:bg-[#F3F8FF]"
+          onPress={() => router.push({ pathname: '/(fabricant)/[id]', params: { id: lot.id } })}
+        >
+          <View className="flex-1">
+            <Text className="text-navy font-black text-sm">{lot.nom_medicament}</Text>
+            <Text className="text-muted text-xs mt-1">{lot.numero_lot} · {lot.dosage ?? '—'}</Text>
+          </View>
+          <StatusBadge statut={lot.statut_actuel} />
+        </TouchableOpacity>
+      ))}
+
+      {lots.length === 0 && (
+        <View className="bg-white rounded-xl p-4 mb-2 border border-blue-light">
+          <Text className="text-navy font-semibold text-sm">Aucun lot pour le moment</Text>
+          <Text className="text-muted text-xs mt-1">Créez votre premier lot pour le voir apparaître ici.</Text>
+        </View>
+      )}
+
+      <Link href="/(fabricant)/lots" asChild>
+        <TouchableOpacity className="mt-2 items-center py-3 active:opacity-80">
+          <Text className="text-blue text-sm font-semibold">Voir tous mes lots →</Text>
+        </TouchableOpacity>
+      </Link>
+    </View>
+  );
+
+  return (
+    <ScrollView
+      className="flex-1 bg-bg"
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A3A5C" />}
+    >
+      {isDesktop ? (
+        <View style={{ padding: 24, gap: 24 }}>
+          <View style={{ flexDirection: 'row', gap: 24 }}>
+            {/* Colonne gauche : Header + Vue d'ensemble */}
+            {overviewSection}
+            {/* Colonne droite : Bouton créer + Historique lots */}
+            {lotsSection}
+          </View>
+        </View>
+      ) : (
+        <>
+          {/* Mobile : layout original empilé */}
+          <View className="px-5 pt-6 pb-6 bg-navy">
+            <Text className="text-white/60 text-xs font-bold uppercase tracking-wider">Bienvenue,</Text>
+            <Text className="text-white font-black text-xl mt-1">{manufacturerName}</Text>
+            <Text className="text-white/40 text-xs mt-1">Fabricant agréé · {manufacturerCity}</Text>
+          </View>
+          <View className="p-5">
+            <Text className="text-navy font-bold text-base mb-3">Vue d'ensemble</Text>
+            <View className="flex-row flex-wrap gap-3 mb-6">
+              {kpiCards.map((kpi) => (
+                <KPICard key={kpi.label} {...kpi} />
+              ))}
+            </View>
+
+            <Link href="/(fabricant)/nouveau-lot" asChild>
+              <TouchableOpacity className="w-full h-14 bg-navy rounded-xl items-center justify-center mb-3 shadow-sm active:opacity-95">
+                <Text className="text-white font-bold text-base">+ Enregistrer un nouveau lot</Text>
+              </TouchableOpacity>
+            </Link>
+
+            <Text className="text-navy font-bold text-base mt-4 mb-3">Mes 5 derniers lots</Text>
+            {lots.map(lot => (
+              <TouchableOpacity
+                key={lot.id}
+                className="bg-white rounded-xl px-4 py-4 mb-2 shadow-sm flex-row justify-between items-center border border-[#E6EEF8] active:bg-[#F3F8FF]"
+                onPress={() => router.push({ pathname: '/(fabricant)/[id]', params: { id: lot.id } })}
+              >
+                <View className="flex-1">
+                  <Text className="text-navy font-black text-sm">{lot.nom_medicament}</Text>
+                  <Text className="text-muted text-xs mt-1">{lot.numero_lot} · {lot.dosage ?? '—'}</Text>
+                </View>
+                <StatusBadge statut={lot.statut_actuel} />
+              </TouchableOpacity>
+            ))}
+
+            {lots.length === 0 && (
+              <View className="bg-white rounded-xl p-4 mb-2 border border-blue-light">
+                <Text className="text-navy font-semibold text-sm">Aucun lot pour le moment</Text>
+                <Text className="text-muted text-xs mt-1">Créez votre premier lot pour le voir apparaître ici.</Text>
+              </View>
+            )}
+
+            <Link href="/(fabricant)/lots" asChild>
+              <TouchableOpacity className="mt-2 items-center py-3 active:opacity-80">
+                <Text className="text-blue text-sm font-semibold">Voir tous mes lots →</Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 }

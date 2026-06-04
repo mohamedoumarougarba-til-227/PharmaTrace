@@ -1,6 +1,6 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, useWindowDimensions, Platform } from 'react-native';
 import { Link, router } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
@@ -143,17 +143,65 @@ export default function FabricantDashboard() {
   );
 
   // ─── Section: Historique lots ────────────────────────────────────────
+  const [showTooltip, setShowTooltip] = useState(false);
+
   const lotsSection = (
     <View style={isDesktop ? { flex: 1 } : undefined}>
-      {/* Action principale — bouton créer en haut */}
-      <Link href="/(fabricant)/nouveau-lot" asChild>
-        <TouchableOpacity className="w-full h-14 bg-navy rounded-xl items-center justify-center mb-4 shadow-sm active:opacity-95">
-          <Text className="text-white font-bold text-base">+ Enregistrer un nouveau lot</Text>
-        </TouchableOpacity>
-      </Link>
-
-      {/* Derniers lots */}
-      <Text className="text-navy font-bold text-base mb-3">Mes 5 derniers lots</Text>
+      {isDesktop ? (
+        /* Desktop: titre + icône "+" avec tooltip */
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <Text className="text-navy font-bold text-base">Mes 5 derniers lots</Text>
+          <Link href="/(fabricant)/nouveau-lot" asChild>
+            <TouchableOpacity
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                backgroundColor: showTooltip ? '#2E6DA4' : '#E6EEF8',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              {...(Platform.OS === 'web' ? {
+                // @ts-ignore – web-only events for hover
+                onMouseEnter: () => setShowTooltip(true),
+                onMouseLeave: () => setShowTooltip(false),
+              } : {})}
+            >
+              <FAIcon
+                name="plus"
+                size={14}
+                color={showTooltip ? '#FFFFFF' : '#2E6DA4'}
+                family="FontAwesome6"
+              />
+            </TouchableOpacity>
+          </Link>
+          {/* Tooltip flottant */}
+          {showTooltip && (
+            <View style={{
+              position: 'absolute',
+              right: 36,
+              top: 4,
+              backgroundColor: '#1A3A5C',
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 6,
+              zIndex: 100,
+            }}>
+              <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>Enregistrer un nouveau lot</Text>
+            </View>
+          )}
+        </View>
+      ) : (
+        /* Mobile: gros bouton + titre */
+        <>
+          <Link href="/(fabricant)/nouveau-lot" asChild>
+            <TouchableOpacity className="w-full h-14 bg-navy rounded-xl items-center justify-center mb-4 shadow-sm active:opacity-95">
+              <Text className="text-white font-bold text-base">+ Enregistrer un nouveau lot</Text>
+            </TouchableOpacity>
+          </Link>
+          <Text className="text-navy font-bold text-base mb-3">Mes 5 derniers lots</Text>
+        </>
+      )}
       {lots.map(lot => (
         <TouchableOpacity
           key={lot.id}

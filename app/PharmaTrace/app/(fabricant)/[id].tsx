@@ -8,6 +8,7 @@ import { VERIFICATION_BASE_URL } from '../../constants/config';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
+import * as MediaLibrary from 'expo-media-library';
 
 function formatDate(d?: string | null) {
   if (!d) return '—';
@@ -49,6 +50,90 @@ export default function LotDetailScreen() {
 
   const expired = lot.date_expiration ? new Date(lot.date_expiration) < new Date() : false;
 
+  const saveToGallery = async (base64Data: string) => {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission requise', "L'accès à la galerie photo est requis pour enregistrer le code QR.");
+        return;
+      }
+
+      const filename = `${FileSystem.cacheDirectory}QR_${lot.numero_lot}.png`;
+      await FileSystem.writeAsStringAsync(filename, base64Data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const asset = await MediaLibrary.createAssetAsync(filename);
+      const album = await MediaLibrary.getAlbumAsync('PharmaTrace');
+      if (album === null) {
+        await MediaLibrary.createAlbumAsync('PharmaTrace', asset, false);
+      } else {
+        await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+      }
+
+      Alert.alert('Succès', 'Le QR code a été enregistré avec succès dans votre Galerie Photo (Album PharmaTrace).');
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Erreur', "Impossible d'enregistrer dans la galerie.");
+    }
+  };
+
+  const saveToCustomFolder = async (base64Data: string) => {
+    try {
+      const { StorageAccessFramework } = FileSystem;
+      const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
+      
+      if (permissions.granted) {
+        const directoryUri = permissions.directoryUri;
+        const fileUri = await StorageAccessFramework.createFileAsync(
+          directoryUri, 
+          `QR_${lot.numero_lot}`, 
+          'image/png'
+        );
+        
+        await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        
+        Alert.alert('Succès', 'Le QR code a été enregistré avec succès.');
+      }
+    } catch (e: any) {
+      console.error(e);
+      const errMsg = (e.message || String(e) || '').toLowerCase();
+      if (errMsg.includes("writable") || errMsg.includes("write") || errMsg.includes("permission") || errMsg.includes("saf") || errMsg.includes("downloads")) {
+        Alert.alert(
+          'Dossier protégé',
+          "Android interdit l'écriture directe à la racine de Téléchargements. Veuillez créer ou sélectionner un sous-dossier (ex: créez un dossier 'PharmaTrace' et sélectionnez-le).",
+          [
+            { text: 'Enregistrer dans la Galerie', onPress: () => saveToGallery(base64Data) },
+            { text: 'Partager / Envoyer', onPress: () => saveToCacheAndShare(base64Data) },
+            { text: 'Retour', style: 'cancel' }
+          ]
+        );
+      } else {
+        Alert.alert('Erreur', "Impossible d'enregistrer dans le dossier.");
+      }
+    }
+  };
+
+  const saveToCacheAndShare = async (base64Data: string) => {
+    try {
+      const filename = `${FileSystem.cacheDirectory}QR_${lot.numero_lot}.png`;
+      await FileSystem.writeAsStringAsync(filename, base64Data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      await Sharing.shareAsync(filename, {
+        mimeType: 'image/png',
+        dialogTitle: `Télécharger le QR Code du lot ${lot.numero_lot}`,
+        UTI: 'public.png',
+      });
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Erreur', 'Le partage a échoué.');
+    }
+  };
+
   const onDownloadQR = async () => {
     if (!qrRef.current) {
       Alert.alert('Erreur', 'QR code non disponible pour téléchargement.');
@@ -58,47 +143,26 @@ export default function LotDetailScreen() {
     qrRef.current.toDataURL(async (base64Data: string) => {
       try {
         if (Platform.OS === 'android') {
-          // Android : Utiliser le Storage Access Framework pour enregistrer directement dans le dossier choisi (ex: Downloads)
-          const { StorageAccessFramework } = FileSystem;
-          const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
-          
-          if (permissions.granted) {
-            const directoryUri = permissions.directoryUri;
-            const fileUri = await StorageAccessFramework.createFileAsync(
-              directoryUri, 
-              `QR_${lot.numero_lot}`, 
-              'image/png'
-            );
-            
-            await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-              encoding: FileSystem.EncodingType.Base64,
-            });
-            
-            Alert.alert('Succès', 'Le QR code a été téléchargé et enregistré dans votre dossier.');
-          } else {
-            // Si l'utilisateur refuse la sélection de dossier, on fallback sur le partage natif pour ne pas le bloquer
-            const filename = `${FileSystem.cacheDirectory}QR_${lot.numero_lot}.png`;
-            await FileSystem.writeAsStringAsync(filename, base64Data, {
-              encoding: FileSystem.EncodingType.Base64,
-            });
-            await Sharing.shareAsync(filename, {
-              mimeType: 'image/png',
-              dialogTitle: `Télécharger le QR Code du lot ${lot.numero_lot}`,
-              UTI: 'public.png',
-            });
-          }
+          Alert.alert(
+            'Télécharger le QR Code',
+            'Choisissez où enregistrer l\'image du code QR :',
+            [
+              {
+                text: 'Dans la Galerie Photo',
+                onPress: () => saveToGallery(base64Data),
+              },
+              {
+                text: 'Dans un Dossier (Downloads)',
+                onPress: () => saveToCustomFolder(base64Data),
+              },
+              {
+                text: 'Annuler',
+                style: 'cancel',
+              }
+            ]
+          );
         } else {
-          // iOS : Utiliser le partage natif (qui intègre l'option "Enregistrer l'image" dans Photos de façon native)
-          const filename = `${FileSystem.cacheDirectory}QR_${lot.numero_lot}.png`;
-          await FileSystem.writeAsStringAsync(filename, base64Data, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-
-          await Sharing.shareAsync(filename, {
-            mimeType: 'image/png',
-            dialogTitle: `Télécharger le QR Code du lot ${lot.numero_lot}`,
-            UTI: 'public.png',
-          });
+          await saveToCacheAndShare(base64Data);
         }
       } catch (e) {
         console.error(e);
@@ -114,150 +178,181 @@ export default function LotDetailScreen() {
     }
 
     qrRef.current.toDataURL(async (base64Data: string) => {
+      const qrImageUrl = `data:image/png;base64,${base64Data}`;
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+            <style>
+              body {
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                padding: 20px;
+                color: #1A3A5C;
+                background-color: #fff;
+                text-align: center;
+              }
+              .header {
+                font-size: 24px;
+                font-weight: 800;
+                letter-spacing: 1px;
+                margin-bottom: 5px;
+                color: #1A3A5C;
+              }
+              .tagline {
+                font-size: 11px;
+                color: #6B7D90;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                margin-bottom: 25px;
+                font-weight: bold;
+                text-align: center;
+              }
+              .qr-container {
+                border: 2px solid #E6EEF8;
+                border-radius: 20px;
+                padding: 20px;
+                background-color: #fff;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                margin: 20px auto;
+                display: inline-block;
+              }
+              .qr-image {
+                width: 200px;
+                height: 200px;
+                display: block;
+              }
+              .lot-number {
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #1A3A5C;
+                text-align: center;
+              }
+              .med-name {
+                font-size: 15px;
+                color: #6B7D90;
+                margin-bottom: 25px;
+                text-align: center;
+              }
+              .info-table {
+                width: 100%;
+                max-width: 360px;
+                margin: 0 auto 25px auto;
+                border-top: 1px solid #E6EEF8;
+                padding-top: 15px;
+                border-collapse: collapse;
+              }
+              .info-table tr {
+                height: 28px;
+              }
+              .info-label {
+                text-align: left;
+                font-size: 13px;
+                color: #9AA9B8;
+              }
+              .info-value {
+                text-align: right;
+                font-size: 13px;
+                font-weight: 600;
+                color: #1A3A5C;
+              }
+              .signature-container {
+                background-color: #F7F9FC;
+                border-radius: 12px;
+                padding: 12px 20px;
+                margin: 0 auto;
+                max-width: 360px;
+                border: 1px solid #E6EEF8;
+                box-sizing: border-box;
+              }
+              .signature-title {
+                font-size: 9px;
+                font-weight: bold;
+                color: #9AA9B8;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-bottom: 5px;
+                text-align: center;
+              }
+              .signature-hash {
+                font-size: 10px;
+                font-family: monospace;
+                color: #1A3A5C;
+                word-break: break-all;
+                text-align: center;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">PharmaTrace</div>
+            <div class="tagline">Certificat de Traçabilité Immuable</div>
+            
+            <div class="qr-container">
+              <img class="qr-image" src="${qrImageUrl}" />
+            </div>
+            
+            <div class="lot-number">LOT ${lot.numero_lot}</div>
+            <div class="med-name">${lot.nom_medicament} ${lot.dosage ? `(${lot.dosage})` : ''}</div>
+            
+            <table class="info-table">
+              <tr>
+                <td class="info-label">Fabricant :</td>
+                <td class="info-value">${lot.fabricant_nom || 'Laboratoire Agréé'}</td>
+              </tr>
+              <tr>
+                <td class="info-label">Date de Fabrication :</td>
+                <td class="info-value">${formatDate(lot.date_fabrication)}</td>
+              </tr>
+              <tr>
+                <td class="info-label">Date d'Expiration :</td>
+                <td class="info-value">${formatDate(lot.date_expiration)}</td>
+              </tr>
+              <tr>
+                <td class="info-label">Quantité Initiale :</td>
+                <td class="info-value">${lot.quantite_initiale?.toLocaleString?.() ?? lot.quantite_initiale} unités</td>
+              </tr>
+            </table>
+            
+            <div class="signature-container">
+              <div class="signature-title">Signature Numérique SHA-256</div>
+              <div class="signature-hash">${lot.hash_sha256}</div>
+            </div>
+          </body>
+        </html>
+      `;
+
       try {
-        const html = `
-          <html>
-            <head>
-              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
-              <style>
-                body {
-                  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-                  display: flex;
-                  flex-direction: column;
-                  align-items: center;
-                  justify-content: center;
-                  padding: 40px;
-                  color: #1A3A5C;
-                  background-color: #fff;
-                  text-align: center;
+        await Print.printAsync({ html });
+      } catch (printErr) {
+        console.error("Direct printing failed, falling back to PDF sharing", printErr);
+        Alert.alert(
+          'Impression directe impossible',
+          "Le service d'impression n'a pas pu traiter la demande directement. Souhaitez-vous partager ou enregistrer le certificat sous format PDF ?",
+          [
+            {
+              text: 'Partager / Enregistrer le PDF',
+              onPress: async () => {
+                try {
+                  const { uri } = await Print.printToFileAsync({ html });
+                  await Sharing.shareAsync(uri, {
+                    mimeType: 'application/pdf',
+                    dialogTitle: `Certificat du lot ${lot.numero_lot}`,
+                    UTI: 'com.adobe.pdf',
+                  });
+                } catch (pdfErr) {
+                  console.error(pdfErr);
+                  Alert.alert('Erreur', 'Impossible de générer le document PDF.');
                 }
-                .header {
-                  font-size: 28px;
-                  font-weight: 800;
-                  letter-spacing: 1px;
-                  margin-bottom: 5px;
-                  color: #1A3A5C;
-                }
-                .tagline {
-                  font-size: 12px;
-                  color: #6B7D90;
-                  text-transform: uppercase;
-                  letter-spacing: 2px;
-                  margin-bottom: 30px;
-                  font-weight: bold;
-                }
-                .qr-container {
-                  border: 2px solid #E6EEF8;
-                  border-radius: 20px;
-                  padding: 20px;
-                  background-color: #fff;
-                  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-                  margin-bottom: 30px;
-                  display: inline-block;
-                }
-                .qr-image {
-                  width: 250px;
-                  height: 250px;
-                }
-                .lot-number {
-                  font-size: 22px;
-                  font-weight: bold;
-                  margin-bottom: 5px;
-                  color: #1A3A5C;
-                }
-                .med-name {
-                  font-size: 16px;
-                  color: #6B7D90;
-                  margin-bottom: 25px;
-                }
-                .info-box {
-                  width: 100%;
-                  max-width: 400px;
-                  border-top: 1px solid #E6EEF8;
-                  padding-top: 20px;
-                  margin-bottom: 25px;
-                }
-                .info-row {
-                  display: flex;
-                  justify-content: space-between;
-                  margin-bottom: 8px;
-                  font-size: 13px;
-                }
-                .info-label {
-                  color: #9AA9B8;
-                }
-                .info-value {
-                  font-weight: 600;
-                  color: #1A3A5C;
-                }
-                .signature-container {
-                  background-color: #F7F9FC;
-                  border-radius: 12px;
-                  padding: 12px 20px;
-                  width: 100%;
-                  max-width: 400px;
-                  border: 1px solid #E6EEF8;
-                }
-                .signature-title {
-                  font-size: 10px;
-                  font-weight: bold;
-                  color: #9AA9B8;
-                  text-transform: uppercase;
-                  letter-spacing: 1px;
-                  margin-bottom: 5px;
-                }
-                .signature-hash {
-                  font-size: 11px;
-                  font-family: monospace;
-                  color: #1A3A5C;
-                  word-break: break-all;
-                }
-              </style>
-            </head>
-            <body>
-              <div class="header">PharmaTrace</div>
-              <div class="tagline">Certificat de Traçabilité Immuable</div>
-              
-              <div class="qr-container">
-                <img class="qr-image" src="data:image/png;base64,${base64Data}" />
-              </div>
-              
-              <div class="lot-number">LOT ${lot.numero_lot}</div>
-              <div class="med-name">${lot.nom_medicament} ${lot.dosage ? `(${lot.dosage})` : ''}</div>
-              
-              <div class="info-box">
-                <div class="info-row">
-                  <span class="info-label">Fabricant :</span>
-                  <span class="info-value">${lot.fabricant_nom || 'Laboratoire Agréé'}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Date de Fabrication :</span>
-                  <span class="info-value">${formatDate(lot.date_fabrication)}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Date d'Expiration :</span>
-                  <span class="info-value">${formatDate(lot.date_expiration)}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Quantité Initiale :</span>
-                  <span class="info-value">${lot.quantite_initiale?.toLocaleString?.() ?? lot.quantite_initiale} unités</span>
-                </div>
-              </div>
-              
-              <div class="signature-container">
-                <div class="signature-title">Signature Numérique SHA-256</div>
-                <div class="signature-hash">${lot.hash_sha256}</div>
-              </div>
-            </body>
-          </html>
-        `;
-        
-        // Android/iOS crash fix: print directly via generated PDF file instead of passing raw HTML to print manager
-        const { uri } = await Print.printToFileAsync({ html });
-        await Print.printAsync({ uri });
-      } catch (error) {
-        console.error(error);
-        Alert.alert('Erreur', "L'impression a échoué.");
+              }
+            },
+            {
+              text: 'Annuler',
+              style: 'cancel'
+            }
+          ]
+        );
       }
     });
   };

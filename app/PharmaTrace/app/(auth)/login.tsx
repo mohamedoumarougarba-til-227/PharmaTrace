@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
   Image,
+  useWindowDimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
@@ -21,6 +22,9 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
 
   const handleQuickLogin = async (role: "fabricant" | "pharmacie" | "agent_dph") => {
     setLoading(true);
@@ -84,138 +88,167 @@ export default function LoginScreen() {
     >
       <StatusBar style="light" />
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
-        className="px-5"
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }}
+        className="px-5 py-4 md:py-2"
         keyboardShouldPersistTaps="handled"
       >
-        {/* Logo + image médicament */}
-        <View className="items-center mb-10">
-          <Text className="text-white font-black text-4xl">PharmaTrace</Text>
-          <Text className="text-white/50 text-sm text-center mt-2 max-w-xs leading-relaxed">
-            Réservé aux acteurs agréés de la chaîne pharmaceutique nigérienne
-          </Text>
-          {/* Image médicament */}
-          <Image
-            source={require("../../assets/images/medicament.png")}
-            style={{ width: 100, height: 100, marginTop: 20 }}
-            resizeMode="contain"
-          />
-        </View>
-
-        {/* Carte formulaire */}
-        <View className="bg-white rounded-2xl p-6 shadow-lg">
-          <Text className="text-navy font-black text-2xl mb-1">Connexion</Text>
-          <Text className="text-muted text-sm mb-6">
-            Accédez à votre espace
-          </Text>
-
-          {/* Email */}
-          <Text className="text-text font-semibold text-sm mb-1">
-            Adresse email
-          </Text>
-          <TextInput
-            className="w-full h-12 border border-blue-light rounded-lg px-4 text-sm text-text mb-4"
-            placeholder="votre@email.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
-          {/* Mot de passe */}
-          <View className="flex-row justify-between items-center mb-1">
-            <Text className="text-text font-semibold text-sm">
-              Mot de passe
-            </Text>
-            <TouchableOpacity>
-              <Text className="text-blue text-xs">Mot de passe oublié ?</Text>
-            </TouchableOpacity>
-          </View>
-          <View className="relative mb-6">
-            <TextInput
-              className="w-full h-12 border border-blue-light rounded-lg px-4 text-sm text-text pr-12"
-              placeholder="••••••••"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPwd}
-            />
-            <TouchableOpacity
-              className="absolute right-4 top-3"
-              onPress={() => setShowPwd((p) => !p)}
-            >
-              <FAIcon name={showPwd ? 'eye-slash' : 'eye'} size={16} color="#999" family="FontAwesome6" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Bouton connexion */}
-          <TouchableOpacity
-            onPress={handleLogin}
-            disabled={loading}
-            className="w-full h-12 bg-navy rounded-lg items-center justify-center mb-4"
-            style={{ opacity: loading ? 0.7 : 1 }}
+        <View className="flex-col md:flex-row md:items-center md:justify-between md:gap-16 w-full max-w-5xl">
+          {/* Bloc Gauche : Logo + Infos + Scanner (desktop) */}
+          <View 
+            className="flex-1 mb-8 md:mb-0 md:max-w-md"
+            style={{ alignItems: isDesktop ? 'flex-start' : 'center' }}
           >
-            <Text className="text-white font-bold text-base">
-              {loading ? "Connexion..." : "Se connecter"}
+            <Text 
+              className="text-white font-black text-4xl"
+              style={{ textAlign: isDesktop ? 'left' : 'center' }}
+            >
+              PharmaTrace
             </Text>
-          </TouchableOpacity>
+            <Text 
+              className="text-white/50 text-sm mt-2 max-w-xs leading-relaxed"
+              style={{ textAlign: isDesktop ? 'left' : 'center' }}
+            >
+              Réservé aux acteurs agréés de la chaîne pharmaceutique nigérienne
+            </Text>
+            
+            {/* Image médicament */}
+            <Image
+              source={require("../../assets/images/medicament.png")}
+              style={{ width: 120, height: 120, marginTop: 24, alignSelf: isDesktop ? 'flex-start' : 'center' }}
+              resizeMode="contain"
+            />
 
-          {/* Séparateur pour Démo */}
-          <View className="flex-row items-center gap-2 my-2">
-            <View className="flex-1 h-px bg-blue-light" />
-            <Text className="text-muted text-[10px] font-bold uppercase tracking-wider">Accès Démo (Jury)</Text>
-            <View className="flex-1 h-px bg-blue-light" />
+            {/* Bouton scanner (Desktop uniquement) */}
+            <TouchableOpacity
+              onPress={() => router.replace("/(public)/verify")}
+              className="hidden md:flex mt-8 w-full max-w-xs h-14 border-2 border-white/30 rounded-xl items-center justify-center flex-row gap-3 active:bg-white/10"
+              style={{ alignSelf: isDesktop ? 'flex-start' : 'center' }}
+            >
+              <FAIcon name="camera" size={16} color="#fff" family="FontAwesome6" />
+              <Text className="text-white/85 font-semibold text-sm">
+                Scanner un médicament
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Boutons démo */}
-          <View className="flex-row justify-between gap-1.5 mt-2">
-            <TouchableOpacity
-              onPress={() => handleQuickLogin("fabricant")}
-              className="flex-1 bg-navy/5 border border-navy/10 py-2.5 rounded-lg items-center justify-center"
-            >
-              <FAIcon name="industry" size={12} color="#1A3A5C" family="FontAwesome6" />
-              <Text className="text-navy font-bold text-[10px] mt-1 text-center">Fabricant</Text>
-            </TouchableOpacity>
+          {/* Bloc Droite : Connexion + Note restriction + Scanner (mobile) */}
+          <View className="flex-1 w-full md:max-w-md">
+            {/* Carte formulaire */}
+            <View className="bg-white rounded-2xl p-5 shadow-lg">
+              <Text className="text-navy font-black text-2xl mb-0.5">Connexion</Text>
+              <Text className="text-muted text-sm mb-4">
+                Accédez à votre espace
+              </Text>
 
-            <TouchableOpacity
-              onPress={() => handleQuickLogin("pharmacie")}
-              className="flex-1 bg-pharma-green/5 border border-pharma-green/10 py-2.5 rounded-lg items-center justify-center"
-            >
-              <FAIcon name="prescription-bottle-medical" size={12} color="#27AE60" family="FontAwesome6" />
-              <Text className="text-pharma-green font-bold text-[10px] mt-1 text-center">Pharmacie</Text>
-            </TouchableOpacity>
+              {/* Email */}
+              <Text className="text-text font-semibold text-sm mb-1">
+                Adresse email
+              </Text>
+              <TextInput
+                className="w-full h-12 border border-blue-light rounded-lg px-4 text-sm text-text mb-3"
+                placeholder="votre@email.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
 
+              {/* Mot de passe */}
+              <View className="flex-row justify-between items-center mb-1">
+                <Text className="text-text font-semibold text-sm">
+                  Mot de passe
+                </Text>
+                <TouchableOpacity>
+                  <Text className="text-blue text-xs">Mot de passe oublié ?</Text>
+                </TouchableOpacity>
+              </View>
+              <View className="relative mb-4">
+                <TextInput
+                  className="w-full h-12 border border-blue-light rounded-lg px-4 text-sm text-text pr-12"
+                  placeholder="••••••••"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPwd}
+                />
+                <TouchableOpacity
+                  className="absolute right-4 top-3"
+                  onPress={() => setShowPwd((p) => !p)}
+                >
+                  <FAIcon name={showPwd ? 'eye-slash' : 'eye'} size={16} color="#999" family="FontAwesome6" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Bouton connexion */}
+              <TouchableOpacity
+                onPress={handleLogin}
+                disabled={loading}
+                className="w-full h-12 bg-navy rounded-lg items-center justify-center mb-3"
+                style={{ opacity: loading ? 0.7 : 1 }}
+              >
+                <Text className="text-white font-bold text-base">
+                  {loading ? "Connexion..." : "Se connecter"}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Séparateur pour Démo */}
+              <View className="flex-row items-center gap-2 my-1">
+                <View className="flex-1 h-px bg-blue-light" />
+                <Text className="text-muted text-[10px] font-bold uppercase tracking-wider">Accès Démo (Jury)</Text>
+                <View className="flex-1 h-px bg-blue-light" />
+              </View>
+
+              {/* Boutons démo */}
+              <View className="flex-row justify-between gap-1.5 mt-1">
+                <TouchableOpacity
+                  onPress={() => handleQuickLogin("fabricant")}
+                  className="flex-1 bg-navy/5 border border-navy/10 py-2 rounded-lg items-center justify-center"
+                >
+                  <FAIcon name="industry" size={12} color="#1A3A5C" family="FontAwesome6" />
+                  <Text className="text-navy font-bold text-[10px] mt-1 text-center">Fabricant</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => handleQuickLogin("pharmacie")}
+                  className="flex-1 bg-pharma-green/5 border border-pharma-green/10 py-2 rounded-lg items-center justify-center"
+                >
+                  <FAIcon name="prescription-bottle-medical" size={12} color="#27AE60" family="FontAwesome6" />
+                  <Text className="text-pharma-green font-bold text-[10px] mt-1 text-center">Pharmacie</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => handleQuickLogin("agent_dph")}
+                  className="flex-1 bg-pharma-purple/5 border border-pharma-purple/10 py-2 rounded-lg items-center justify-center"
+                >
+                  <FAIcon name="shield-halved" size={12} color="#8E44AD" family="FontAwesome6" />
+                  <Text className="text-pharma-purple font-bold text-[10px] mt-1 text-center">Agent DPH</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Note accès restreint */}
+            <View className="bg-navy/30 rounded-xl p-3 mt-3">
+              <View className="flex-row items-start gap-2">
+                <FAIcon name="lock" size={12} color="rgba(255,255,255,0.5)" family="FontAwesome6" />
+                <Text className="text-white/50 text-xs leading-relaxed flex-1">
+                  L'accès est validé manuellement par l'administrateur. Seuls les
+                  acteurs agréés peuvent se connecter.
+                </Text>
+              </View>
+            </View>
+
+            {/* Bouton scanner (Mobile uniquement) */}
             <TouchableOpacity
-              onPress={() => handleQuickLogin("agent_dph")}
-              className="flex-1 bg-pharma-purple/5 border border-pharma-purple/10 py-2.5 rounded-lg items-center justify-center"
+              onPress={() => router.replace("/(public)/verify")}
+              className="flex md:hidden mt-6 mb-2 h-14 border-2 border-white/30 rounded-xl items-center justify-center flex-row gap-3 active:bg-white/10"
             >
-              <FAIcon name="shield-halved" size={12} color="#8E44AD" family="FontAwesome6" />
-              <Text className="text-pharma-purple font-bold text-[10px] mt-1 text-center">Agent DPH</Text>
+              <FAIcon name="camera" size={16} color="#fff" family="FontAwesome6" />
+              <Text className="text-white/80 font-semibold text-sm">
+                Scanner un médicament sans se connecter
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Note accès restreint */}
-        <View className="bg-navy/30 rounded-xl p-4 mt-5 mx-1">
-          <View className="flex-row items-start gap-2">
-            <FAIcon name="lock" size={12} color="rgba(255,255,255,0.5)" family="FontAwesome6" />
-            <Text className="text-white/50 text-xs text-center leading-relaxed flex-1">
-              L'accès est validé manuellement par l'administrateur. Seuls les
-              acteurs agréés peuvent se connecter.
-            </Text>
-          </View>
-        </View>
-
-        {/* Bouton scanner — pour les patients qui arrivent par erreur ici */}
-        <TouchableOpacity
-          onPress={() => router.replace("/(public)/verify")}
-          className="mt-6 mb-8 h-14 border-2 border-white/30 rounded-xl items-center justify-center flex-row gap-3"
-        >
-          <FAIcon name="camera" size={16} color="#fff" family="FontAwesome6" />
-          <Text className="text-white/80 font-semibold text-sm">
-            Scanner un médicament sans se connecter
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );

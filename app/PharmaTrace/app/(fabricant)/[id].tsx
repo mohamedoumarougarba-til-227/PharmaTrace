@@ -355,10 +355,13 @@ export default function LotDetailScreen() {
   };
 
   // ─── Shared sub-components ────────────────────────────────────────
+  const qrSize = isDesktop ? 160 : 200;
+  const qrContainerSize = isDesktop ? 180 : 220;
+
   const qrSection = (
-    <View className="bg-white rounded-xl p-6 items-center" style={isDesktop ? { flex: 1 } : { marginBottom: 16 }}>
-      <Text className="text-muted text-xs uppercase mb-3">QR code de traçabilité</Text>
-      <View style={{ width: 220, height: 220, borderRadius: 12, borderWidth: 1, borderColor: '#E6EEF8', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#fff' }}>
+    <View className="bg-white rounded-xl items-center" style={isDesktop ? { flex: 1, padding: 16 } : { padding: 24, marginBottom: 16 }}>
+      <Text className="text-muted text-xs uppercase mb-2">QR code de traçabilité</Text>
+      <View style={{ width: qrContainerSize, height: qrContainerSize, borderRadius: 12, borderWidth: 1, borderColor: '#E6EEF8', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#fff' }}>
         {lot.qr_code_url || lot.hash_sha256 ? (
           <QRCode
             getRef={(c) => (qrRef.current = c)}
@@ -367,7 +370,7 @@ export default function LotDetailScreen() {
                 ? decodeURIComponent(lot.qr_code_url.split('data=')[1] || '')
                 : lot.qr_code_url || `${VERIFICATION_BASE_URL}?hash=${lot.hash_sha256}`
             }
-            size={200}
+            size={qrSize}
           />
         ) : (
           <View style={{ alignItems: 'center' }}>
@@ -377,48 +380,48 @@ export default function LotDetailScreen() {
         )}
       </View>
 
-      <Text className="text-navy font-semibold text-base mt-3">{lot.numero_lot}</Text>
-      <Text className="text-muted text-sm">{lot.nom_medicament}</Text>
+      <Text className="text-navy font-semibold text-sm mt-2">{lot.numero_lot}</Text>
+      <Text className="text-muted text-xs">{lot.nom_medicament}</Text>
 
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 16, width: '100%' }}>
-        <TouchableOpacity onPress={onDownloadQR} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#E6EEF8', backgroundColor: '#fff' }}>
-          <FAIcon name="download" size={14} color="#1A3A5C" family="FontAwesome6" />
-          <Text className="text-navy font-semibold">Télécharger</Text>
+      <View style={{ flexDirection: 'row', gap: 8, marginTop: 10, width: '100%' }}>
+        <TouchableOpacity onPress={onDownloadQR} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: '#E6EEF8', backgroundColor: '#fff' }}>
+          <FAIcon name="download" size={12} color="#1A3A5C" family="FontAwesome6" />
+          <Text style={{ color: '#1A3A5C', fontWeight: '600', fontSize: 12 }}>Télécharger</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onPrint} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#E6EEF8', backgroundColor: '#fff' }}>
-          <FAIcon name="print" size={14} color="#1A3A5C" family="FontAwesome6" />
-          <Text className="text-navy font-semibold">Imprimer</Text>
+        <TouchableOpacity onPress={onPrint} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: '#E6EEF8', backgroundColor: '#fff' }}>
+          <FAIcon name="print" size={12} color="#1A3A5C" family="FontAwesome6" />
+          <Text style={{ color: '#1A3A5C', fontWeight: '600', fontSize: 12 }}>Imprimer</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
   const detailsSection = (
-    <View className="bg-white rounded-xl p-4" style={isDesktop ? { flex: 1 } : { marginBottom: 16 }}>
-      <Text className="text-navy font-bold text-sm mb-3">Détails du lot</Text>
-      <View className="flex-row justify-between py-2 border-b border-bg"><Text className="text-muted">Médicament</Text><Text className="font-semibold">{lot.nom_medicament}</Text></View>
-      <View className="flex-row justify-between py-2 border-b border-bg"><Text className="text-muted">N° de lot</Text><Text className="text-blue font-semibold">{lot.numero_lot}</Text></View>
-      <View className="flex-row justify-between py-2 border-b border-bg"><Text className="text-muted">Quantité</Text><Text className="font-semibold">{lot.quantite_initiale?.toLocaleString?.() ?? lot.quantite_initiale} unités</Text></View>
-      <View className="flex-row justify-between py-2 border-b border-bg"><Text className="text-muted">Fabrication</Text><Text className="font-semibold">{formatDate(lot.date_fabrication)}</Text></View>
-      <View className="flex-row justify-between py-2 border-b border-bg"><Text className="text-muted">Expiration</Text><Text className={`font-semibold ${expired ? 'text-pharma-orange' : 'text-green-600'}`}>{formatDate(lot.date_expiration)}</Text></View>
-      <View className="flex-row justify-between py-2"><Text className="text-muted">Statut</Text><View style={{ backgroundColor: lot.statut_actuel === 'en_pharmacie' ? '#E8F8EC' : '#EEF4FB', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100 }}><Text style={{ color: lot.statut_actuel === 'en_pharmacie' ? '#27AE60' : '#2E6DA4', fontWeight: '700' }}>{(lot.statut_actuel ?? '').replace('_', ' ')}</Text></View></View>
+    <View className="bg-white rounded-xl" style={isDesktop ? { flex: 1, padding: 14 } : { padding: 16, marginBottom: 16 }}>
+      <Text className="text-navy font-bold text-sm mb-2">Détails du lot</Text>
+      <View className="flex-row justify-between py-1.5 border-b border-bg"><Text className="text-muted text-sm">Médicament</Text><Text className="font-semibold text-sm">{lot.nom_medicament}</Text></View>
+      <View className="flex-row justify-between py-1.5 border-b border-bg"><Text className="text-muted text-sm">N° de lot</Text><Text className="text-blue font-semibold text-sm">{lot.numero_lot}</Text></View>
+      <View className="flex-row justify-between py-1.5 border-b border-bg"><Text className="text-muted text-sm">Quantité</Text><Text className="font-semibold text-sm">{lot.quantite_initiale?.toLocaleString?.() ?? lot.quantite_initiale} unités</Text></View>
+      <View className="flex-row justify-between py-1.5 border-b border-bg"><Text className="text-muted text-sm">Fabrication</Text><Text className="font-semibold text-sm">{formatDate(lot.date_fabrication)}</Text></View>
+      <View className="flex-row justify-between py-1.5 border-b border-bg"><Text className="text-muted text-sm">Expiration</Text><Text className={`font-semibold text-sm ${expired ? 'text-pharma-orange' : 'text-green-600'}`}>{formatDate(lot.date_expiration)}</Text></View>
+      <View className="flex-row justify-between py-1.5"><Text className="text-muted text-sm">Statut</Text><View style={{ backgroundColor: lot.statut_actuel === 'en_pharmacie' ? '#E8F8EC' : '#EEF4FB', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 100 }}><Text style={{ color: lot.statut_actuel === 'en_pharmacie' ? '#27AE60' : '#2E6DA4', fontWeight: '700', fontSize: 12 }}>{(lot.statut_actuel ?? '').replace('_', ' ')}</Text></View></View>
     </View>
   );
 
   const bottomSection = (
-    <View style={isDesktop ? { flexDirection: 'row', gap: 16, alignItems: 'stretch' } : undefined}>
-      <View className="bg-navy/90 rounded-xl p-4" style={isDesktop ? { flex: 1 } : { marginBottom: 16 }}>
+    <View style={isDesktop ? { flexDirection: 'row', gap: 12, alignItems: 'stretch' } : undefined}>
+      <View className="bg-navy/90 rounded-xl" style={isDesktop ? { flex: 1, padding: 12 } : { padding: 16, marginBottom: 16 }}>
         <View className="flex-row items-center gap-2">
-          <FAIcon name="lock" size={11} color="rgba(255,255,255,0.8)" family="FontAwesome6" />
-          <Text className="text-xs text-white/80">Empreinte SHA-256</Text>
+          <FAIcon name="lock" size={10} color="rgba(255,255,255,0.8)" family="FontAwesome6" />
+          <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.8)' }}>Empreinte SHA-256</Text>
         </View>
-        <Text className="text-white font-mono mt-2">{String(lot.hash_sha256).slice(0, 12)}...</Text>
-        <Text className="text-white/70 text-xs mt-2">Immuable — ne peut jamais être falsifiée</Text>
+        <Text className="text-white font-mono" style={{ fontSize: 12, marginTop: 4 }}>{String(lot.hash_sha256).slice(0, 20)}...</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 9, marginTop: 3 }}>Immuable — ne peut jamais être falsifiée</Text>
       </View>
 
       <Link href={{ pathname: '/(fabricant)/nouveau-transfert', params: { lotId: String(lot.id) } }} asChild>
-        <TouchableOpacity className="bg-navy rounded-xl items-center justify-center" style={isDesktop ? { flex: 1, paddingVertical: 16 } : { width: '100%', paddingVertical: 16, marginBottom: 32 }}>
-          <Text className="text-white font-bold">Initier un transfert →</Text>
+        <TouchableOpacity className="bg-navy rounded-xl items-center justify-center" style={isDesktop ? { flex: 1, paddingVertical: 12 } : { width: '100%', paddingVertical: 16, marginBottom: 32 }}>
+          <Text className="text-white font-bold" style={{ fontSize: 13 }}>Initier un transfert →</Text>
         </TouchableOpacity>
       </Link>
     </View>
@@ -426,11 +429,11 @@ export default function LotDetailScreen() {
 
   return (
     <ScrollView className="flex-1 bg-bg">
-      <View style={isDesktop ? { padding: 24 } : { padding: 16 }}>
+      <View style={isDesktop ? { padding: 16 } : { padding: 16 }}>
         {isDesktop ? (
           <>
             {/* Desktop: two columns */}
-            <View style={{ flexDirection: 'row', gap: 20, marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', gap: 14, marginBottom: 12 }}>
               {qrSection}
               {detailsSection}
             </View>

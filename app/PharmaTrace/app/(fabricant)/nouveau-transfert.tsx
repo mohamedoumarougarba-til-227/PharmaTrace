@@ -340,26 +340,29 @@ export default function NouveauTransfertScreen() {
                   </View>
 
                   {/* Contrôle de quantité */}
-                  <View className="flex-row items-center justify-between bg-bg border border-blue-light rounded-lg px-2 py-1">
-                    <Text className="text-muted text-xs font-semibold">Unités à livrer :</Text>
+                  <View className="flex-row items-center justify-between bg-bg border border-blue-light rounded-xl px-3 py-1.5">
+                    <Text className="text-muted text-xs font-bold">Unités à livrer :</Text>
                     <View className="flex-row items-center">
                       <TouchableOpacity 
-                        className="w-8 h-8 items-center justify-center bg-white border border-blue-light rounded-md" 
+                        style={{ width: 36, height: 36 }}
+                        className="items-center justify-center bg-white border border-blue-light rounded-lg active:bg-blue-light/30" 
                         onPress={() => adjustQty(dest.pharmacieId, -1)}
                       >
-                        <FAIcon name="minus" size={10} color="#1A3A5C" family="FontAwesome6" />
+                        <FAIcon name="minus" size={12} color="#1A3A5C" family="FontAwesome6" />
                       </TouchableOpacity>
                       <TextInput
-                        className="w-16 h-8 text-center text-navy font-extrabold text-sm"
+                        style={{ width: 70, height: 36, padding: 0, marginHorizontal: 8 }}
+                        className="text-center text-navy font-extrabold text-base bg-white border border-blue-light rounded-lg"
                         keyboardType="number-pad"
                         value={dest.quantite}
                         onChangeText={(t) => updateDestQty(dest.pharmacieId, t)}
                       />
                       <TouchableOpacity 
-                        className="w-8 h-8 items-center justify-center bg-white border border-blue-light rounded-md" 
+                        style={{ width: 36, height: 36 }}
+                        className="items-center justify-center bg-white border border-blue-light rounded-lg active:bg-blue-light/30" 
                         onPress={() => adjustQty(dest.pharmacieId, 1)}
                       >
-                        <FAIcon name="plus" size={10} color="#1A3A5C" family="FontAwesome6" />
+                        <FAIcon name="plus" size={12} color="#1A3A5C" family="FontAwesome6" />
                       </TouchableOpacity>
                     </View>
                   </View>

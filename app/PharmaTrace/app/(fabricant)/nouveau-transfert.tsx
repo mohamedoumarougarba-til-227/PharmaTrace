@@ -19,6 +19,7 @@ type LotInfo = {
   nom_medicament: string;
   quantite_initiale: number;
   quantite_actuelle: number | null;
+  date_expiration?: string;
 };
 
 export default function NouveauTransfertScreen() {
@@ -77,7 +78,7 @@ export default function NouveauTransfertScreen() {
         lotId
           ? supabase
               .from('lots_medicaments')
-              .select('id, numero_lot, nom_medicament, quantite_initiale, quantite_actuelle')
+              .select('id, numero_lot, nom_medicament, quantite_initiale, quantite_actuelle, date_expiration')
               .eq('id', lotId)
               .eq('fabricant_id', session.user.id)
               .single()
@@ -91,7 +92,18 @@ export default function NouveauTransfertScreen() {
       setPharmacies(dataPharmacies);
 
       if (lotRes?.data) {
-        setLot(lotRes.data as LotInfo);
+        const lotData = lotRes.data as LotInfo;
+        if (lotData.date_expiration && new Date(lotData.date_expiration) < new Date()) {
+          setSuccessModal({
+            title: 'Lot expiré',
+            message: 'Ce lot a expiré. Il est interdit d\'initier un transfert pour un produit périmé.',
+            color: '#C0392B',
+            icon: 'triangle-exclamation',
+            onConfirm: () => router.replace('/(fabricant)/lots'),
+          });
+          return;
+        }
+        setLot(lotData);
       }
     } catch (e) {
       console.error(e);

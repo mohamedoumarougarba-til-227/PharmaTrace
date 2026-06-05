@@ -12,6 +12,7 @@ type LotSummary = {
   numero_lot: string;
   dosage: string | null;
   statut_actuel: string;
+  date_expiration: string;
 };
 
 export default function FabricantDashboard() {
@@ -34,6 +35,8 @@ export default function FabricantDashboard() {
         return;
       }
 
+      const todayStr = new Date().toISOString().split('T')[0];
+
       const [profileRes, lotsRes, totalRes, stockRes, transitRes, pharmacieRes] = await Promise.all([
         supabase
           .from('utilisateurs')
@@ -42,7 +45,7 @@ export default function FabricantDashboard() {
           .single(),
         supabase
           .from('lots_medicaments')
-          .select('id, nom_medicament, numero_lot, dosage, statut_actuel')
+          .select('id, nom_medicament, numero_lot, dosage, statut_actuel, date_expiration')
           .eq('fabricant_id', session.user.id)
           .eq('is_archived', false)
           .order('created_at', { ascending: false })
@@ -51,14 +54,16 @@ export default function FabricantDashboard() {
           .from('lots_medicaments')
           .select('id', { count: 'exact', head: true })
           .eq('fabricant_id', session.user.id)
-          .eq('is_archived', false),
+          .eq('is_archived', false)
+          .gte('date_expiration', todayStr),
         supabase
           .from('lots_medicaments')
           .select('id', { count: 'exact', head: true })
           .eq('fabricant_id', session.user.id)
           .eq('statut_actuel', 'en_stock_fabricant')
           .eq('is_archived', false)
-          .gt('quantite_actuelle', 0),
+          .gt('quantite_actuelle', 0)
+          .gte('date_expiration', todayStr),
         supabase
           .from('transferts')
           .select('id', { count: 'exact', head: true })
@@ -212,7 +217,7 @@ export default function FabricantDashboard() {
             <Text className="text-navy font-black text-sm">{lot.nom_medicament}</Text>
             <Text className="text-muted text-xs mt-1">{lot.numero_lot} · {lot.dosage ?? '—'}</Text>
           </View>
-          <StatusBadge statut={lot.statut_actuel} />
+          <StatusBadge statut={lot.statut_actuel} expired={lot.date_expiration ? new Date(lot.date_expiration) < new Date() : false} />
         </TouchableOpacity>
       ))}
 
@@ -278,7 +283,7 @@ export default function FabricantDashboard() {
                   <Text className="text-navy font-black text-sm">{lot.nom_medicament}</Text>
                   <Text className="text-muted text-xs mt-1">{lot.numero_lot} · {lot.dosage ?? '—'}</Text>
                 </View>
-                <StatusBadge statut={lot.statut_actuel} />
+                <StatusBadge statut={lot.statut_actuel} expired={lot.date_expiration ? new Date(lot.date_expiration) < new Date() : false} />
               </TouchableOpacity>
             ))}
 
@@ -384,14 +389,16 @@ function KPICard({
   );
 }
 
-function StatusBadge({ statut }: { statut: string }) {
+function StatusBadge({ statut, expired }: { statut: string; expired?: boolean }) {
   const map: Record<string, { label: string; bg: string; text: string }> = {
     en_stock_fabricant: { label: 'En stock',     bg: '#EEF4FB', text: '#2E6DA4' },
     en_transit:         { label: 'En transit',   bg: '#FEF4E0', text: '#E67E22' },
     en_pharmacie:       { label: 'En pharmacie', bg: '#E8F8EC', text: '#27AE60' },
     archive:            { label: 'Archivé',      bg: '#F0F0F0', text: '#999' },
   };
-  const s = map[statut] ?? map['archive'];
+  const s = expired 
+    ? { label: 'Expiré', bg: '#FDE8E8', text: '#C0392B' }
+    : (map[statut] ?? map['archive']);
   return (
     <View className="px-3 py-1 rounded-full" style={{ backgroundColor: s.bg }}>
       <Text className="text-[10px] font-extrabold uppercase" style={{ color: s.text }}>{s.label}</Text>

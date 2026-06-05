@@ -107,12 +107,14 @@ export default function LotsScreen() {
         )}
 
         {filtered.map(lot => {
-          const s = STATUT_MAP[lot.statut_actuel] ?? STATUT_MAP['archive'];
           const expired = new Date(lot.date_expiration) < new Date();
+          const s = expired 
+            ? { label: 'Expiré', bg: '#FDE8E8', text: '#C0392B' }
+            : (STATUT_MAP[lot.statut_actuel] ?? STATUT_MAP['archive']);
           return (
             <View
               key={lot.id}
-              className={`bg-white rounded-xl p-4 mb-2 shadow-sm border ${expired ? 'border-pharma-orange/30' : 'border-transparent'}`}
+              className={`bg-white rounded-xl p-4 mb-2 shadow-sm border ${expired ? 'border-pharma-red/30' : 'border-transparent'}`}
             >
               <View className="flex-row justify-between items-start mb-2">
                 <View className="flex-1 mr-3">
@@ -132,7 +134,7 @@ export default function LotsScreen() {
                   >
                     <Text className="text-blue text-xs font-semibold">Voir</Text>
                   </TouchableOpacity>
-                  {lot.statut_actuel !== 'archive' && (
+                  {lot.statut_actuel !== 'archive' && !expired && (
                     <TouchableOpacity
                       className="px-3 py-1.5 rounded-lg bg-navy"
                       onPress={() => router.push({ pathname: '/(fabricant)/nouveau-transfert', params: { lotId: lot.id } })}

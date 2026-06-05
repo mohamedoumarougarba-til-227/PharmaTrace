@@ -450,11 +450,17 @@ export default function LotDetailScreen() {
         <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 9, marginTop: 3 }}>Immuable — ne peut jamais être falsifiée</Text>
       </View>
 
-      <Link href={{ pathname: '/(fabricant)/nouveau-transfert', params: { lotId: String(lot.id) } }} asChild>
-        <TouchableOpacity className="bg-navy rounded-xl items-center justify-center" style={isDesktop ? { flex: 1, paddingVertical: 12 } : { width: '100%', paddingVertical: 16, marginBottom: 32 }}>
-          <Text className="text-white font-bold" style={{ fontSize: 13 }}>Initier un transfert →</Text>
-        </TouchableOpacity>
-      </Link>
+      {expired ? (
+        <View className="bg-red-50 border border-red-100 rounded-xl items-center justify-center" style={isDesktop ? { flex: 1, paddingVertical: 12 } : { width: '100%', paddingVertical: 16, marginBottom: 32 }}>
+          <Text className="text-pharma-red font-bold text-center" style={{ fontSize: 12 }}>Lot expiré — Transfert interdit</Text>
+        </View>
+      ) : (
+        <Link href={{ pathname: '/(fabricant)/nouveau-transfert', params: { lotId: String(lot.id) } }} asChild>
+          <TouchableOpacity className="bg-navy rounded-xl items-center justify-center" style={isDesktop ? { flex: 1, paddingVertical: 12 } : { width: '100%', paddingVertical: 16, marginBottom: 32 }}>
+            <Text className="text-white font-bold" style={{ fontSize: 13 }}>Initier un transfert →</Text>
+          </TouchableOpacity>
+        </Link>
+      )}
     </View>
   );
 

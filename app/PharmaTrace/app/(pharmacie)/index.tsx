@@ -29,9 +29,14 @@ export default function PharmacieDashboard() {
       // lots en stock pour cette pharmacie (transferts reçus)
       const lotsRes = await supabase
         .from('transferts')
-        .select('lot_id', { count: 'exact' })
+        .select('lot_id(date_expiration)')
         .eq('destinataire_id', session.user.id)
         .eq('statut', 'receptionne');
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const activeLotsCount = (lotsRes.data ?? []).filter((t: any) => {
+        return t.lot_id?.date_expiration ? t.lot_id.date_expiration >= todayStr : true;
+      }).length;
 
       // scans aujourd'hui par ce pharmacien
       const scansRes = await supabase
@@ -51,7 +56,7 @@ export default function PharmacieDashboard() {
 
       setKpis({
         transferts_attente: transfertsRes.count ?? 0,
-        lots_stock: lotsRes.count ?? 0,
+        lots_stock: activeLotsCount,
         scans_today: scansRes.count ?? 0,
         alertes: alertesRes.count ?? 0,
       });

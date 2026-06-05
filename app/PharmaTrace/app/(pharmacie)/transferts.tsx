@@ -17,6 +17,7 @@ type TransfertRow = {
     id: string;
     numero_lot: string;
     nom_medicament: string;
+    date_expiration?: string;
   } | null;
 };
 
@@ -40,7 +41,7 @@ export default function TransfertsEntrantsScreen() {
 
       const { data, error } = await supabase
         .from('transferts')
-        .select('id, quantite_transferee, date_initiation, statut, expediteur_id(nom_entite), lot_id(id, numero_lot, nom_medicament)')
+        .select('id, quantite_transferee, date_initiation, statut, expediteur_id(nom_entite), lot_id(id, numero_lot, nom_medicament, date_expiration)')
         .eq('destinataire_id', session.user.id)
         .eq('statut', 'en_attente')
         .order('date_initiation', { ascending: false });
@@ -166,36 +167,58 @@ export default function TransfertsEntrantsScreen() {
         </View>
       </View>
 
-      {transferts.map((t: any) => (
-        <View key={t.id} className="bg-white rounded-xl p-4 mb-3 shadow-sm border-l-4 border-pharma-orange">
-          <View className="flex-row justify-between items-start mb-3">
-            <View className="flex-1 mr-2">
-              <View className="bg-pharma-orange/10 self-start px-2 py-0.5 rounded-full mb-2">
-                <Text className="text-pharma-orange text-xs font-bold uppercase">EN ATTENTE</Text>
+      {transferts.map((t: any) => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const isExpired = t.lot_id?.date_expiration ? t.lot_id.date_expiration < todayStr : false;
+        return (
+          <View key={t.id} className={`bg-white rounded-xl p-4 mb-3 shadow-sm border-l-4 ${isExpired ? 'border-pharma-red' : 'border-pharma-orange'}`}>
+            <View className="flex-row justify-between items-start mb-3">
+              <View className="flex-1 mr-2">
+                <View className="flex-row items-center gap-2 mb-2">
+                  <View className="bg-pharma-orange/10 px-2 py-0.5 rounded-full">
+                    <Text className="text-pharma-orange text-xs font-bold uppercase">EN ATTENTE</Text>
+                  </View>
+                  {isExpired && (
+                    <View className="bg-pharma-red/10 px-2 py-0.5 rounded-full">
+                      <Text className="text-pharma-red text-xs font-bold uppercase">EXPIRÉ</Text>
+                    </View>
+                  )}
+                </View>
+                <Text className="text-navy font-bold text-base">{t.lot_id?.nom_medicament}</Text>
+                <Text className="text-muted text-xs mt-1">{t.quantite_transferee} unités · Lot : {t.lot_id?.numero_lot}</Text>
+                {t.lot_id?.date_expiration && (
+                  <Text className={`text-xs mt-1 ${isExpired ? 'text-pharma-red font-semibold' : 'text-muted'}`}>
+                    Exp : {new Date(t.lot_id.date_expiration).toLocaleDateString('fr-FR')}
+                  </Text>
+                )}
               </View>
-              <Text className="text-navy font-bold text-base">{t.lot_id?.nom_medicament}</Text>
-              <Text className="text-muted text-xs mt-1">{t.quantite_transferee} unités · {t.lot_id?.numero_lot}</Text>
+              <Text className="text-muted text-xs">{new Date(t.date_initiation).toLocaleString('fr-FR')}</Text>
             </View>
-            <Text className="text-muted text-xs">{new Date(t.date_initiation).toLocaleString('fr-FR')}</Text>
+            <Text className="text-muted text-xs mb-3">De : {t.expediteur_id?.nom_entite}</Text>
+            <View className="flex-row gap-2">
+              <TouchableOpacity
+                onPress={() => handleRefus(t)}
+                className="flex-1 h-10 border border-pharma-red rounded-lg items-center justify-center"
+              >
+                <Text className="text-pharma-red font-semibold text-sm">Refuser</Text>
+              </TouchableOpacity>
+              {isExpired ? (
+                <View className="flex-2 h-10 bg-pharma-red/10 border border-pharma-red/30 rounded-lg items-center justify-center px-3">
+                  <Text className="text-pharma-red font-bold text-xs text-center">Expiré — Non réceptionnable</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => handleReception(t)}
+                  className="flex-2 h-10 bg-pharma-green rounded-lg items-center justify-center px-5 flex-row gap-2"
+                >
+                  <FAIcon name="check" size={12} color="#fff" family="FontAwesome6" />
+                  <Text className="text-white font-bold text-sm">Réceptionner</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-          <Text className="text-muted text-xs mb-3">De : {t.expediteur_id?.nom_entite}</Text>
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              onPress={() => handleRefus(t)}
-              className="flex-1 h-10 border border-pharma-red rounded-lg items-center justify-center"
-            >
-              <Text className="text-pharma-red font-semibold text-sm">Refuser</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleReception(t)}
-              className="flex-2 h-10 bg-pharma-green rounded-lg items-center justify-center px-5 flex-row gap-2"
-            >
-              <FAIcon name="check" size={12} color="#fff" family="FontAwesome6" />
-              <Text className="text-white font-bold text-sm">Réceptionner</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ))}
+        );
+      })}
       {/* Modal de Confirmation de Refus */}
       <ConfirmModal
         visible={!!confirmRefusTarget}

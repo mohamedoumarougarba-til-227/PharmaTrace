@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/splash-screen.png",
       "resizeMode": "contain",
-      "backgroundColor": "#111827"
+      "backgroundColor": "#1A3A5C"
     },
     "ios": {
       "supportsTablet": false,
@@ -21,7 +21,7 @@
       "package": "com.trustgrid.pharmatrace",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#111827"
+        "backgroundColor": "#1A3A5C"
       },
       "permissions": [
         "android.permission.CAMERA",

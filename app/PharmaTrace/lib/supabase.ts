@@ -365,6 +365,19 @@ function getMockDataForTable(tableName: string, calls: any[]) {
         if (item[col] === undefined) return true;
         return item[col] > val;
       });
+    } else if (call.method === 'ilike') {
+      const [col, val] = call.args;
+      const cleanVal = String(val).replace(/%/g, '').toLowerCase();
+      data = data.filter((item: any) => {
+        if (!item[col]) return false;
+        return String(item[col]).toLowerCase().includes(cleanVal);
+      });
+    } else if (call.method === 'in') {
+      const [col, valList] = call.args;
+      data = data.filter((item: any) => {
+        if (!item[col]) return false;
+        return Array.isArray(valList) && valList.includes(item[col]);
+      });
     }
   }
   return data;
@@ -389,6 +402,8 @@ class MockQueryBuilder {
   or(...args: any[]) { this.calls.push({ method: 'or', args }); return this; }
   single(...args: any[]) { this.calls.push({ method: 'single', args }); return this; }
   maybeSingle(...args: any[]) { this.calls.push({ method: 'maybeSingle', args }); return this; }
+  ilike(...args: any[]) { this.calls.push({ method: 'ilike', args }); return this; }
+  in(...args: any[]) { this.calls.push({ method: 'in', args }); return this; }
   
   insert(values: any) {
     this.calls.push({ method: 'insert', args: [values] });

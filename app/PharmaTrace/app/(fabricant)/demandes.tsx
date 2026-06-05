@@ -385,15 +385,18 @@ export default function RequetesStockScreen() {
           .update(lotUpdatePayload)
           .eq('id', lotId);
 
-        if (lotErr) throw lotErr;
-
         // 3. Link stock request
+        const isPartial = qty !== item.quantite_demandee;
+        const notes = isPartial 
+          ? `Demande satisfaite (livraison partielle de ${qty} sur ${item.quantite_demandee} demandées).` 
+          : 'Demande satisfaite et lot expédié.';
+
         const { error: demErr } = await supabase
           .from('demandes_stock')
           .update({
             statut: 'satisfait',
             transfert_id: transData.id,
-            notes_fabricant: 'Demande satisfaite et lot expédié.',
+            notes_fabricant: notes,
           })
           .eq('id', item.id);
 
@@ -606,7 +609,7 @@ export default function RequetesStockScreen() {
         onRequestClose={() => handleSelectGroup(null)}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <View className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl" style={{ maxHeight: '85%' }}>
+          <View className="bg-white w-full max-w-2xl rounded-2xl p-6 shadow-xl" style={{ maxHeight: '85%' }}>
             <View className="flex-row justify-between items-center mb-4 border-b border-bg pb-3">
               <Text className="text-navy font-black text-lg">Détails Demande</Text>
               <TouchableOpacity onPress={() => handleSelectGroup(null)} className="p-1">
@@ -660,24 +663,6 @@ export default function RequetesStockScreen() {
                             </View>
                             <Text className="text-muted text-[10px] mb-1">Dosage : {item.dosage} · Forme : {item.forme_galenique || '—'}</Text>
                             <Text className="text-navy text-xs font-bold mb-2">Quantité : {item.quantite_demandee} unités</Text>
-                            
-                            {item.statut === 'en_attente' && (
-                              <View className="flex-row gap-2 mt-2 pt-2 border-t border-blue-light/30">
-                                <TouchableOpacity
-                                  onPress={() => setRefusTarget(item)}
-                                  className="flex-1 h-8 border border-pharma-red/40 rounded-lg items-center justify-center"
-                                >
-                                  <Text className="text-pharma-red text-[11px] font-semibold">Refuser</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  onPress={() => handleRepondreTransfert(item, selectedGroup.pharmacie_id)}
-                                  className="flex-2 h-8 bg-navy rounded-lg items-center justify-center flex-row gap-1"
-                                >
-                                  <FAIcon name="share" size={9} color="#fff" family="FontAwesome6" />
-                                  <Text className="text-white text-[11px] font-bold">Livrer par transfert</Text>
-                                </TouchableOpacity>
-                              </View>
-                            )}
 
                             {item.notes_fabricant && (
                               <View className="mt-2 bg-white p-2 rounded border border-blue-light/30">
@@ -697,14 +682,14 @@ export default function RequetesStockScreen() {
                   </View>
                 </ScrollView>
 
-                {/* Global actions for selected items */}
-                {selectedItemIds.length > 0 && (
-                  <View className="bg-bg border border-blue-light/50 rounded-xl p-3.5 mt-2 flex-row gap-3">
+                {/* Actions de groupe */}
+                {selectedGroup.items.some(it => it.statut === 'en_attente') && (
+                  <View className="bg-bg border border-blue-light/50 rounded-xl p-3.5 mt-4 flex-row gap-3">
                     <TouchableOpacity
                       onPress={() => {
                         setRefusTarget({
                           id: 'bulk',
-                          nom_medicament: 'les articles sélectionnés',
+                          nom_medicament: 'toute la demande',
                           dosage: '',
                           forme_galenique: '',
                           quantite_demandee: 0,
@@ -713,22 +698,26 @@ export default function RequetesStockScreen() {
                           transfert_id: null,
                         });
                       }}
-                      className="flex-1 h-10 border border-pharma-red rounded-xl items-center justify-center flex-row gap-1.5 bg-white"
+                      className="flex-1 h-11 border border-pharma-red rounded-xl items-center justify-center flex-row gap-1.5 bg-white shadow-sm active:bg-red-50"
                     >
-                      <FAIcon name="trash" size={12} color="#C0392B" family="FontAwesome" />
-                      <Text className="text-pharma-red text-xs font-bold">Refuser ({selectedItemIds.length})</Text>
+                      <FAIcon name="trash" size={13} color="#C0392B" family="FontAwesome" />
+                      <Text className="text-pharma-red text-xs font-bold">Refuser la demande</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={handleOpenBulkDelivery}
-                      disabled={bulkDeliveryLoading}
-                      className="flex-1 h-10 bg-[#27AE60] rounded-xl items-center justify-center flex-row gap-1.5"
+                      disabled={selectedItemIds.length === 0 || bulkDeliveryLoading}
+                      className={`flex-1 h-11 rounded-xl items-center justify-center flex-row gap-1.5 shadow-sm ${
+                        selectedItemIds.length === 0 ? 'bg-[#27AE60]/40' : 'bg-[#27AE60] active:bg-[#219653]'
+                      }`}
                     >
                       {bulkDeliveryLoading ? (
                         <ActivityIndicator color="#fff" size="small" />
                       ) : (
                         <>
-                          <FAIcon name="truck" size={12} color="#fff" family="FontAwesome" />
-                          <Text className="text-white text-xs font-bold">Livrer ({selectedItemIds.length})</Text>
+                          <FAIcon name="truck" size={13} color="#fff" family="FontAwesome" />
+                          <Text className="text-white text-xs font-bold">
+                            Livrer la sélection ({selectedItemIds.length})
+                          </Text>
                         </>
                       )}
                     </TouchableOpacity>
@@ -736,13 +725,6 @@ export default function RequetesStockScreen() {
                 )}
               </>
             )}
-
-            <TouchableOpacity
-              onPress={() => handleSelectGroup(null)}
-              className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center"
-            >
-              <Text className="text-white font-bold text-sm">Fermer</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -755,7 +737,7 @@ export default function RequetesStockScreen() {
         onRequestClose={() => setBulkDeliveryModalVisible(false)}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <View className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl" style={{ maxHeight: '90%' }}>
+          <View className="bg-white w-full max-w-2xl rounded-2xl p-6 shadow-xl" style={{ maxHeight: '90%' }}>
             <View className="flex-row justify-between items-center mb-4 border-b border-bg pb-3">
               <View>
                 <Text className="text-navy font-black text-lg">Livraison groupée</Text>

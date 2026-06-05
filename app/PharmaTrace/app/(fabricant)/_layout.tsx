@@ -107,7 +107,7 @@ function SidebarItem({
             boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
           }}
         >
-          <Text style={{ color: "#fff", fontSize: 11, fontWeight: "600", whiteSpace: "nowrap" as any }}>
+          <Text style={{ color: "#fff", fontSize: 11, fontWeight: "600" }}>
             {item.label}
           </Text>
         </View>

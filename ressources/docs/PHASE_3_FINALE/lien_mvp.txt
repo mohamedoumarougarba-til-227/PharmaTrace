@@ -2,7 +2,7 @@ Lien du MVP complet PharmaTrace (Application Web) :
 https://pharmatraceapp.vercel.app/
 
 Lien de l'application mobile (Android APK) :
-https://expo.dev/accounts/med2568/projects/pharmatrace/builds/a6d234c9-e351-4e4b-9b14-9816036d96ef
+https://github.com/mohamedoumarougarba-til-227/PharmaTrace/releases/tag/v1.0.0
 
 Dépôt de code GitHub :
 https://github.com/mohamedoumarougarba-til-227/PharmaTrace

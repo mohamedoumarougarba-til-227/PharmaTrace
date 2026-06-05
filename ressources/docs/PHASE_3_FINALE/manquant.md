@@ -1,7 +1,7 @@
 # Phase 3 — Finale : Livrables Manquants
 
 ## ✅ Livrables déjà fournis / préparés :
-- [x] **Lien du MVP complet** (Application Web & Mobile Android) → `lien_mvp.txt` (Contient le lien web de production et la section d'attente pour l'APK Android)
+- [x] **Lien du MVP complet** (Application Web & Mobile Android) → `lien_mvp.txt` (Contient le lien web de production et le lien de téléchargement de l'APK Android)
 - [x] **Documentation technique en PDF** → `documentation_technique.pdf` (Généré avec succès !)
 - [x] **Guide utilisateur en PDF** → `guide_utilisateur.pdf` (Généré avec succès !)
 - [x] **Lien de la vidéo du pitch** → `lien_pitch.txt` (Fichier créé, lien à ajouter à l'intérieur)

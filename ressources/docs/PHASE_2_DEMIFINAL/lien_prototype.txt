@@ -2,4 +2,4 @@ Lien du prototype fonctionnel PharmaTrace (Application Web) :
 https://pharmatraceapp.vercel.app/
 
 Lien de l'application mobile (Android APK) :
-[Insérer ici le lien de téléchargement de l'APK (ex: Google Drive, Expo EAS Build, etc.)]
+https://expo.dev/accounts/med2568/projects/pharmatrace/builds/a6d234c9-e351-4e4b-9b14-9816036d96ef

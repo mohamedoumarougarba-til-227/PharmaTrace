@@ -7,6 +7,7 @@ const config = getDefaultConfig(__dirname);
 config.resolver.extraNodeModules = {
   ...config.resolver.extraNodeModules,
   'qrcode': path.resolve(__dirname, 'node_modules/qrcode/lib/core/qrcode.js'),
+  'stream': path.resolve(__dirname, 'noop.js'),
 };
 
 module.exports = withNativeWind(config, { input: "./global.css" });

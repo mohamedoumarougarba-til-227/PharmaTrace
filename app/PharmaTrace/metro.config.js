@@ -16,6 +16,9 @@ config.resolver.extraNodeModules = {
   'net': path.resolve(__dirname, 'noop.js'),
   'tls': path.resolve(__dirname, 'noop.js'),
   'url': path.resolve(__dirname, 'noop.js'),
+  'util': path.resolve(__dirname, 'noop.js'),
+  'fs': path.resolve(__dirname, 'noop.js'),
+  'path': path.resolve(__dirname, 'noop.js'),
 };
 
 module.exports = withNativeWind(config, { input: "./global.css" });

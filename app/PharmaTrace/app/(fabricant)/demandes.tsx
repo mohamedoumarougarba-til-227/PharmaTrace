@@ -28,6 +28,15 @@ type GroupedDemande = {
   items: DemandeItem[];
 };
 
+type LotInfo = {
+  id: string;
+  numero_lot: string;
+  nom_medicament: string;
+  quantite_initiale: number;
+  quantite_actuelle: number | null;
+  date_expiration?: string;
+};
+
 export default function RequetesStockScreen() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -36,6 +45,19 @@ export default function RequetesStockScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<GroupedDemande | null>(null);
+  
+  // Sélection multiple
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+
+  // Livraison groupée (Bulk delivery)
+  const [bulkDeliveryModalVisible, setBulkDeliveryModalVisible] = useState(false);
+  const [bulkDeliveryItems, setBulkDeliveryItems] = useState<DemandeItem[]>([]);
+  const [bulkLotsMap, setBulkLotsMap] = useState<{ [itemName: string]: LotInfo[] }>({});
+  const [selectedLotsForBulk, setSelectedLotsForBulk] = useState<{ [itemId: string]: string }>({});
+  const [bulkQuantities, setBulkQuantities] = useState<{ [itemId: string]: string }>({});
+  const [bulkDeliveryLoading, setBulkDeliveryLoading] = useState(false);
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const [openLotPickerId, setOpenLotPickerId] = useState<string | null>(null);
   
   // Refus d'un item particulier
   const [refusTarget, setRefusTarget] = useState<DemandeItem | null>(null);
@@ -136,6 +158,16 @@ export default function RequetesStockScreen() {
     await loadDemandes();
   };
 
+  const handleSelectGroup = (group: GroupedDemande | null) => {
+    setSelectedGroup(group);
+    if (group) {
+      const pendingIds = group.items.filter(it => it.statut === 'en_attente').map(it => it.id);
+      setSelectedItemIds(pendingIds);
+    } else {
+      setSelectedItemIds([]);
+    }
+  };
+
   const handleRefusItem = async () => {
     if (!refusTarget) return;
     if (!motifRefus.trim()) {
@@ -150,23 +182,38 @@ export default function RequetesStockScreen() {
 
     setRefusing(true);
     try {
-      const { error } = await supabase
-        .from('demandes_stock')
-        .update({
-          statut: 'refuse',
-          notes_fabricant: motifRefus.trim(),
-        })
-        .eq('id', refusTarget.id);
+      if (refusTarget.id === 'bulk') {
+        const { error } = await supabase
+          .from('demandes_stock')
+          .update({
+            statut: 'refuse',
+            notes_fabricant: motifRefus.trim(),
+          })
+          .in('id', selectedItemIds);
 
-      if (error) throw error;
+        if (error) throw error;
+
+        setSelectedItemIds([]);
+        setSelectedGroup(null);
+      } else {
+        const { error } = await supabase
+          .from('demandes_stock')
+          .update({
+            statut: 'refuse',
+            notes_fabricant: motifRefus.trim(),
+          })
+          .eq('id', refusTarget.id);
+
+        if (error) throw error;
+      }
 
       setRefusTarget(null);
       setMotifRefus('');
       await loadDemandes();
       
       setSuccessModal({
-        title: 'Article refusé',
-        message: 'Cet article a été refusé avec succès.',
+        title: 'Article(s) refusé(s)',
+        message: 'Le(s) article(s) a/ont été refusé(s) avec succès.',
         color: '#E67E22',
         icon: 'circle-check',
       });
@@ -184,7 +231,7 @@ export default function RequetesStockScreen() {
   };
 
   const handleRepondreTransfert = (item: DemandeItem, pharmacieId: string) => {
-    setSelectedGroup(null);
+    handleSelectGroup(null);
     router.push({
       pathname: '/(fabricant)/nouveau-transfert',
       params: {
@@ -194,6 +241,187 @@ export default function RequetesStockScreen() {
         quantite: String(item.quantite_demandee),
       },
     });
+  };
+
+  const handleOpenBulkDelivery = async () => {
+    if (selectedItemIds.length === 0 || !selectedGroup) return;
+    
+    setBulkDeliveryLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const itemsToDeliver = selectedGroup.items.filter(item => selectedItemIds.includes(item.id));
+      setBulkDeliveryItems(itemsToDeliver);
+
+      const uniqueNames = Array.from(new Set(itemsToDeliver.map(it => it.nom_medicament)));
+      const lotsMap: { [key: string]: LotInfo[] } = {};
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      for (const name of uniqueNames) {
+        const { data, error } = await supabase
+          .from('lots_medicaments')
+          .select('id, numero_lot, nom_medicament, quantite_initiale, quantite_actuelle, date_expiration')
+          .eq('fabricant_id', session.user.id)
+          .eq('statut_actuel', 'en_stock_fabricant')
+          .ilike('nom_medicament', `%${name}%`)
+          .gte('date_expiration', todayStr)
+          .order('date_expiration', { ascending: true });
+
+        if (error) throw error;
+        lotsMap[name] = (data ?? []) as LotInfo[];
+      }
+
+      setBulkLotsMap(lotsMap);
+
+      const initialLots: { [key: string]: string } = {};
+      const initialQtys: { [key: string]: string } = {};
+
+      itemsToDeliver.forEach(item => {
+        const matching = lotsMap[item.nom_medicament] ?? [];
+        const requested = item.quantite_demandee;
+        const chosen = matching.find(l => (l.quantite_actuelle ?? l.quantite_initiale) >= requested) || matching[0];
+        if (chosen) {
+          initialLots[item.id] = chosen.id;
+        }
+        initialQtys[item.id] = String(requested);
+      });
+
+      setSelectedLotsForBulk(initialLots);
+      setBulkQuantities(initialQtys);
+      
+      setBulkDeliveryModalVisible(true);
+    } catch (e) {
+      console.error(e);
+      setSuccessModal({
+        title: 'Erreur',
+        message: 'Impossible de charger les lots pour la livraison groupée.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
+    } finally {
+      setBulkDeliveryLoading(false);
+    }
+  };
+
+  const handleExecuteBulkDelivery = async () => {
+    if (!selectedGroup || bulkDeliveryItems.length === 0) return;
+    
+    // Validation
+    for (const item of bulkDeliveryItems) {
+      const lotId = selectedLotsForBulk[item.id];
+      const qtyStr = bulkQuantities[item.id];
+      const qty = parseInt(qtyStr, 10);
+      
+      if (!lotId) {
+        setSuccessModal({
+          title: 'Lot manquant',
+          message: `Veuillez sélectionner un lot pour "${item.nom_medicament}".`,
+          color: '#C0392B',
+          icon: 'triangle-exclamation',
+        });
+        return;
+      }
+      if (!qty || qty <= 0) {
+        setSuccessModal({
+          title: 'Quantité invalide',
+          message: `Veuillez spécifier une quantité valide pour "${item.nom_medicament}".`,
+          color: '#C0392B',
+          icon: 'triangle-exclamation',
+        });
+        return;
+      }
+
+      const lot = bulkLotsMap[item.nom_medicament]?.find(l => l.id === lotId);
+      if (!lot) continue;
+      const available = lot.quantite_actuelle ?? lot.quantite_initiale;
+      if (qty > available) {
+        setSuccessModal({
+          title: 'Stock insuffisant',
+          message: `Le lot ${lot.numero_lot} pour "${item.nom_medicament}" n'a que ${available} unités disponibles (demandé: ${qty}).`,
+          color: '#C0392B',
+          icon: 'triangle-exclamation',
+        });
+        return;
+      }
+    }
+
+    setBulkSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      for (const item of bulkDeliveryItems) {
+        const lotId = selectedLotsForBulk[item.id];
+        const qty = parseInt(bulkQuantities[item.id], 10);
+        const lot = bulkLotsMap[item.nom_medicament]?.find(l => l.id === lotId);
+        if (!lot) continue;
+
+        // 1. Create transfer
+        const { data: transData, error: transErr } = await supabase
+          .from('transferts')
+          .insert({
+            lot_id: lotId,
+            expediteur_id: session.user.id,
+            destinataire_id: selectedGroup.pharmacie_id,
+            quantite_transferee: qty,
+            statut: 'en_attente',
+            notes_expediteur: 'Réponse à votre demande de stock (Livraison groupée)',
+          })
+          .select('id')
+          .single();
+
+        if (transErr) throw transErr;
+
+        // 2. Decrement lot quantity
+        const available = lot.quantite_actuelle ?? lot.quantite_initiale;
+        const newQty = available - qty;
+        const lotUpdatePayload: any = { quantite_actuelle: newQty };
+        if (newQty === 0) {
+          lotUpdatePayload.statut_actuel = 'en_transit';
+        }
+        const { error: lotErr } = await supabase
+          .from('lots_medicaments')
+          .update(lotUpdatePayload)
+          .eq('id', lotId);
+
+        if (lotErr) throw lotErr;
+
+        // 3. Link stock request
+        const { error: demErr } = await supabase
+          .from('demandes_stock')
+          .update({
+            statut: 'satisfait',
+            transfert_id: transData.id,
+            notes_fabricant: 'Demande satisfaite et lot expédié.',
+          })
+          .eq('id', item.id);
+
+        if (demErr) throw demErr;
+      }
+
+      setSelectedItemIds([]);
+      setBulkDeliveryModalVisible(false);
+      handleSelectGroup(null);
+      await loadDemandes();
+
+      setSuccessModal({
+        title: 'Livraison réussie',
+        message: 'Les transferts groupés ont été initiés avec succès !',
+        color: '#27AE60',
+        icon: 'circle-check',
+      });
+    } catch (e) {
+      console.error(e);
+      setSuccessModal({
+        title: 'Erreur',
+        message: 'L\'enregistrement des transferts groupés a échoué.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
+    } finally {
+      setBulkSaving(false);
+    }
   };
 
   const getStatusStyle = (status: string) => {
@@ -236,7 +464,7 @@ export default function RequetesStockScreen() {
       {enAttente.map((d) => (
         <TouchableOpacity
           key={d.id}
-          onPress={() => setSelectedGroup(d)}
+          onPress={() => handleSelectGroup(d)}
           className="bg-white rounded-xl p-4 mb-3 border-l-4 border-pharma-orange shadow-sm"
           activeOpacity={0.7}
         >
@@ -292,7 +520,7 @@ export default function RequetesStockScreen() {
             return (
               <TouchableOpacity
                 key={d.id}
-                onPress={() => setSelectedGroup(d)}
+                onPress={() => handleSelectGroup(d)}
                 className="bg-white rounded-xl p-4 mb-3 border border-blue-light shadow-sm"
                 activeOpacity={0.7}
               >
@@ -316,7 +544,7 @@ export default function RequetesStockScreen() {
 
       {/* Modal Formulaire de Refus d'un Item */}
       <Modal
-        visible={refusTarget !== null}
+        visible={refusTarget !== null && successModal === null}
         transparent
         animationType="fade"
         onRequestClose={() => setRefusTarget(null)}
@@ -372,85 +600,337 @@ export default function RequetesStockScreen() {
 
       {/* Modal Détails d'une Demande Groupée */}
       <Modal
-        visible={selectedGroup !== null}
+        visible={selectedGroup !== null && refusTarget === null && successModal === null && !bulkDeliveryModalVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setSelectedGroup(null)}
+        onRequestClose={() => handleSelectGroup(null)}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <View className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl" style={{ maxHeight: '85%' }}>
             <View className="flex-row justify-between items-center mb-4 border-b border-bg pb-3">
               <Text className="text-navy font-black text-lg">Détails Demande</Text>
-              <TouchableOpacity onPress={() => setSelectedGroup(null)} className="p-1">
+              <TouchableOpacity onPress={() => handleSelectGroup(null)} className="p-1">
                 <FAIcon name="xmark" size={18} color="#C0392B" family="FontAwesome6" />
               </TouchableOpacity>
             </View>
 
             {selectedGroup && (
-              <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={true}>
-                <View className="gap-3">
-                  <View className="border-b border-bg pb-2">
-                    <Text className="text-navy font-black text-sm">De : {selectedGroup.pharmacie}</Text>
-                    <Text className="text-muted text-[10px] mt-0.5">Reçue le {new Date(selectedGroup.created_at).toLocaleString('fr-FR')}</Text>
-                  </View>
+              <>
+                <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={true}>
+                  <View className="gap-3">
+                    <View className="border-b border-bg pb-2">
+                      <Text className="text-navy font-black text-sm">De : {selectedGroup.pharmacie}</Text>
+                      <Text className="text-muted text-[10px] mt-0.5">Reçue le {new Date(selectedGroup.created_at).toLocaleString('fr-FR')}</Text>
+                    </View>
 
-                  <Text className="text-navy font-bold text-xs uppercase tracking-wider mt-1">Articles demandés :</Text>
-                  
-                  {selectedGroup.items.map((item) => {
-                    const itemStyle = getStatusStyle(item.statut);
-                    return (
-                      <View key={item.id} className="bg-bg/40 border border-blue-light/50 rounded-xl p-3 mb-2">
-                        <View className="flex-row justify-between items-center mb-1">
-                          <Text className="text-navy font-bold text-xs flex-1 mr-2">{item.nom_medicament}</Text>
-                          <View className={`${itemStyle.bg} px-2 py-0.5 rounded-full`}>
-                            <Text className={`${itemStyle.text} text-[9px] font-bold uppercase`}>{itemStyle.label}</Text>
+                    <Text className="text-navy font-bold text-xs uppercase tracking-wider mt-1">Articles demandés :</Text>
+                    
+                    {selectedGroup.items.map((item) => {
+                      const itemStyle = getStatusStyle(item.statut);
+                      const isSelected = selectedItemIds.includes(item.id);
+                      return (
+                        <View key={item.id} className="flex-row items-center mb-2">
+                          {item.statut === 'en_attente' ? (
+                            <TouchableOpacity
+                              onPress={() => {
+                                setSelectedItemIds(prev =>
+                                  prev.includes(item.id)
+                                    ? prev.filter(id => id !== item.id)
+                                    : [...prev, item.id]
+                                );
+                              }}
+                              className="mr-2.5 p-1"
+                            >
+                              <FAIcon
+                                name={isSelected ? "square-check" : "square"}
+                                size={20}
+                                color={isSelected ? "#1A3A5C" : "#9AA9B8"}
+                                family="FontAwesome6"
+                              />
+                            </TouchableOpacity>
+                          ) : (
+                            <View className="w-[30px]" />
+                          )}
+                          <View className="flex-1 bg-bg/40 border border-blue-light/50 rounded-xl p-3">
+                            <View className="flex-row justify-between items-center mb-1">
+                              <Text className="text-navy font-bold text-xs flex-1 mr-2">{item.nom_medicament}</Text>
+                              <View className={`${itemStyle.bg} px-2 py-0.5 rounded-full`}>
+                                <Text className={`${itemStyle.text} text-[9px] font-bold uppercase`}>{itemStyle.label}</Text>
+                              </View>
+                            </View>
+                            <Text className="text-muted text-[10px] mb-1">Dosage : {item.dosage} · Forme : {item.forme_galenique || '—'}</Text>
+                            <Text className="text-navy text-xs font-bold mb-2">Quantité : {item.quantite_demandee} unités</Text>
+                            
+                            {item.statut === 'en_attente' && (
+                              <View className="flex-row gap-2 mt-2 pt-2 border-t border-blue-light/30">
+                                <TouchableOpacity
+                                  onPress={() => setRefusTarget(item)}
+                                  className="flex-1 h-8 border border-pharma-red/40 rounded-lg items-center justify-center"
+                                >
+                                  <Text className="text-pharma-red text-[11px] font-semibold">Refuser</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  onPress={() => handleRepondreTransfert(item, selectedGroup.pharmacie_id)}
+                                  className="flex-2 h-8 bg-navy rounded-lg items-center justify-center flex-row gap-1"
+                                >
+                                  <FAIcon name="share" size={9} color="#fff" family="FontAwesome6" />
+                                  <Text className="text-white text-[11px] font-bold">Livrer par transfert</Text>
+                                </TouchableOpacity>
+                              </View>
+                            )}
+
+                            {item.notes_fabricant && (
+                              <View className="mt-2 bg-white p-2 rounded border border-blue-light/30">
+                                <Text className="text-[9px] text-muted font-bold uppercase">Notes Fabricant</Text>
+                                <Text className="text-navy text-[10px] font-medium">{item.notes_fabricant}</Text>
+                              </View>
+                            )}
                           </View>
                         </View>
-                        <Text className="text-muted text-[10px] mb-1">Dosage : {item.dosage} · Forme : {item.forme_galenique || '—'}</Text>
-                        <Text className="text-navy text-xs font-bold mb-2">Quantité : {item.quantite_demandee} unités</Text>
-                        
-                        {item.statut === 'en_attente' && (
-                          <View className="flex-row gap-2 mt-2 pt-2 border-t border-blue-light/30">
-                            <TouchableOpacity
-                              onPress={() => setRefusTarget(item)}
-                              className="flex-1 h-8 border border-pharma-red/40 rounded-lg items-center justify-center"
-                            >
-                              <Text className="text-pharma-red text-[11px] font-semibold">Refuser</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={() => handleRepondreTransfert(item, selectedGroup.pharmacie_id)}
-                              className="flex-2 h-8 bg-navy rounded-lg items-center justify-center flex-row gap-1"
-                            >
-                              <FAIcon name="share" size={9} color="#fff" family="FontAwesome6" />
-                              <Text className="text-white text-[11px] font-bold">Livrer par transfert</Text>
-                            </TouchableOpacity>
-                          </View>
-                        )}
+                      );
+                    })}
 
-                        {item.notes_fabricant && (
-                          <View className="mt-2 bg-white p-2 rounded border border-blue-light/30">
-                            <Text className="text-[9px] text-muted font-bold uppercase">Notes Fabricant</Text>
-                            <Text className="text-navy text-[10px] font-medium">{item.notes_fabricant}</Text>
-                          </View>
-                        )}
-                      </View>
-                    );
-                  })}
-
-                  <View className="py-2 border-t border-bg mt-2">
-                    <Text className="text-muted text-[10px] uppercase tracking-wider mb-1">Message pharmacie (global)</Text>
-                    <Text className="text-navy text-xs font-medium">{selectedGroup.notes_pharmacie ?? 'Aucune note.'}</Text>
+                    <View className="py-2 border-t border-bg mt-2">
+                      <Text className="text-muted text-[10px] uppercase tracking-wider mb-1">Message pharmacie (global)</Text>
+                      <Text className="text-navy text-xs font-medium">{selectedGroup.notes_pharmacie ?? 'Aucune note.'}</Text>
+                    </View>
                   </View>
-                </View>
-              </ScrollView>
+                </ScrollView>
+
+                {/* Global actions for selected items */}
+                {selectedItemIds.length > 0 && (
+                  <View className="bg-bg border border-blue-light/50 rounded-xl p-3.5 mt-2 flex-row gap-3">
+                    <TouchableOpacity
+                      onPress={() => {
+                        setRefusTarget({
+                          id: 'bulk',
+                          nom_medicament: 'les articles sélectionnés',
+                          dosage: '',
+                          forme_galenique: '',
+                          quantite_demandee: 0,
+                          statut: 'en_attente',
+                          notes_fabricant: null,
+                          transfert_id: null,
+                        });
+                      }}
+                      className="flex-1 h-10 border border-pharma-red rounded-xl items-center justify-center flex-row gap-1.5 bg-white"
+                    >
+                      <FAIcon name="trash" size={12} color="#C0392B" family="FontAwesome" />
+                      <Text className="text-pharma-red text-xs font-bold">Refuser ({selectedItemIds.length})</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={handleOpenBulkDelivery}
+                      disabled={bulkDeliveryLoading}
+                      className="flex-1 h-10 bg-[#27AE60] rounded-xl items-center justify-center flex-row gap-1.5"
+                    >
+                      {bulkDeliveryLoading ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                      ) : (
+                        <>
+                          <FAIcon name="truck" size={12} color="#fff" family="FontAwesome" />
+                          <Text className="text-white text-xs font-bold">Livrer ({selectedItemIds.length})</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </>
             )}
 
             <TouchableOpacity
-              onPress={() => setSelectedGroup(null)}
+              onPress={() => handleSelectGroup(null)}
               className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center"
             >
               <Text className="text-white font-bold text-sm">Fermer</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal Livraison Groupée */}
+      <Modal
+        visible={bulkDeliveryModalVisible && successModal === null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setBulkDeliveryModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <View className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl" style={{ maxHeight: '90%' }}>
+            <View className="flex-row justify-between items-center mb-4 border-b border-bg pb-3">
+              <View>
+                <Text className="text-navy font-black text-lg">Livraison groupée</Text>
+                <Text className="text-muted text-xs mt-0.5">Destinataire : {selectedGroup?.pharmacie}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setBulkDeliveryModalVisible(false)} className="p-1">
+                <FAIcon name="xmark" size={18} color="#C0392B" family="FontAwesome6" />
+              </TouchableOpacity>
+            </View>
+
+            {bulkDeliveryLoading ? (
+              <View className="py-12 items-center justify-center">
+                <ActivityIndicator color="#1A3A5C" size="large" />
+                <Text className="text-navy text-xs font-semibold mt-3">Recherche des lots disponibles...</Text>
+              </View>
+            ) : (
+              <>
+                <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={true} className="mb-4">
+                  <View className="gap-4">
+                    {bulkDeliveryItems.map((item) => {
+                      const matchingLots = bulkLotsMap[item.nom_medicament] ?? [];
+                      const selectedLotId = selectedLotsForBulk[item.id];
+                      const selectedLot = matchingLots.find(l => l.id === selectedLotId);
+                      const available = selectedLot ? (selectedLot.quantite_actuelle ?? selectedLot.quantite_initiale) : 0;
+                      const qtyStr = bulkQuantities[item.id] ?? '';
+                      const qty = parseInt(qtyStr, 10) || 0;
+                      const hasStockError = qty > available;
+                      const noLots = matchingLots.length === 0;
+
+                      return (
+                        <View key={item.id} className="bg-bg/40 border border-blue-light/50 rounded-xl p-3.5">
+                          <View className="flex-row justify-between items-start mb-2">
+                            <View className="flex-1 pr-2">
+                              <Text className="text-navy font-bold text-sm">{item.nom_medicament}</Text>
+                              <Text className="text-muted text-[10px] mt-0.5">Dosage : {item.dosage} · Forme : {item.forme_galenique || '—'}</Text>
+                            </View>
+                            <View className="bg-blue-light/20 px-2 py-0.5 rounded-full">
+                              <Text className="text-blue text-[10px] font-bold">Demandé: {item.quantite_demandee} u.</Text>
+                            </View>
+                          </View>
+
+                          {/* Choix du lot */}
+                          <Text className="text-navy font-bold text-[11px] mb-1.5 uppercase tracking-wider">Lot à utiliser :</Text>
+                          {noLots ? (
+                            <View className="bg-pharma-red/10 border border-pharma-red/30 rounded-xl p-2.5 mb-2">
+                              <Text className="text-pharma-red font-bold text-[11px] text-center">
+                                ⚠️ Aucun lot actif disponible en stock pour ce médicament.
+                              </Text>
+                            </View>
+                          ) : (
+                            <View className="mb-2">
+                              <TouchableOpacity
+                                onPress={() => setOpenLotPickerId(openLotPickerId === item.id ? null : item.id)}
+                                className="bg-white border border-blue-light rounded-xl h-11 px-3 flex-row items-center justify-between"
+                              >
+                                <Text className="text-navy font-bold text-xs" numberOfLines={1}>
+                                  {selectedLot 
+                                    ? `Lot: ${selectedLot.numero_lot} (Dispo: ${available} u. · Exp: ${selectedLot.date_expiration ? new Date(selectedLot.date_expiration).toLocaleDateString('fr-FR') : '—'})` 
+                                    : 'Sélectionner un lot...'}
+                                </Text>
+                                <FAIcon name={openLotPickerId === item.id ? "chevron-up" : "chevron-down"} size={12} color="#1A3A5C" family="FontAwesome6" />
+                              </TouchableOpacity>
+
+                              {openLotPickerId === item.id && (
+                                <View className="mt-1 border border-blue-light/50 rounded-xl bg-white overflow-hidden shadow-sm">
+                                  {matchingLots.map(l => {
+                                    const qtyAvail = l.quantite_actuelle ?? l.quantite_initiale;
+                                    return (
+                                      <TouchableOpacity
+                                        key={l.id}
+                                        onPress={() => {
+                                          setSelectedLotsForBulk(prev => ({ ...prev, [item.id]: l.id }));
+                                          setOpenLotPickerId(null);
+                                        }}
+                                        className={`px-3 py-2 border-b border-bg flex-row justify-between items-center ${selectedLotId === l.id ? 'bg-blue-light/10' : ''}`}
+                                      >
+                                        <Text className="text-navy text-xs font-semibold">Lot: {l.numero_lot}</Text>
+                                        <Text className="text-muted text-[10px]">Stock: {qtyAvail} u. · Exp: {l.date_expiration}</Text>
+                                      </TouchableOpacity>
+                                    );
+                                  })}
+                                </View>
+                              )}
+                            </View>
+                          )}
+
+                          {/* Quantité à livrer */}
+                          {!noLots && (
+                            <View className="flex-row items-center justify-between gap-3 mt-1">
+                              <Text className="text-muted text-xs font-semibold">Quantité à livrer :</Text>
+                              <View className="flex-row items-center">
+                                <TouchableOpacity 
+                                  style={{ width: 34, height: 34 }}
+                                  className="items-center justify-center bg-white border border-blue-light rounded-xl active:bg-blue-light/30" 
+                                  onPress={() => {
+                                    const next = Math.max(1, qty - 1);
+                                    setBulkQuantities(prev => ({ ...prev, [item.id]: String(next) }));
+                                  }}
+                                >
+                                  <FAIcon name="minus" size={11} color="#1A3A5C" family="FontAwesome6" />
+                                </TouchableOpacity>
+                                <TextInput
+                                  style={{ width: 60, height: 34, padding: 0, marginHorizontal: 6 }}
+                                  className="text-center text-navy font-bold text-sm bg-white border border-blue-light rounded-xl"
+                                  keyboardType="number-pad"
+                                  value={qtyStr}
+                                  onChangeText={(t) => {
+                                    const cleaned = t.replace(/[^0-9]/g, '');
+                                    setBulkQuantities(prev => ({ ...prev, [item.id]: cleaned }));
+                                  }}
+                                />
+                                <TouchableOpacity 
+                                  style={{ width: 34, height: 34 }}
+                                  className="items-center justify-center bg-white border border-blue-light rounded-xl active:bg-blue-light/30" 
+                                  onPress={() => {
+                                    const next = qty + 1;
+                                    setBulkQuantities(prev => ({ ...prev, [item.id]: String(next) }));
+                                  }}
+                                >
+                                  <FAIcon name="plus" size={11} color="#1A3A5C" family="FontAwesome6" />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          )}
+
+                          {hasStockError && (
+                            <Text className="text-pharma-red text-[10px] font-bold mt-1.5 text-right">
+                              ⚠️ Quantité supérieure au stock disponible ({available} u.)
+                            </Text>
+                          )}
+                        </View>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+
+                <View className="flex-row gap-3 pt-3 border-t border-bg">
+                  <TouchableOpacity
+                    onPress={() => setBulkDeliveryModalVisible(false)}
+                    className="flex-1 h-12 border border-blue-light rounded-xl items-center justify-center"
+                  >
+                    <Text className="text-navy font-bold text-sm">Annuler</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleExecuteBulkDelivery}
+                    disabled={bulkSaving || bulkDeliveryItems.some(item => {
+                      const lotId = selectedLotsForBulk[item.id];
+                      const qty = parseInt(bulkQuantities[item.id], 10) || 0;
+                      const matching = bulkLotsMap[item.nom_medicament] ?? [];
+                      const lot = matching.find(l => l.id === lotId);
+                      const available = lot ? (lot.quantite_actuelle ?? lot.quantite_initiale) : 0;
+                      return !lotId || qty <= 0 || qty > available;
+                    })}
+                    className={`flex-1 h-12 rounded-xl items-center justify-center ${
+                      bulkSaving || bulkDeliveryItems.some(item => {
+                        const lotId = selectedLotsForBulk[item.id];
+                        const qty = parseInt(bulkQuantities[item.id], 10) || 0;
+                        const matching = bulkLotsMap[item.nom_medicament] ?? [];
+                        const lot = matching.find(l => l.id === lotId);
+                        const available = lot ? (lot.quantite_actuelle ?? lot.quantite_initiale) : 0;
+                        return !lotId || qty <= 0 || qty > available;
+                      })
+                        ? 'bg-navy/40' 
+                        : 'bg-navy'
+                    }`}
+                  >
+                    {bulkSaving ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text className="text-white font-bold text-sm">Confirmer la livraison</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </View>
         </View>
       </Modal>

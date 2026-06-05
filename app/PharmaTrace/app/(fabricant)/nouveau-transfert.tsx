@@ -303,12 +303,20 @@ export default function NouveauTransfertScreen() {
 
       // 3. Link stock request if applicable
       if (demandeId && createdTransferId) {
+        const dest = selectedDestinations[0];
+        const delQty = Number.parseInt(dest?.quantite || '0', 10);
+        const reqQty = Number.parseInt(quantite || '0', 10);
+        const isPartial = delQty !== reqQty;
+        const notes = isPartial 
+          ? `Demande satisfaite (livraison partielle de ${delQty} sur ${reqQty} demandées).` 
+          : 'Demande satisfaite et lot expédié.';
+
         const { error: updateDemandeError } = await supabase
           .from('demandes_stock')
           .update({
             statut: 'satisfait',
             transfert_id: createdTransferId,
-            notes_fabricant: 'Demande satisfaite et lot expédié.',
+            notes_fabricant: notes,
           })
           .eq('id', demandeId);
 

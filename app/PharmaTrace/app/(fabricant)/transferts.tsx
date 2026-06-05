@@ -8,6 +8,7 @@ import {
   RefreshControl,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { FAIcon } from '../../constants/icons';
@@ -15,6 +16,7 @@ import { supabase } from '../../lib/supabase';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const STATUT_MAP: Record<string, { label: string; bg: string; text: string; color: string }> = {
   en_attente:  { label: 'En attente',   bg: '#FEF4E0', text: '#E67E22', color: '#E67E22' },
@@ -36,6 +38,13 @@ export default function TransfertsScreen() {
   const [endDate, setEndDate] = useState(''); // Format "JJ/MM/AAAA"
   const [showFilters, setShowFilters] = useState(false);
   const [datePickerField, setDatePickerField] = useState<'start' | 'end' | null>(null);
+  const [cancelTransferTarget, setCancelTransferTarget] = useState<any | null>(null);
+  const [successModal, setSuccessModal] = useState<{
+    title: string;
+    message: string;
+    color: string;
+    icon: string;
+  } | null>(null);
 
   const loadTransferts = async () => {
     try {
@@ -68,7 +77,12 @@ export default function TransfertsScreen() {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        Alert.alert('Session expirée', 'Veuillez vous reconnecter.');
+        setSuccessModal({
+          title: 'Session expirée',
+          message: 'Veuillez vous reconnecter pour effectuer cette action.',
+          color: '#C0392B',
+          icon: 'triangle-exclamation'
+        });
         return;
       }
 
@@ -108,29 +122,28 @@ export default function TransfertsScreen() {
         if (lotError) throw lotError;
       }
 
-      Alert.alert('Succès', 'Le transfert a été annulé avec succès et la quantité a été restituée au lot.');
+      setSuccessModal({
+        title: 'Succès',
+        message: 'Le transfert a été annulé avec succès et la quantité a été restituée au lot.',
+        color: '#27AE60',
+        icon: 'circle-check'
+      });
       await loadTransferts();
     } catch (error) {
       console.error(error);
-      Alert.alert('Erreur', "Impossible d'annuler le transfert.");
+      setSuccessModal({
+        title: 'Erreur',
+        message: "Impossible d'annuler le transfert.",
+        color: '#C0392B',
+        icon: 'triangle-exclamation'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancelTransfer = (t: any) => {
-    Alert.alert(
-      'Annuler le transfert',
-      `Voulez-vous vraiment annuler le transfert de ${t.quantite_transferee} unités de "${t.lot_id?.nom_medicament ?? ''}" vers "${t.destinataire_id?.nom_entite ?? ''}" ?\n\nCette action restituera les unités au stock de ce lot.`,
-      [
-        { text: 'Retour', style: 'cancel' },
-        {
-          text: 'Confirmer l\'annulation',
-          style: 'destructive',
-          onPress: () => cancelTransferExecution(t.id, t.lot_id?.id, t.quantite_transferee),
-        }
-      ]
-    );
+    setCancelTransferTarget(t);
   };
 
   useFocusEffect(
@@ -431,9 +444,25 @@ export default function TransfertsScreen() {
                       )}
                     </View>
                     
-                    <Text className="text-[9px] text-muted font-bold uppercase tracking-wide">
-                      Le {formattedDate}
-                    </Text>
+                    <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                      {t.statut === 'en_attente' && (
+                        <TouchableOpacity
+                          onPress={() => handleCancelTransfer(t)}
+                          style={{
+                            backgroundColor: '#C0392B',
+                            paddingHorizontal: 12,
+                            paddingVertical: 6,
+                            borderRadius: 8,
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>Annuler</Text>
+                        </TouchableOpacity>
+                      )}
+                      <Text className="text-[9px] text-muted font-bold uppercase tracking-wide">
+                        Le {formattedDate}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </Swipeable>
@@ -456,6 +485,35 @@ export default function TransfertsScreen() {
         value={endDate}
         onChange={handleDateSelect}
         title="Filtrer jusqu'au"
+      />
+
+      {/* Reusable ConfirmModal for Cancellation */}
+      <ConfirmModal
+        visible={!!cancelTransferTarget}
+        title="Annuler le transfert"
+        message={cancelTransferTarget ? `Voulez-vous vraiment annuler le transfert de ${cancelTransferTarget.quantite_transferee} unités de "${cancelTransferTarget.lot_id?.nom_medicament ?? ''}" vers "${cancelTransferTarget.destinataire_id?.nom_entite ?? ''}" ?\n\nCette action restituera les unités au stock de ce lot.` : ''}
+        confirmText="Confirmer l'annulation"
+        cancelText="Retour"
+        confirmColor="#C0392B"
+        icon="trash"
+        onConfirm={async () => {
+          if (cancelTransferTarget) {
+            await cancelTransferExecution(cancelTransferTarget.id, cancelTransferTarget.lot_id?.id, cancelTransferTarget.quantite_transferee);
+            setCancelTransferTarget(null);
+          }
+        }}
+        onCancel={() => setCancelTransferTarget(null)}
+      />
+
+      {/* Success/Error ConfirmModal */}
+      <ConfirmModal
+        visible={!!successModal}
+        title={successModal?.title ?? ''}
+        message={successModal?.message ?? ''}
+        confirmText="OK"
+        confirmColor={successModal?.color}
+        icon={successModal?.icon}
+        onConfirm={async () => setSuccessModal(null)}
       />
     </View>
   </GestureHandlerRootView>

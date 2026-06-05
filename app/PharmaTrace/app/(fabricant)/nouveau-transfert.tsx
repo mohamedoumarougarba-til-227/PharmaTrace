@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
+import ConfirmModal from '../../components/ConfirmModal';
 
 type PharmacieOption = {
   id: string;
@@ -29,6 +30,14 @@ export default function NouveauTransfertScreen() {
   const [showPicker, setShowPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [lot, setLot] = useState<LotInfo | null>(null);
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+  const [successModal, setSuccessModal] = useState<{
+    title: string;
+    message: string;
+    color: string;
+    icon: string;
+    onConfirm?: () => void;
+  } | null>(null);
 
   const availableQty = useMemo(() => {
     if (!lot) return 0;
@@ -86,7 +95,12 @@ export default function NouveauTransfertScreen() {
       }
     } catch (e) {
       console.error(e);
-      Alert.alert('Erreur', 'Impossible de charger les données de transfert.');
+      setSuccessModal({
+        title: 'Erreur',
+        message: 'Impossible de charger les données de transfert.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
     } finally {
       setLoading(false);
     }
@@ -139,13 +153,23 @@ export default function NouveauTransfertScreen() {
     );
   };
 
-  const handleSubmit = async () => {
+  const handlePressSubmit = () => {
     if (!lot) {
-      Alert.alert('Lot manquant', 'Veuillez ouvrir ce formulaire depuis le détail d\'un lot.');
+      setSuccessModal({
+        title: 'Lot manquant',
+        message: "Veuillez ouvrir ce formulaire depuis le détail d'un lot.",
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
       return;
     }
     if (selectedDestinations.length === 0) {
-      Alert.alert('Destination requise', 'Veuillez sélectionner au moins une pharmacie destinataire.');
+      setSuccessModal({
+        title: 'Destination requise',
+        message: 'Veuillez sélectionner au moins une pharmacie destinataire.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
       return;
     }
     
@@ -155,16 +179,31 @@ export default function NouveauTransfertScreen() {
       const pharm = pharmacies.find(p => p.id === dest.pharmacieId);
       const name = pharm?.nom_entite ?? 'Pharmacie';
       if (!Number.isFinite(qte) || qte <= 0) {
-        Alert.alert('Quantité invalide', `Veuillez spécifier une quantité valide pour ${name}.`);
+        setSuccessModal({
+          title: 'Quantité invalide',
+          message: `Veuillez spécifier une quantité valide pour ${name}.`,
+          color: '#C0392B',
+          icon: 'triangle-exclamation',
+        });
         return;
       }
     }
 
     if (totalQty > availableQty) {
-      Alert.alert('Stock insuffisant', `Le stock disponible est de ${availableQty} unités. Vous essayez de transférer ${totalQty} unités.`);
+      setSuccessModal({
+        title: 'Stock insuffisant',
+        message: `Le stock disponible est de ${availableQty} unités. Vous essayez de transférer ${totalQty} unités.`,
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
       return;
     }
 
+    setShowConfirmSubmit(true);
+  };
+
+  const executeSubmit = async () => {
+    if (!lot) return;
     try {
       setSaving(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -203,12 +242,23 @@ export default function NouveauTransfertScreen() {
 
       if (updateLotRes.error) throw updateLotRes.error;
 
-      Alert.alert('Transfert(s) créé(s)', 'Le(s) transfert(s) a/ont été enregistré(s) avec succès.', [
-        { text: 'OK', onPress: () => router.replace('/(fabricant)/transferts') },
-      ]);
+      setShowConfirmSubmit(false);
+      setSuccessModal({
+        title: 'Transfert(s) créé(s)',
+        message: 'Le(s) transfert(s) a/ont été enregistré(s) avec succès.',
+        color: '#27AE60',
+        icon: 'circle-check',
+        onConfirm: () => router.replace('/(fabricant)/transferts'),
+      });
     } catch (e) {
       console.error(e);
-      Alert.alert('Erreur', 'La création du transfert a échoué.');
+      setShowConfirmSubmit(false);
+      setSuccessModal({
+        title: 'Erreur',
+        message: 'La création du transfert a échoué.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
     } finally {
       setSaving(false);
     }
@@ -436,7 +486,7 @@ export default function NouveauTransfertScreen() {
               ? 'bg-navy/40' 
               : 'bg-navy'
           }`}
-          onPress={handleSubmit}
+          onPress={handlePressSubmit}
           disabled={saving || selectedDestinations.length === 0 || totalQty > availableQty}
         >
           {saving ? (
@@ -450,6 +500,36 @@ export default function NouveauTransfertScreen() {
           )}
         </TouchableOpacity>
       </View>
+
+      <ConfirmModal
+        visible={showConfirmSubmit}
+        title="Initier le transfert"
+        message={selectedDestinations.length > 1 
+          ? `Voulez-vous initier ces ${selectedDestinations.length} transferts pour un total de ${totalQty} unités ?` 
+          : `Voulez-vous initier ce transfert de ${totalQty} unités ?`}
+        confirmText="Confirmer"
+        cancelText="Annuler"
+        confirmColor="#1A3A5C"
+        icon="exchange"
+        onConfirm={executeSubmit}
+        onCancel={() => setShowConfirmSubmit(false)}
+      />
+
+      {/* Success/Error ConfirmModal */}
+      <ConfirmModal
+        visible={!!successModal}
+        title={successModal?.title ?? ''}
+        message={successModal?.message ?? ''}
+        confirmText="OK"
+        confirmColor={successModal?.color}
+        icon={successModal?.icon}
+        onConfirm={async () => {
+          if (successModal?.onConfirm) {
+            successModal.onConfirm();
+          }
+          setSuccessModal(null);
+        }}
+      />
     </View>
   );
 }

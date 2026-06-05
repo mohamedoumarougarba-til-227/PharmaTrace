@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  ActivityIndicator, Alert, useWindowDimensions,
+  ActivityIndicator, useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { supabase, type Utilisateur } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function FabricantCompteScreen() {
   const { width } = useWindowDimensions();
@@ -16,6 +17,7 @@ export default function FabricantCompteScreen() {
   const [stats,   setStats]   = useState({ lots: 0, transferts: 0, conformite: 0 });
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -50,23 +52,10 @@ export default function FabricantCompteScreen() {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Se déconnecter',
-      'Voulez-vous vraiment vous déconnecter ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Se déconnecter',
-          style: 'destructive',
-          onPress: async () => {
-            setLoggingOut(true);
-            await supabase.auth.signOut();
-            router.replace('/(auth)/login');
-          },
-        },
-      ],
-    );
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await supabase.auth.signOut();
+    router.replace('/(auth)/login');
   };
 
   if (loading) {
@@ -78,71 +67,84 @@ export default function FabricantCompteScreen() {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F7F9FC' }}>
-      {/* Carte profil & Informations côte à côte sur desktop */}
-      <View style={isDesktop ? { flexDirection: 'row', gap: 12, marginHorizontal: 12, marginTop: 10, marginBottom: 8 } : undefined}>
-        {/* Carte profil */}
-        <View style={{ flex: isDesktop ? 1 : undefined, backgroundColor: 'white', margin: isDesktop ? 0 : 16, borderRadius: 16, padding: isDesktop ? 12 : 24, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2, justifyContent: 'center' }}>
-          {/* Avatar */}
-          <View style={{ width: isDesktop ? 56 : 72, height: isDesktop ? 56 : 72, borderRadius: isDesktop ? 28 : 36, backgroundColor: '#DCE6F0', borderWidth: 2, borderColor: '#2E6DA4', alignItems: 'center', justifyContent: 'center', marginBottom: isDesktop ? 6 : 12 }}>
-            <FAIcon name="industry" size={isDesktop ? 26 : 36} color="#1A3A5C" family="FontAwesome6" />
-          </View>
-          <Text style={{ fontSize: isDesktop ? 16 : 20, fontWeight: '800', color: '#1A3A5C', marginBottom: isDesktop ? 4 : 6, textAlign: 'center' }}>
-            {user?.nom_entite ?? 'Labo Niger Pharma'}
-          </Text>
-          <View style={{ backgroundColor: '#E8F8EC', paddingHorizontal: isDesktop ? 10 : 14, paddingVertical: isDesktop ? 2 : 4, borderRadius: 100 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <FAIcon name="check" size={isDesktop ? 10 : 12} color="#27AE60" family="FontAwesome6" />
-              <Text style={{ color: '#27AE60', fontSize: isDesktop ? 11 : 12, fontWeight: '700' }}>Fabricant agréé</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={{ flex: 1, backgroundColor: '#F7F9FC' }}>
+        {/* Carte profil & Informations côte à côte sur desktop */}
+        <View style={isDesktop ? { flexDirection: 'row', gap: 12, marginHorizontal: 12, marginTop: 10, marginBottom: 8 } : undefined}>
+          {/* Carte profil */}
+          <View style={{ flex: isDesktop ? 1 : undefined, backgroundColor: 'white', margin: isDesktop ? 0 : 16, borderRadius: 16, padding: isDesktop ? 12 : 24, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2, justifyContent: 'center' }}>
+            {/* Avatar */}
+            <View style={{ width: isDesktop ? 56 : 72, height: isDesktop ? 56 : 72, borderRadius: isDesktop ? 28 : 36, backgroundColor: '#DCE6F0', borderWidth: 2, borderColor: '#2E6DA4', alignItems: 'center', justifyContent: 'center', marginBottom: isDesktop ? 6 : 12 }}>
+              <FAIcon name="industry" size={isDesktop ? 26 : 36} color="#1A3A5C" family="FontAwesome6" />
+            </View>
+            <Text style={{ fontSize: isDesktop ? 16 : 20, fontWeight: '800', color: '#1A3A5C', marginBottom: isDesktop ? 4 : 6, textAlign: 'center' }}>
+              {user?.nom_entite ?? 'Labo Niger Pharma'}
+            </Text>
+            <View style={{ backgroundColor: '#E8F8EC', paddingHorizontal: isDesktop ? 10 : 14, paddingVertical: isDesktop ? 2 : 4, borderRadius: 100 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <FAIcon name="check" size={isDesktop ? 10 : 12} color="#27AE60" family="FontAwesome6" />
+                <Text style={{ color: '#27AE60', fontSize: isDesktop ? 11 : 12, fontWeight: '700' }}>Fabricant agréé</Text>
+              </View>
             </View>
           </View>
+
+          {/* Informations */}
+          <View style={{ flex: isDesktop ? 1.5 : undefined, backgroundColor: 'white', marginHorizontal: isDesktop ? 0 : 16, borderRadius: 16, padding: isDesktop ? 12 : 20, marginVertical: isDesktop ? 0 : 12, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}>
+            <Text style={{ fontSize: 11, fontWeight: '800', color: '#2E6DA4', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: isDesktop ? 8 : 16 }}>INFORMATIONS</Text>
+            <InfoRow iconName="envelope" label="Email"      value={user?.email         ?? '—'} isDesktop={isDesktop} />
+            <InfoRow iconName="phone" label="Téléphone"  value={user?.telephone     ?? '—'} isDesktop={isDesktop} />
+            <InfoRow iconName="map-pin" label="Adresse"    value={user?.adresse ? `${user.adresse}, ${user.ville ?? ''}` : '—'} isDesktop={isDesktop} />
+            <InfoRow iconName="id-card" label="N° Agrément" value={user?.numero_agrement ?? '—'} isDesktop={isDesktop} last />
+          </View>
         </View>
 
-        {/* Informations */}
-        <View style={{ flex: isDesktop ? 1.5 : undefined, backgroundColor: 'white', marginHorizontal: isDesktop ? 0 : 16, borderRadius: 16, padding: isDesktop ? 12 : 20, marginVertical: isDesktop ? 0 : 12, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}>
-          <Text style={{ fontSize: 11, fontWeight: '800', color: '#2E6DA4', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: isDesktop ? 8 : 16 }}>INFORMATIONS</Text>
-          <InfoRow iconName="envelope" label="Email"      value={user?.email         ?? '—'} isDesktop={isDesktop} />
-          <InfoRow iconName="phone" label="Téléphone"  value={user?.telephone     ?? '—'} isDesktop={isDesktop} />
-          <InfoRow iconName="map-pin" label="Adresse"    value={user?.adresse ? `${user.adresse}, ${user.ville ?? ''}` : '—'} isDesktop={isDesktop} />
-          <InfoRow iconName="id-card" label="N° Agrément" value={user?.numero_agrement ?? '—'} isDesktop={isDesktop} last />
+        {/* Statistiques */}
+        <View style={{ backgroundColor: 'white', marginHorizontal: isDesktop ? 12 : 16, borderRadius: 16, padding: isDesktop ? 12 : 20, marginBottom: isDesktop ? 8 : 12, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}>
+          <Text style={{ fontSize: 11, fontWeight: '800', color: '#2E6DA4', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: isDesktop ? 8 : 16 }}>STATISTIQUES</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            <StatItem value={String(stats.lots)}        label="Lots créés"  color="#1A3A5C" isDesktop={isDesktop} />
+            <StatItem value={String(stats.transferts)}  label="Transferts"  color="#1A3A5C" isDesktop={isDesktop} />
+            <StatItem value={`${stats.conformite}%`}    label="Conformité"  color="#27AE60" isDesktop={isDesktop} />
+          </View>
         </View>
-      </View>
 
-      {/* Statistiques */}
-      <View style={{ backgroundColor: 'white', marginHorizontal: isDesktop ? 12 : 16, borderRadius: 16, padding: isDesktop ? 12 : 20, marginBottom: isDesktop ? 8 : 12, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}>
-        <Text style={{ fontSize: 11, fontWeight: '800', color: '#2E6DA4', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: isDesktop ? 8 : 16 }}>STATISTIQUES</Text>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-          <StatItem value={String(stats.lots)}        label="Lots créés"  color="#1A3A5C" isDesktop={isDesktop} />
-          <StatItem value={String(stats.transferts)}  label="Transferts"  color="#1A3A5C" isDesktop={isDesktop} />
-          <StatItem value={`${stats.conformite}%`}    label="Conformité"  color="#27AE60" isDesktop={isDesktop} />
+        {/* Menu */}
+        <View style={isDesktop ? { flexDirection: 'row', gap: 10, marginHorizontal: 12, marginBottom: 8 } : { backgroundColor: 'white', marginHorizontal: 16, borderRadius: 16, overflow: 'hidden', marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}>
+          <MenuItem iconName="bell" label="Notifications" isDesktop={isDesktop} />
+          <MenuItem iconName="lock" label="Sécurité" isDesktop={isDesktop} />
+          <MenuItem iconName="gear" label="Paramètres" isDesktop={isDesktop} />
+          <MenuItem iconName="circle-question" label="Aide & Support" isDesktop={isDesktop} last />
         </View>
-      </View>
 
-      {/* Menu */}
-      <View style={isDesktop ? { flexDirection: 'row', gap: 10, marginHorizontal: 12, marginBottom: 8 } : { backgroundColor: 'white', marginHorizontal: 16, borderRadius: 16, overflow: 'hidden', marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}>
-        <MenuItem iconName="bell" label="Notifications" isDesktop={isDesktop} />
-        <MenuItem iconName="lock" label="Sécurité" isDesktop={isDesktop} />
-        <MenuItem iconName="gear" label="Paramètres" isDesktop={isDesktop} />
-        <MenuItem iconName="circle-question" label="Aide & Support" isDesktop={isDesktop} last />
-      </View>
-
-      {/* Bouton déconnexion (Masqué sur Desktop car présent dans le dock/sidebar) */}
-      {!isDesktop && (
-        <TouchableOpacity
-          onPress={handleLogout}
-          disabled={loggingOut}
-          style={{ marginHorizontal: 16, marginBottom: 32, height: 52, borderRadius: 12, borderWidth: 1.5, borderColor: '#C0392B', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, opacity: loggingOut ? 0.6 : 1 }}
-        >
-          {loggingOut
-            ? <ActivityIndicator color="#C0392B" size="small" />
-            : <>
-                <FontAwesome6 name="arrow-right-from-bracket" size={16} color="#C0392B" />
-                <Text style={{ color: '#C0392B', fontWeight: '700', fontSize: 15 }}>Se déconnecter</Text>
-              </>
-          }
-        </TouchableOpacity>
-      )}
-    </ScrollView>
+        {/* Bouton déconnexion (Masqué sur Desktop car présent dans le dock/sidebar) */}
+        {!isDesktop && (
+          <TouchableOpacity
+            onPress={() => setShowLogoutConfirm(true)}
+            disabled={loggingOut}
+            style={{ marginHorizontal: 16, marginBottom: 32, height: 52, borderRadius: 12, borderWidth: 1.5, borderColor: '#C0392B', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, opacity: loggingOut ? 0.6 : 1 }}
+          >
+            {loggingOut
+              ? <ActivityIndicator color="#C0392B" size="small" />
+              : <>
+                  <FontAwesome6 name="arrow-right-from-bracket" size={16} color="#C0392B" />
+                  <Text style={{ color: '#C0392B', fontWeight: '700', fontSize: 15 }}>Se déconnecter</Text>
+                </>
+            }
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+      <ConfirmModal
+        visible={showLogoutConfirm}
+        title="Se déconnecter"
+        message="Voulez-vous vraiment vous déconnecter ?"
+        confirmText="Déconnexion"
+        cancelText="Annuler"
+        confirmColor="#E74C3C"
+        icon="arrow-right-from-bracket"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
+    </View>
   );
 }
 

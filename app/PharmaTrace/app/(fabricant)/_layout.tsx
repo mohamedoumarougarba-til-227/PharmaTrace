@@ -4,6 +4,7 @@ import { ActivityIndicator, View, Text, TouchableOpacity, useWindowDimensions, P
 import { FAIcon } from "../../constants/icons";
 import { supabase } from "../../lib/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ConfirmModal from "../../components/ConfirmModal";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 type NavItem = {
@@ -120,9 +121,11 @@ function SidebarItem({
 function Sidebar({
   collapsed,
   onToggle,
+  onPressLogout,
 }: {
   collapsed: boolean;
   onToggle: () => void;
+  onPressLogout: () => void;
 }) {
   const pathname = usePathname();
 
@@ -196,14 +199,7 @@ function Sidebar({
       <View style={{ gap: 4 }}>
         {/* Logout Button */}
         <TouchableOpacity
-          onPress={async () => {
-            if (Platform.OS === 'web') {
-              const confirmLogout = window.confirm("Voulez-vous vraiment vous déconnecter ?");
-              if (!confirmLogout) return;
-            }
-            await supabase.auth.signOut();
-            router.replace("/(auth)/login");
-          }}
+          onPress={onPressLogout}
           activeOpacity={0.7}
           style={{
             flexDirection: "row",
@@ -270,6 +266,12 @@ export default function FabricantLayout() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.replace("/(auth)/login");
+  };
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -394,15 +396,31 @@ export default function FabricantLayout() {
   );
 
   // ── Desktop: Sidebar + Content ──
-  if (isDesktop) {
-    return (
-      <View style={{ flex: 1, flexDirection: "row" }}>
-        <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((c) => !c)} />
-        <View style={{ flex: 1 }}>{tabsElement}</View>
-      </View>
-    );
-  }
-
-  // ── Mobile: Bottom Tabs only ──
-  return tabsElement;
+  return (
+    <View style={{ flex: 1 }}>
+      {isDesktop ? (
+        <View style={{ flex: 1, flexDirection: "row" }}>
+          <Sidebar 
+            collapsed={sidebarCollapsed} 
+            onToggle={() => setSidebarCollapsed((c) => !c)} 
+            onPressLogout={() => setShowLogoutModal(true)} 
+          />
+          <View style={{ flex: 1 }}>{tabsElement}</View>
+        </View>
+      ) : (
+        tabsElement
+      )}
+      <ConfirmModal
+        visible={showLogoutModal}
+        title="Se déconnecter"
+        message="Voulez-vous vraiment vous déconnecter ?"
+        confirmText="Déconnexion"
+        cancelText="Annuler"
+        confirmColor="#E74C3C"
+        icon="arrow-right-from-bracket"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
+    </View>
+  );
 }

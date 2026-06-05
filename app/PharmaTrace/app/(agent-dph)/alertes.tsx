@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Ref
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const NIVEAU_MAP: Record<string, { label: string; icon: string; bg: string; text: string; border: string }> = {
   critique:      { label: 'CRITIQUE',      icon: 'circle-exclamation', bg: '#FDE8E8', text: '#C0392B', border: '#C0392B' },
@@ -22,6 +23,7 @@ export default function AlertesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filterStatut, setFilterStatut] = useState<string>('toutes');
+  const [pendingAction, setPendingAction] = useState<{ id: string; type: 'prendre_en_charge' | 'resoudre' } | null>(null);
 
   const loadAlertes = async () => {
     try {
@@ -46,93 +48,54 @@ export default function AlertesScreen() {
 
   const handleAction = (id: string, currentStatut: string) => {
     if (currentStatut === 'ouverte') {
-      if (Platform.OS === 'web') {
-        const confirm = window.confirm('Prendre en charge\n\nMarquer cette alerte en cours de traitement ?');
-        if (confirm) {
-          (async () => {
-            try {
-              const { error } = await supabase
-                .from('alertes')
-                .update({ statut: 'en_cours_traitement' })
-                .eq('id', id);
-              if (error) throw error;
-              window.alert('Alerte prise en charge.');
-              loadAlertes();
-            } catch (err) {
-              console.error(err);
-              window.alert('Erreur : Impossible de mettre à jour l\'alerte.');
-            }
-          })();
-        }
-        return;
-      }
-
-      Alert.alert('Prendre en charge', 'Marquer cette alerte en cours de traitement ?', [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Confirmer', onPress: async () => {
-          try {
-            const { error } = await supabase
-              .from('alertes')
-              .update({ statut: 'en_cours_traitement' })
-              .eq('id', id);
-            if (error) throw error;
-            Alert.alert('Succès', 'Alerte prise en charge.');
-            loadAlertes();
-          } catch (err) {
-            console.error(err);
-            Alert.alert('Erreur', 'Impossible de mettre à jour l\'alerte.');
-          }
-        } },
-      ]);
+      setPendingAction({ id, type: 'prendre_en_charge' });
     } else if (currentStatut === 'en_cours_traitement') {
-      if (Platform.OS === 'web') {
-        const confirm = window.confirm("Résoudre l'alerte\n\nMarquer cette alerte comme résolue ?");
-        if (confirm) {
-          (async () => {
-            try {
-              const { data: { user } } = await supabase.auth.getUser();
-              const { error } = await supabase
-                .from('alertes')
-                .update({ 
-                  statut: 'resolue',
-                  resolved_by: user?.id,
-                  resolved_at: new Date().toISOString()
-                })
-                .eq('id', id);
-              if (error) throw error;
-              window.alert('Alerte résolue avec succès.');
-              loadAlertes();
-            } catch (err) {
-              console.error(err);
-              window.alert('Erreur : Impossible de résoudre l\'alerte.');
-            }
-          })();
-        }
-        return;
-      }
+      setPendingAction({ id, type: 'resoudre' });
+    }
+  };
 
-      Alert.alert('Résoudre l\'alerte', 'Marquer cette alerte comme résolue ?', [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Confirmer', onPress: async () => {
-          try {
-            const { data: { user } } = await supabase.auth.getUser();
-            const { error } = await supabase
-              .from('alertes')
-              .update({ 
-                statut: 'resolue',
-                resolved_by: user?.id,
-                resolved_at: new Date().toISOString()
-              })
-              .eq('id', id);
-            if (error) throw error;
-            Alert.alert('Succès', 'Alerte résolue avec succès.');
-            loadAlertes();
-          } catch (err) {
-            console.error(err);
-            Alert.alert('Erreur', 'Impossible de résoudre l\'alerte.');
-          }
-        } },
-      ]);
+  const executePrendreEnCharge = async () => {
+    if (!pendingAction) return;
+    try {
+      const { error } = await supabase
+        .from('alertes')
+        .update({ statut: 'en_cours_traitement' })
+        .eq('id', pendingAction.id);
+      if (error) throw error;
+      setPendingAction(null);
+      loadAlertes();
+    } catch (err) {
+      console.error(err);
+      if (Platform.OS === 'web') {
+        window.alert("Erreur : Impossible de mettre à jour l'alerte.");
+      } else {
+        Alert.alert('Erreur', 'Impossible de mettre à jour l\'alerte.');
+      }
+    }
+  };
+
+  const executeResoudre = async () => {
+    if (!pendingAction) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from('alertes')
+        .update({ 
+          statut: 'resolue',
+          resolved_by: user?.id,
+          resolved_at: new Date().toISOString()
+        })
+        .eq('id', pendingAction.id);
+      if (error) throw error;
+      setPendingAction(null);
+      loadAlertes();
+    } catch (err) {
+      console.error(err);
+      if (Platform.OS === 'web') {
+        window.alert("Erreur : Impossible de résoudre l'alerte.");
+      } else {
+        Alert.alert('Erreur', 'Impossible de résoudre l\'alerte.');
+      }
     }
   };
 
@@ -235,6 +198,31 @@ export default function AlertesScreen() {
         )}
         <View className="h-8" />
       </ScrollView>
+
+      {/* Confirmation Modals */}
+      <ConfirmModal
+        visible={pendingAction?.type === 'prendre_en_charge'}
+        title="Prendre en charge l'alerte"
+        message="Voulez-vous marquer cette alerte comme étant en cours de traitement ? Cela informera l'équipe de surveillance."
+        confirmText="Confirmer"
+        cancelText="Annuler"
+        confirmColor="#8E44AD"
+        icon="spinner"
+        onConfirm={executePrendreEnCharge}
+        onCancel={() => setPendingAction(null)}
+      />
+
+      <ConfirmModal
+        visible={pendingAction?.type === 'resoudre'}
+        title="Résoudre l'alerte"
+        message="Voulez-vous marquer cette alerte comme résolue ? Cette action est définitive."
+        confirmText="Résoudre"
+        cancelText="Annuler"
+        confirmColor="#27AE60"
+        icon="circle-check"
+        onConfirm={executeResoudre}
+        onCancel={() => setPendingAction(null)}
+      />
     </View>
   );
 }

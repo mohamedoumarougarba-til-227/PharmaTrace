@@ -9,6 +9,7 @@ import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
 import { VERIFICATION_BASE_URL } from '../../constants/config';
 import CustomDatePicker from '../../components/CustomDatePicker';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const FORMES = ['Comprimé', 'Gélule', 'Sirop', 'Injectable', 'Poudre', 'Autre'];
 
@@ -70,6 +71,14 @@ export default function NouveauLotScreen() {
   // Modals pour sélecteurs de date
   const [datePickerField, setDatePickerField] = useState<'date_fabrication' | 'date_expiration' | null>(null);
 
+  const [infoModal, setInfoModal] = useState<{
+    title: string;
+    message: string;
+    color: string;
+    icon: string;
+    onConfirm?: () => void;
+  } | null>(null);
+
   const handleDateChange = (date: string) => {
     if (datePickerField) {
       setForm(f => ({ ...f, [datePickerField]: date }));
@@ -110,7 +119,12 @@ export default function NouveauLotScreen() {
   const handleSubmit = async () => {
     const required = ['nom_commercial', 'quantite', 'numero_lot', 'date_fabrication', 'date_expiration'] as const;
     if (required.some(k => !form[k].trim())) {
-      Alert.alert('Champs manquants', 'Veuillez remplir tous les champs obligatoires (*).');
+      setInfoModal({
+        title: 'Champs manquants',
+        message: 'Veuillez remplir tous les champs obligatoires (*).',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
       return;
     }
 
@@ -118,7 +132,12 @@ export default function NouveauLotScreen() {
     const userId = sessionData.session?.user.id;
 
     if (!userId) {
-      Alert.alert('Session introuvable', 'Veuillez vous reconnecter pour créer un lot.');
+      setInfoModal({
+        title: 'Session introuvable',
+        message: 'Veuillez vous reconnecter pour créer un lot.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
       return;
     }
 
@@ -126,7 +145,12 @@ export default function NouveauLotScreen() {
     const dateExpiration = parseDateInput(form.date_expiration);
 
     if (!dateFabrication || !dateExpiration) {
-      Alert.alert('Format de date invalide', 'Utilisez le format JJ/MM/AAAA pour les dates.');
+      setInfoModal({
+        title: 'Format de date invalide',
+        message: 'Utilisez le format JJ/MM/AAAA pour les dates.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
       return;
     }
 
@@ -169,11 +193,20 @@ export default function NouveauLotScreen() {
 
       if (error) throw error;
 
-      Alert.alert('Lot enregistré', `Le lot ${form.numero_lot} a été créé avec succès.`, [
-        { text: 'Voir mes lots', onPress: () => router.push('/(fabricant)/lots') },
-      ]);
+      setInfoModal({
+        title: 'Lot enregistré',
+        message: `Le lot ${form.numero_lot} a été créé avec succès.`,
+        color: '#27AE60',
+        icon: 'circle-check',
+        onConfirm: () => router.push('/(fabricant)/lots'),
+      });
     } catch (error: any) {
-      Alert.alert('Erreur', error?.message ?? 'Impossible d’enregistrer le lot.');
+      setInfoModal({
+        title: 'Erreur',
+        message: error?.message ?? 'Impossible d’enregistrer le lot.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
     } finally {
       setLoading(false);
     }
@@ -317,6 +350,22 @@ export default function NouveauLotScreen() {
         value={datePickerField ? form[datePickerField] : ''}
         onChange={handleDateChange}
         title={datePickerField === 'date_fabrication' ? 'Date de fabrication' : 'Date d’expiration'}
+      />
+
+      {/* Info/Success/Error Modal */}
+      <ConfirmModal
+        visible={!!infoModal}
+        title={infoModal?.title ?? ''}
+        message={infoModal?.message ?? ''}
+        confirmText="OK"
+        confirmColor={infoModal?.color}
+        icon={infoModal?.icon}
+        onConfirm={async () => {
+          if (infoModal?.onConfirm) {
+            infoModal.onConfirm();
+          }
+          setInfoModal(null);
+        }}
       />
     </ScrollView>
   );

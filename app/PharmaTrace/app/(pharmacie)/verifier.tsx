@@ -5,6 +5,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
+import ConfirmModal from '../../components/ConfirmModal';
 
 type VerifyResult =
   | { status: 'idle' }
@@ -44,6 +45,13 @@ export default function PharmacyScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const scannedRef = useRef(false);
   const [recepting, setRecepting] = useState(false);
+  const [infoModal, setInfoModal] = useState<{
+    title: string;
+    message: string;
+    color: string;
+    icon: string;
+    onConfirm?: () => void;
+  } | null>(null);
 
   // Déclencher la caméra automatiquement si on vient de la liste des transferts
   useEffect(() => {
@@ -56,10 +64,12 @@ export default function PharmacyScannerScreen() {
     if (!permission?.granted) {
       const res = await requestPermission();
       if (!res.granted) {
-        Alert.alert(
-          'Caméra non autorisée',
-          'Veuillez autoriser l’accès à la caméra dans vos réglages.'
-        );
+        setInfoModal({
+          title: 'Caméra non autorisée',
+          message: 'Veuillez autoriser l’accès à la caméra dans vos réglages.',
+          color: '#C0392B',
+          icon: 'triangle-exclamation',
+        });
         return;
       }
     }
@@ -124,10 +134,12 @@ export default function PharmacyScannerScreen() {
 
       // Si on attendait un lot précis pour réception
       if (expectedLotId && lot && lot.id !== expectedLotId) {
-        Alert.alert(
-          'Erreur de lot',
-          `Le lot scanné (${lot.nom_medicament} N° ${lot.numero_lot}) ne correspond pas au lot attendu pour cette réception (${expectedLotNom} N° ${expectedLotNum}).\n\nVeuillez scanner le bon code QR.`
-        );
+        setInfoModal({
+          title: 'Erreur de lot',
+          message: `Le lot scanné (${lot.nom_medicament} N° ${lot.numero_lot}) ne correspond pas au lot attendu pour cette réception (${expectedLotNom} N° ${expectedLotNum}).\n\nVeuillez scanner le bon code QR.`,
+          color: '#C0392B',
+          icon: 'triangle-exclamation',
+        });
         setResult({ status: 'idle' });
         return;
       }
@@ -226,14 +238,23 @@ export default function PharmacyScannerScreen() {
 
       if (lError) throw lError;
 
-      Alert.alert('Succès', 'Le lot a été réceptionné et ajouté à votre stock avec succès.', [
-        { text: 'OK', onPress: () => router.replace('/(pharmacie)/stock') }
-      ]);
+      setInfoModal({
+        title: 'Succès',
+        message: 'Le lot a été réceptionné et ajouté à votre stock avec succès.',
+        color: '#27AE60',
+        icon: 'circle-check',
+        onConfirm: () => router.replace('/(pharmacie)/stock'),
+      });
       setResult({ status: 'idle' });
       setInput('');
     } catch (e) {
       console.error(e);
-      Alert.alert('Erreur', 'Impossible de confirmer la réception.');
+      setInfoModal({
+        title: 'Erreur',
+        message: 'Impossible de confirmer la réception.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
     } finally {
       setRecepting(false);
     }
@@ -451,6 +472,22 @@ export default function PharmacyScannerScreen() {
           </View>
         )}
       </View>
+
+      {/* Info/Success/Error Modal */}
+      <ConfirmModal
+        visible={!!infoModal}
+        title={infoModal?.title ?? ''}
+        message={infoModal?.message ?? ''}
+        confirmText="OK"
+        confirmColor={infoModal?.color}
+        icon={infoModal?.icon}
+        onConfirm={async () => {
+          if (infoModal?.onConfirm) {
+            infoModal.onConfirm();
+          }
+          setInfoModal(null);
+        }}
+      />
     </ScrollView>
   );
 }

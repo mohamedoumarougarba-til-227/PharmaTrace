@@ -5,6 +5,7 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
+import ConfirmModal from '../../components/ConfirmModal';
 
 type TransfertRow = {
   id: string;
@@ -23,6 +24,13 @@ export default function TransfertsEntrantsScreen() {
   const [transferts, setTransferts] = useState<TransfertRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [confirmRefusTarget, setConfirmRefusTarget] = useState<TransfertRow | null>(null);
+  const [successModal, setSuccessModal] = useState<{
+    title: string;
+    message: string;
+    color: string;
+    icon: string;
+  } | null>(null);
 
   const loadTransferts = async () => {
     try {
@@ -61,7 +69,12 @@ export default function TransfertsEntrantsScreen() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        Alert.alert('Session expirée', 'Veuillez vous reconnecter.');
+        setSuccessModal({
+          title: 'Session expirée',
+          message: 'Veuillez vous reconnecter.',
+          color: '#C0392B',
+          icon: 'triangle-exclamation',
+        });
         return;
       }
 
@@ -116,7 +129,12 @@ export default function TransfertsEntrantsScreen() {
       await loadTransferts();
     } catch (e) {
       console.error(e);
-      Alert.alert('Erreur', 'La mise à jour du transfert a échoué.');
+      setSuccessModal({
+        title: 'Erreur',
+        message: 'La mise à jour du transfert a échoué.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+      });
     }
   };
 
@@ -134,18 +152,7 @@ export default function TransfertsEntrantsScreen() {
   };
 
   const handleRefus = (item: TransfertRow) => {
-    Alert.alert('Refuser le lot', `Voulez-vous refuser "${item.lot_id?.nom_medicament ?? ''}" ?`, [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Refuser',
-        style: 'destructive',
-        onPress: () => {
-          updateTransferAndLot(item.id, item.lot_id?.id ?? null, 'refuse', item.quantite_transferee).then(() => {
-            Alert.alert('Lot refusé', 'Le transfert a été refusé et les stocks ont été restitués au fabricant.');
-          });
-        },
-      },
-    ]);
+    setConfirmRefusTarget(item);
   };
 
   if (loading) return (<View className="flex-1 items-center justify-center bg-bg"><ActivityIndicator color="#1A3A5C" size="large" /></View>);
@@ -189,7 +196,40 @@ export default function TransfertsEntrantsScreen() {
           </View>
         </View>
       ))}
-      <View className="h-8" />
+      {/* Modal de Confirmation de Refus */}
+      <ConfirmModal
+        visible={!!confirmRefusTarget}
+        title="Refuser le lot"
+        message={confirmRefusTarget ? `Voulez-vous vraiment refuser "${confirmRefusTarget.lot_id?.nom_medicament ?? ''}" ?\n\nCette action restituera les stocks au fabricant.` : ''}
+        confirmText="Refuser"
+        cancelText="Annuler"
+        confirmColor="#C0392B"
+        icon="triangle-exclamation"
+        onConfirm={async () => {
+          if (confirmRefusTarget) {
+            await updateTransferAndLot(confirmRefusTarget.id, confirmRefusTarget.lot_id?.id ?? null, 'refuse', confirmRefusTarget.quantite_transferee);
+            setConfirmRefusTarget(null);
+            setSuccessModal({
+              title: 'Lot refusé',
+              message: 'Le transfert a été refusé et les stocks ont été restitués au fabricant.',
+              color: '#27AE60',
+              icon: 'circle-check',
+            });
+          }
+        }}
+        onCancel={() => setConfirmRefusTarget(null)}
+      />
+
+      {/* Modal d'Information Succès/Erreur */}
+      <ConfirmModal
+        visible={!!successModal}
+        title={successModal?.title ?? ''}
+        message={successModal?.message ?? ''}
+        confirmText="OK"
+        confirmColor={successModal?.color}
+        icon={successModal?.icon}
+        onConfirm={async () => setSuccessModal(null)}
+      />
     </ScrollView>
   );
 }

@@ -1,6 +1,12 @@
 Lien du MVP complet PharmaTrace (Application Web) :
 https://pharmatraceapp.vercel.app/
 
+Lien de l'application mobile (Android APK) :
+[Insérer ici le lien de téléchargement de l'APK (ex: Google Drive, Expo EAS Build, etc.)]
+
+Lien de l'application mobile (iOS) :
+[Insérer ici le lien Expo Go / TestFlight ou build iOS]
+
 Dépôt de code GitHub :
 https://github.com/mohamedoumarougarba-til-227/PharmaTrace
 

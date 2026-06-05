@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaTrace — Guide Utilisateur (Phase 3 Finale)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+        
+        :root {
+            --primary: #047857; /* Vert émeraude symbolisant la santé */
+            --primary-light: #10b981;
+            --secondary: #f59e0b; /* Orange pour les alertes/mise en garde */
+            --dark: #0f172a;
+            --light: #f0fdf4;
+            --border: #e2e8f0;
+            --text: #334155;
+            --text-dark: #0f172a;
+            --card-fabricant: #eff6ff;
+            --card-pharmacie: #f0fdf4;
+            --card-dph: #faf5ff;
+            --card-patient: #fff7ed;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            color: var(--text);
+            background-color: #ffffff;
+            line-height: 1.6;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* En-tête */
+        header {
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .header-title h1 {
+            color: var(--primary);
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .header-title p {
+            font-size: 16px;
+            color: var(--primary-light);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .header-meta {
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .badge {
+            background-color: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 45px;
+            page-break-inside: avoid;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 22px;
+            border-left: 4px solid var(--primary-light);
+            padding-left: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        h3 {
+            color: var(--text-dark);
+            font-size: 18px;
+            margin: 20px 0 10px 0;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        /* Cartes de Rôle */
+        .role-section {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+
+        .role-fabricant {
+            background-color: var(--card-fabricant);
+            border-top: 5px solid #3b82f6;
+        }
+
+        .role-pharmacie {
+            background-color: var(--card-pharmacie);
+            border-top: 5px solid #10b981;
+        }
+
+        .role-dph {
+            background-color: var(--card-dph);
+            border-top: 5px solid #a855f7;
+        }
+
+        .role-patient {
+            background-color: var(--card-patient);
+            border-top: 5px solid #f97316;
+        }
+
+        .role-title {
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+        }
+
+        .role-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        /* Listes */
+        ul, ol {
+            margin-bottom: 20px;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        .step-number {
+            background-color: var(--text-dark);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .step-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.6);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content strong {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+
+        /* Structure du document pour l'impression */
+        @media print {
+            body {
+                padding: 0;
+                font-size: 13px;
+            }
+            .no-print {
+                display: none;
+            }
+            header {
+                margin-bottom: 30px;
+            }
+            .role-section {
+                margin-bottom: 20px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="no-print" style="background-color: #fef08a; border: 1px solid #f59e0b; padding: 15px; border-radius: 8px; margin-bottom: 30px; font-size: 14px;">
+            <strong>💡 Note pour le candidat :</strong> Ce fichier est un modèle complet pré-rempli pour votre <strong>Guide Utilisateur</strong>. Pour générer le fichier PDF final attendu (<code>guide_utilisateur.pdf</code>) :
+            <ol style="margin-top: 10px; margin-left: 20px;">
+                <li>Ouvrez ce fichier HTML dans votre navigateur internet.</li>
+                <li>Faites <strong>Ctrl + P</strong> (ou clic droit puis Imprimer).</li>
+                <li>Choisissez la destination : <strong>Enregistrer au format PDF</strong>.</li>
+                <li>Enregistrez le document sous le nom <code>guide_utilisateur.pdf</code> dans votre dossier <code>PHASE_3_FINALE</code>.</li>
+            </ol>
+        </div>
+
+        <header>
+            <div class="header-title">
+                <p>MIABE Hackathon 2026 — Niger</p>
+                <h1>PharmaTrace</h1>
+            </div>
+            <div class="header-meta">
+                <span class="badge">Livrable Phase 3 (Finale)</span>
+                <div><strong>Équipe :</strong> TrustGrid</div>
+                <div><strong>Date :</strong> Juin 2026</div>
+            </div>
+        </header>
+
+        <!-- SECTION 1 -->
+        <section>
+            <h2>1. Introduction</h2>
+            <p>
+                Ce manuel d'utilisation décrit le fonctionnement de l'application PharmaTrace pour l'ensemble des acteurs de la chaîne de distribution médicale au Niger. PharmaTrace permet de garantir la traçabilité des médicaments grâce à des identifiants uniques (hashs cryptographiques SHA-256) imprimés sous forme de QR codes sur chaque boîte ou lot.
+            </p>
+        </section>
+
+        <!-- SECTION 2 -->
+        <section>
+            <h2>2. Rôles et Fonctionnalités par Acteur</h2>
+
+            <!-- ROLE 1 : FABRICANT -->
+            <div class="role-section role-fabricant">
+                <div class="role-title">
+                    <span class="role-icon">🏭</span>
+                    <span>1. Rôle Fabricant & Importateur Agréé</span>
+                </div>
+                <p>Ce rôle permet d'enregistrer les lots de médicaments lors de leur production ou importation et d'en assurer la première expédition dans la chaîne de traçabilité.</p>
+                
+                <ul class="step-list">
+                    <li class="step-item">
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <strong>Connexion à l'espace Fabricant</strong>
+                            Connectez-vous à l'aide de votre adresse e-mail officielle et de votre mot de passe fourni par la Direction de la Pharmacie (DPH). Votre espace affiche la liste de vos lots enregistrés.
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <strong>Enregistrement d'un nouveau lot</strong>
+                            Cliquez sur le bouton "Enregistrer un Lot". Saisissez le numéro de lot, le nom du médicament, le dosage, la quantité totale, la date de fabrication et d'expiration. Validez pour générer instantanément son hash SHA-256 blockchain unique.
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <strong>Impression des QR Codes</strong>
+                            Accédez aux détails du lot et téléchargez le QR code généré. Imprimez ce code et collez-le sur chaque carton ou emballage du lot correspondant avant expédition.
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">4</span>
+                        <div class="step-content">
+                            <strong>Initiation d'un Transfert</strong>
+                            Sélectionnez un lot dans votre stock, indiquez la pharmacie destinataire agréée (sélectionnée dans la liste officielle) et la quantité transférée. Validez pour envoyer le transfert en statut "En transit".
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- ROLE 2 : PHARMACIE -->
+            <div class="role-section role-pharmacie">
+                <div class="role-title">
+                    <span class="role-icon">🏥</span>
+                    <span>2. Rôle Pharmacie & Centre de Santé</span>
+                </div>
+                <p>Les pharmacies reçoivent les lots transférés par les fabricants, vérifient leur authenticité par scan et gèrent leur propre stock de médicaments certifiés.</p>
+                
+                <ul class="step-list">
+                    <li class="step-item">
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <strong>Réception d'un lot ("Demandes en attente")</strong>
+                            Lorsqu'un fabricant vous envoie un lot, il apparaît dans l'onglet "Demandes". Comparez les boîtes physiques reçues avec les détails à l'écran. Cliquez sur "Accepter" pour intégrer le lot dans votre stock numérique ou sur "Refuser" en cas d'anomalie.
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <strong>Vérification à la réception</strong>
+                            Utilisez le scanner intégré dans votre application pour scanner le QR code d'une boîte reçue. Le système vous confirme instantanément si le lot est authentique, s'il a bien été transféré à votre nom, et s'il est conforme.
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <strong>Gestion de stock certifié</strong>
+                            L'application liste vos médicaments disponibles par lot avec leur quantité et leur date d'expiration pour faciliter la gestion et éviter la délivrance de produits expirés.
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- ROLE 3 : AGENT DPH -->
+            <div class="role-section role-dph">
+                <div class="role-title">
+                    <span class="role-icon">🛡️</span>
+                    <span>3. Rôle Autorité de Santé (Direction de la Pharmacie — DPH)</span>
+                </div>
+                <p>Ce rôle offre une vue d'ensemble du marché national et permet de superviser l'activité de traçabilité, de détecter les anomalies et d'intervenir en temps réel.</p>
+                
+                <ul class="step-list">
+                    <li class="step-item">
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <strong>Tableau de Bord National</strong>
+                            Consultez les statistiques en temps réel : nombre total de lots enregistrés, pharmacies actives dans le système, volume de scans quotidiens et nombre d'alertes en cours.
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <strong>Gestion des Alertes de Contrefaçon</strong>
+                            Dès qu'un scan suspect (QR code non enregistré dans le registre) est effectué par un patient ou un pharmacien, une alerte s'affiche en rouge. Elle indique la ville du scan, le modèle de l'appareil et l'heure exacte pour guider les inspecteurs de terrain.
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <strong>Résolution et suivi des fraudes</strong>
+                            Après enquête sur le terrain auprès de la pharmacie ou du point de vente suspect, l'agent peut modifier le statut de l'alerte ("En cours de traitement", "Résolue" avec notes d'inspecteurs).
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- ROLE 4 : PATIENT -->
+            <div class="role-section role-patient">
+                <div class="role-title">
+                    <span class="role-icon">📱</span>
+                    <span>4. Patient (Grand Public - Sans Compte)</span>
+                </div>
+                <p>N'importe quel citoyen nigérien peut utiliser PharmaTrace de manière anonyme et gratuite pour vérifier la sécurité de son médicament avant de le consommer.</p>
+                
+                <ul class="step-list">
+                    <li class="step-item">
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <strong>Accès immédiat</strong>
+                            Ouvrez l'application PharmaTrace ou rendez-vous sur le site de vérification publique. Aucune inscription ni mot de passe n'est requis.
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <strong>Scan du QR Code</strong>
+                            Cliquez sur le bouton "Scanner un médicament" et visez le QR code sur l'emballage. Vous pouvez également saisir manuellement le code unique du lot si votre appareil ne possède pas de caméra.
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <strong>Verdict Immédiat</strong>
+                            Le verdict s'affiche en grand sur votre écran :
+                            <ul>
+                                <li style="color: #047857;"><strong>✅ AUTHENTIQUE :</strong> Affiche le nom, le dosage, le fabricant agréé, les dates et confirme la validité.</li>
+                                <li style="color: #d97706;"><strong>⚠️ EXPIRE :</strong> Le médicament est authentique mais a dépassé sa date de péremption. Ne pas consommer.</li>
+                                <li style="color: #dc2626;"><strong>❌ SUSPECT / DANGER :</strong> Le code n'existe pas ou correspond à un doublon frauduleux. L'application vous conseille de ne pas prendre le médicament et de le signaler immédiatement.</li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <footer style="margin-top: 50px; border-top: 1px solid var(--border); padding-top: 20px; font-size: 12px; text-align: center; color: #94a3b8;">
+            PharmaTrace 2026 · Guide d'utilisation officiel rédigé par l'Équipe TrustGrid.
+        </footer>
+    </div>
+</body>
+</html>

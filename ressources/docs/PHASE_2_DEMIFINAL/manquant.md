@@ -1,18 +1,12 @@
 # Phase 2 — Demi-finale : Livrables Manquants
 
 ## ✅ Livrables déjà fournis :
-- [x] **Lien du prototype fonctionnel** → `lien_prototype.txt`
+- [x] **Lien du prototype fonctionnel** (Application Web & Mobile) → `lien_prototype.txt` (Contient les liens web et les sections pour Android/iOS)
 - [x] **Lien du dépôt de code (GitHub)** → `lien_code.txt`
+- [x] **Document PDF de notes sur la démonstration** → `PharmaTrace - Notes de Démonstration (Phase 2 Demi-finale).pdf`
+- [x] **Lien de la vidéo de démonstration** → `lien_demo.txt` (Fichier créé, lien à ajouter à l'intérieur)
 
-## ❌ Livrables manquants :
-- [ ] **Lien de la vidéo de démonstration**
-  - Fichier attendu : `lien_demo.txt`
+## ❌ Actions en attente (Reste à faire) :
+- [ ] **Enregistrer et ajouter le lien de la vidéo de démonstration** dans `lien_demo.txt`
   - Consigne : Vidéo montrant le flux de bout en bout (fabricant → pharmacie → patient → fraude)
-- [ ] **Document PDF de notes sur la démonstration**
-  - Fichier attendu : `notes_demonstration.pdf`
-  - Consigne : Document décrivant les acteurs simulés et le flux démontré
-
-## 💡 Optionnel (bonus) :
-- [ ] **Lien de l'application mobile (APK Android)**
-  - Fichier attendu : `lien_app_mobile.txt`
-  - Options de partage : lien direct APK, Expo Go, ou Google Drive
+- [ ] **Compiler l'APK Android / build iOS** et ajouter leurs liens dans `lien_prototype.txt`

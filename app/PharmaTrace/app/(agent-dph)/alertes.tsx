@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, RefreshControl, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
@@ -46,6 +46,27 @@ export default function AlertesScreen() {
 
   const handleAction = (id: string, currentStatut: string) => {
     if (currentStatut === 'ouverte') {
+      if (Platform.OS === 'web') {
+        const confirm = window.confirm('Prendre en charge\n\nMarquer cette alerte en cours de traitement ?');
+        if (confirm) {
+          (async () => {
+            try {
+              const { error } = await supabase
+                .from('alertes')
+                .update({ statut: 'en_cours_traitement' })
+                .eq('id', id);
+              if (error) throw error;
+              window.alert('Alerte prise en charge.');
+              loadAlertes();
+            } catch (err) {
+              console.error(err);
+              window.alert('Erreur : Impossible de mettre à jour l\'alerte.');
+            }
+          })();
+        }
+        return;
+      }
+
       Alert.alert('Prendre en charge', 'Marquer cette alerte en cours de traitement ?', [
         { text: 'Annuler', style: 'cancel' },
         { text: 'Confirmer', onPress: async () => {
@@ -64,6 +85,32 @@ export default function AlertesScreen() {
         } },
       ]);
     } else if (currentStatut === 'en_cours_traitement') {
+      if (Platform.OS === 'web') {
+        const confirm = window.confirm("Résoudre l'alerte\n\nMarquer cette alerte comme résolue ?");
+        if (confirm) {
+          (async () => {
+            try {
+              const { data: { user } } = await supabase.auth.getUser();
+              const { error } = await supabase
+                .from('alertes')
+                .update({ 
+                  statut: 'resolue',
+                  resolved_by: user?.id,
+                  resolved_at: new Date().toISOString()
+                })
+                .eq('id', id);
+              if (error) throw error;
+              window.alert('Alerte résolue avec succès.');
+              loadAlertes();
+            } catch (err) {
+              console.error(err);
+              window.alert('Erreur : Impossible de résoudre l\'alerte.');
+            }
+          })();
+        }
+        return;
+      }
+
       Alert.alert('Résoudre l\'alerte', 'Marquer cette alerte comme résolue ?', [
         { text: 'Annuler', style: 'cancel' },
         { text: 'Confirmer', onPress: async () => {

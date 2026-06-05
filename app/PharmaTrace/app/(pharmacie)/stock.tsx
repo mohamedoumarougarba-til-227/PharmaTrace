@@ -172,7 +172,7 @@ export default function StockScreen() {
             </View>
 
             {selectedLot && (
-              <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={false}>
+              <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={true}>
                 <View className="gap-1">
                   <View className="bg-pharma-green/10 p-3 rounded-xl mb-2">
                     <Text className="text-pharma-green font-bold text-base">{selectedLot.nom}</Text>

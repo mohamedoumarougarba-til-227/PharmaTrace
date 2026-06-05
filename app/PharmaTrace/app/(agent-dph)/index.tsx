@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
@@ -8,6 +8,8 @@ import Svg, { Path, Defs, LinearGradient, Stop, Line, Circle } from 'react-nativ
 export default function AgentDPHDashboard() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total_lots: 0, scans_24h: 0, alertes_critiques: 0, total_suspects: 0, pharmacies_actives: 0 });
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
 
   const loadStats = async () => {
     try {
@@ -34,15 +36,20 @@ export default function AgentDPHDashboard() {
 
   return (
     <ScrollView className="flex-1 bg-bg">
-      <View className="px-5 pt-6 pb-5 bg-pharma-purple">
+      <View 
+        style={[
+          { backgroundColor: "#8E44AD", paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20 },
+          isDesktop && { borderBottomLeftRadius: 16, borderBottomRightRadius: 16, marginHorizontal: 20, marginTop: 16 }
+        ]}
+      >
         <Text className="text-white/60 text-sm">Direction de la Pharmacie Nigérienne</Text>
         <Text className="text-white font-black text-xl mt-1">Surveillance nationale</Text>
         <Text className="text-white/40 text-xs mt-1">Niger · Temps réel</Text>
       </View>
 
-      <View className="p-5">
+      <View style={{ padding: 20 }}>
         {/* KPIs */}
-        <View className="flex-row flex-wrap gap-3 mb-5">
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
           <KPICard 
             label="Lots enregistrés" 
             value={String(stats.total_lots)} 
@@ -53,6 +60,7 @@ export default function AgentDPHDashboard() {
             svgFillPath="M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10 L 115 40 L 15 40 Z"
             gradientId="dph-lots"
             endY={10}
+            isDesktop={isDesktop}
           />
           <KPICard 
             label="Scans 24h" 
@@ -64,6 +72,7 @@ export default function AgentDPHDashboard() {
             svgFillPath={stats.scans_24h > 0 ? "M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
             gradientId="dph-scans"
             endY={stats.scans_24h > 0 ? 8 : 35}
+            isDesktop={isDesktop}
           />
           <KPICard 
             label="Alertes critiques" 
@@ -75,6 +84,7 @@ export default function AgentDPHDashboard() {
             svgFillPath={stats.alertes_critiques > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
             gradientId="dph-alertes"
             endY={stats.alertes_critiques > 0 ? 5 : 35}
+            isDesktop={isDesktop}
           />
           <KPICard 
             label="Lots suspects" 
@@ -86,6 +96,7 @@ export default function AgentDPHDashboard() {
             svgFillPath={stats.total_suspects > 0 ? "M 15 25 C 35 20, 55 35, 75 18 C 95 8, 105 14, 115 12 L 115 40 L 15 40 Z" : "M 15 15 C 35 18, 55 22, 75 28 C 95 32, 105 35, 115 35 L 115 40 L 15 40 Z"}
             gradientId="dph-suspects"
             endY={stats.total_suspects > 0 ? 12 : 35}
+            isDesktop={isDesktop}
           />
           <KPICard 
             label="Pharmacies actives" 
@@ -97,24 +108,33 @@ export default function AgentDPHDashboard() {
             svgFillPath={stats.pharmacies_actives > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
             gradientId="dph-pharmacies"
             endY={stats.pharmacies_actives > 0 ? 5 : 35}
+            isDesktop={isDesktop}
           />
         </View>
 
-        {/* Alerte critique */}
-        <View className="bg-pharma-red/10 border-l-4 border-pharma-red rounded-r-xl p-4 mb-5">
-          <View className="flex-row items-center gap-2 mb-1">
-            <FAIcon name="triangle-exclamation" size={16} color="#C0392B" family="FontAwesome6" />
-            <Text className="text-pharma-red font-bold text-sm">{stats.alertes_critiques} alertes critiques ouvertes</Text>
+        {/* Desktop Columns */}
+        <View style={{ flexDirection: isDesktop ? "row" : "column", gap: 20 }}>
+          {/* Section: Scan results (Left on desktop) */}
+          <View style={{ flex: isDesktop ? 1.5 : 1 }}>
+            <Text className="text-navy font-bold text-base mb-3">Résultats de scan ce jour</Text>
+            <View className="bg-white rounded-xl p-4 shadow-sm">
+              <StatRow label="Authentiques" icon="circle-check" value={String(Math.round(stats.total_lots * 0.82))} color="#27AE60" percent={78} />
+              <StatRow label="Non trouvés"  icon="circle-xmark" value={String(stats.total_suspects)}   color="#C0392B" percent={15} />
+              <StatRow label="Expirés"      icon="triangle-exclamation" value={String(Math.round(stats.total_lots * 0.07))}    color="#E67E22" percent={7}  />
+            </View>
           </View>
-          <Text className="text-muted text-xs mt-1">Nécessitent une attention immédiate →</Text>
-        </View>
 
-        {/* Stats simplifiées */}
-        <Text className="text-navy font-bold text-base mb-3">Résultats de scan ce jour</Text>
-        <View className="bg-white rounded-xl p-4 shadow-sm">
-          <StatRow label="Authentiques" icon="circle-check" value={String(Math.round(stats.total_lots * 0.82))} color="#27AE60" percent={78} />
-          <StatRow label="Non trouvés"  icon="circle-xmark" value={String(stats.total_suspects)}   color="#C0392B" percent={15} />
-          <StatRow label="Expirés"      icon="triangle-exclamation" value={String(Math.round(stats.total_lots * 0.07))}    color="#E67E22" percent={7}  />
+          {/* Section: Warning/Alerts (Right on desktop) */}
+          <View style={{ flex: isDesktop ? 1 : 1, justifyContent: "flex-start" }}>
+            <Text className="text-navy font-bold text-base mb-3">Alertes & Actions</Text>
+            <View className="bg-pharma-red/10 border-l-4 border-pharma-red rounded-r-xl p-4 mb-5">
+              <View className="flex-row items-center gap-2 mb-1">
+                <FAIcon name="triangle-exclamation" size={16} color="#C0392B" family="FontAwesome6" />
+                <Text className="text-pharma-red font-bold text-sm">{stats.alertes_critiques} alertes critiques ouvertes</Text>
+              </View>
+              <Text className="text-muted text-xs mt-1">Nécessitent une attention immédiate →</Text>
+            </View>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -130,7 +150,8 @@ function KPICard({
   svgPath, 
   svgFillPath, 
   gradientId,
-  endY
+  endY,
+  isDesktop
 }: { 
   label: string; 
   value: string; 
@@ -141,9 +162,27 @@ function KPICard({
   svgFillPath: string;
   gradientId: string;
   endY: number;
+  isDesktop: boolean;
 }) {
   return (
-    <View className="flex-1 rounded-2xl p-4 min-w-[44%] relative overflow-hidden bg-white border border-[#E6EEF8] shadow-sm" style={{ height: 106 }}>
+    <View 
+      style={[
+        {
+          flex: 1,
+          borderRadius: 16,
+          padding: 16,
+          minWidth: isDesktop ? 160 : "44%",
+          position: "relative",
+          overflow: "hidden",
+          backgroundColor: "white",
+          borderWidth: 1,
+          borderColor: "#E6EEF8",
+          height: 106,
+          // @ts-ignore – web shadow
+          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        }
+      ]}
+    >
       {/* Label & Valeur */}
       <View className="z-10 justify-between h-full">
         <View>

@@ -1,13 +1,15 @@
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { FontAwesome6 } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
 import Svg, { Path, Defs, LinearGradient, Stop, Line, Circle } from 'react-native-svg';
 
 export default function PharmacieDashboard() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+
   const [loading, setLoading] = useState(true);
   const [kpis, setKpis] = useState({ transferts_attente: 0, lots_stock: 0, scans_today: 0, alertes: 0 });
 
@@ -77,15 +79,18 @@ export default function PharmacieDashboard() {
   return (
     <ScrollView className="flex-1 bg-bg">
       {/* Header */}
-      <View className="px-5 pt-6 pb-5 bg-pharma-green">
+      <View 
+        className="bg-pharma-green"
+        style={isDesktop ? { paddingHorizontal: 24, paddingVertical: 20, borderBottomLeftRadius: 16, borderBottomRightRadius: 16 } : { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20 }}
+      >
         <Text className="text-white/60 text-sm">Bienvenue,</Text>
         <Text className="text-white font-black text-xl mt-1">Pharmacie Centrale de Niamey</Text>
         <Text className="text-white/40 text-xs mt-1">Pharmacie agréée</Text>
       </View>
 
-      <View className="p-5">
+      <View style={isDesktop ? { padding: 24 } : { padding: 20 }}>
         {/* KPIs */}
-        <View className="flex-row flex-wrap gap-3 mb-5">
+        <View style={isDesktop ? { flexDirection: 'row', gap: 12, marginBottom: 20 } : { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
           <KPICard 
             label="Transferts en cours" 
             value={String(kpis.transferts_attente)} 
@@ -96,6 +101,7 @@ export default function PharmacieDashboard() {
             svgFillPath={kpis.transferts_attente > 0 ? "M 15 25 C 35 20, 55 35, 75 18 C 95 8, 105 14, 115 12 L 115 40 L 15 40 Z" : "M 15 15 C 35 18, 55 22, 75 28 C 95 32, 105 35, 115 35 L 115 40 L 15 40 Z"}
             gradientId="pharma-transit"
             endY={kpis.transferts_attente > 0 ? 12 : 35}
+            isDesktop={isDesktop}
           />
           <KPICard 
             label="Lots en stock" 
@@ -107,6 +113,7 @@ export default function PharmacieDashboard() {
             svgFillPath={kpis.lots_stock > 0 ? "M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
             gradientId="pharma-stock"
             endY={kpis.lots_stock > 0 ? 8 : 35}
+            isDesktop={isDesktop}
           />
           <KPICard 
             label="Scans aujourd'hui" 
@@ -118,6 +125,7 @@ export default function PharmacieDashboard() {
             svgFillPath={kpis.scans_today > 0 ? "M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
             gradientId="pharma-scans"
             endY={kpis.scans_today > 0 ? 10 : 35}
+            isDesktop={isDesktop}
           />
           <KPICard 
             label="Alertes actives" 
@@ -129,6 +137,7 @@ export default function PharmacieDashboard() {
             svgFillPath={kpis.alertes > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
             gradientId="pharma-alertes"
             endY={kpis.alertes > 0 ? 5 : 35}
+            isDesktop={isDesktop}
           />
         </View>
 
@@ -150,20 +159,25 @@ export default function PharmacieDashboard() {
 
         {/* Actions rapides */}
         <Text className="text-navy font-bold text-base mb-3">Actions rapides</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/(pharmacie)/verifier')}
-          className="w-full h-14 bg-pharma-green rounded-xl items-center justify-center flex-row gap-2 mb-3"
-        >
-          <FAIcon name="magnifying-glass" size={16} color="#fff" family="FontAwesome6" />
-          <Text className="text-white font-bold text-base">Vérifier un médicament</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.push('/(pharmacie)/stock')}
-          className="w-full h-14 bg-white border border-blue-light rounded-xl items-center justify-center flex-row gap-2"
-        >
-          <FAIcon name="box" size={16} color="#1A3A5C" family="FontAwesome6" />
-          <Text className="text-navy font-semibold text-base">Voir mon stock</Text>
-        </TouchableOpacity>
+        
+        <View style={isDesktop ? { flexDirection: 'row', gap: 16 } : undefined}>
+          <TouchableOpacity
+            onPress={() => router.push('/(pharmacie)/verifier')}
+            className="bg-pharma-green rounded-xl items-center justify-center flex-row gap-2"
+            style={isDesktop ? { flex: 1, height: 56 } : { width: '100%', height: 56, marginBottom: 12 }}
+          >
+            <FAIcon name="magnifying-glass" size={16} color="#fff" family="FontAwesome6" />
+            <Text className="text-white font-bold text-base">Vérifier un médicament</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push('/(pharmacie)/stock')}
+            className="bg-white border border-blue-light rounded-xl items-center justify-center flex-row gap-2"
+            style={isDesktop ? { flex: 1, height: 56 } : { width: '100%', height: 56 }}
+          >
+            <FAIcon name="box" size={16} color="#1A3A5C" family="FontAwesome6" />
+            <Text className="text-navy font-semibold text-base">Voir mon stock</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );
@@ -178,7 +192,8 @@ function KPICard({
   svgPath, 
   svgFillPath, 
   gradientId,
-  endY
+  endY,
+  isDesktop
 }: { 
   label: string; 
   value: string; 
@@ -189,9 +204,13 @@ function KPICard({
   svgFillPath: string;
   gradientId: string;
   endY: number;
+  isDesktop?: boolean;
 }) {
   return (
-    <View className="flex-1 rounded-2xl p-4 min-w-[44%] relative overflow-hidden bg-white border border-[#E6EEF8] shadow-sm" style={{ height: 106 }}>
+    <View 
+      className="flex-1 rounded-2xl p-4 relative overflow-hidden bg-white border border-[#E6EEF8] shadow-sm" 
+      style={isDesktop ? { height: 106, minWidth: 160 } : { height: 106, minWidth: '44%' }}
+    >
       {/* Label & Valeur */}
       <View className="z-10 justify-between h-full">
         <View>
@@ -235,7 +254,7 @@ function KPICard({
           <Line x1="11" y1="10" x2="15" y2="10" stroke="#BACAD6" strokeWidth="1" />
           <Line x1="11" y1="22" x2="15" y2="22" stroke="#BACAD6" strokeWidth="1" />
           <Line x1="11" y1="34" x2="15" y2="34" stroke="#BACAD6" strokeWidth="1" />
-
+ 
           {/* Remplissage de dégradé sous la courbe */}
           <Path d={svgFillPath} fill={`url(#${gradientId})`} />
           {/* Ligne de tendance */}

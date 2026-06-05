@@ -10,40 +10,74 @@ type FabricantOption = {
   nom_entite: string;
 };
 
-type DemandeRow = {
-  id: string;
+type CatalogItem = {
   nom_medicament: string;
   dosage: string;
-  quantite_demandee: number;
-  notes_pharmacie: string | null;
-  notes_fabricant: string | null;
-  statut: 'en_attente' | 'satisfait' | 'refuse' | 'annule';
+  forme_galenique: string | null;
+};
+
+type CartItem = {
+  nom_medicament: string;
+  dosage: string;
+  forme_galenique: string;
+  quantite: string;
+  isCustom: boolean;
+};
+
+type GroupedDemande = {
+  id: string; // group_id or individual row id
+  groupe_id: string | null;
+  statut: string;
   created_at: string;
-  fabricant_id: { nom_entite: string } | null;
-  transfert_id: string | null;
+  fabricant: string;
+  notes_pharmacie: string | null;
+  items: {
+    id: string;
+    nom_medicament: string;
+    dosage: string;
+    forme_galenique: string | null;
+    quantite_demandee: number;
+    statut: string;
+    notes_fabricant: string | null;
+    transfert_id: string | null;
+  }[];
+};
+
+const generateUuid = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 };
 
 export default function MesDemandesScreen() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
 
-  const [demandes, setDemandes] = useState<DemandeRow[]>([]);
+  const [groupedDemandes, setGroupedDemandes] = useState<GroupedDemande[]>([]);
   const [fabricants, setFabricants] = useState<FabricantOption[]>([]);
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedDemande, setSelectedDemande] = useState<DemandeRow | null>(null);
-  const [cancelTarget, setCancelTarget] = useState<DemandeRow | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<GroupedDemande | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<GroupedDemande | null>(null);
 
   // Formulaire de création
-  const [form, setForm] = useState({
-    fabricantId: '',
+  const [selectedFabricantId, setSelectedFabricantId] = useState('');
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [globalNote, setGlobalNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  // Saisie de l'item en cours d'ajout
+  const [selectedCatalogIndex, setSelectedCatalogIndex] = useState<string>('custom');
+  const [itemForm, setItemForm] = useState({
     nomMedicament: '',
     dosage: '',
+    formeGalenique: '',
     quantite: '',
-    notes: '',
   });
-  const [submitting, setSubmitting] = useState(false);
 
   const [confirmModal, setConfirmModal] = useState<{
     title: string;
@@ -59,15 +93,62 @@ export default function MesDemandesScreen() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // 1. Récupérer les demandes
+      // 1. Récupérer les demandes individuelles
       const { data: listData, error: listError } = await supabase
         .from('demandes_stock')
-        .select('id, nom_medicament, dosage, quantite_demandee, notes_pharmacie, notes_fabricant, statut, created_at, fabricant_id(nom_entite), transfert_id')
+        .select('id, nom_medicament, dosage, forme_galenique, quantite_demandee, notes_pharmacie, notes_fabricant, statut, created_at, groupe_id, fabricant_id(nom_entite), transfert_id')
         .eq('pharmacie_id', session.user.id)
         .order('created_at', { ascending: false });
 
       if (listError) throw listError;
-      setDemandes((listData ?? []) as unknown as DemandeRow[]);
+
+      // Groupement par groupe_id ou par ID de ligne si groupe_id est absent
+      const groupsMap: { [key: string]: GroupedDemande } = {};
+      (listData ?? []).forEach((row: any) => {
+        const key = row.groupe_id || row.id;
+        if (!groupsMap[key]) {
+          groupsMap[key] = {
+            id: key,
+            groupe_id: row.groupe_id,
+            statut: row.statut,
+            created_at: row.created_at,
+            fabricant: row.fabricant_id?.nom_entite ?? 'Fabricant',
+            notes_pharmacie: row.notes_pharmacie,
+            items: [],
+          };
+        }
+        groupsMap[key].items.push({
+          id: row.id,
+          nom_medicament: row.nom_medicament,
+          dosage: row.dosage,
+          forme_galenique: row.forme_galenique,
+          quantite_demandee: row.quantite_demandee,
+          statut: row.statut,
+          notes_fabricant: row.notes_fabricant,
+          transfert_id: row.transfert_id,
+        });
+      });
+
+      // Mettre à jour le statut global du groupe
+      Object.values(groupsMap).forEach((g) => {
+        const statuses = g.items.map((i) => i.statut);
+        if (statuses.every((s) => s === 'en_attente')) {
+          g.statut = 'en_attente';
+        } else if (statuses.every((s) => s === 'satisfait')) {
+          g.statut = 'satisfait';
+        } else if (statuses.every((s) => s === 'refuse')) {
+          g.statut = 'refuse';
+        } else if (statuses.every((s) => s === 'annule')) {
+          g.statut = 'annule';
+        } else {
+          g.statut = 'partiel'; // statut mixte
+        }
+      });
+
+      const sortedGroups = Object.values(groupsMap).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setGroupedDemandes(sortedGroups);
 
       // 2. Récupérer la liste des fabricants pour le dropdown
       const { data: fabData, error: fabError } = await supabase
@@ -97,11 +178,70 @@ export default function MesDemandesScreen() {
     await loadData();
   };
 
-  const handleCreateRequest = async () => {
-    if (!form.fabricantId || !form.nomMedicament || !form.dosage || !form.quantite) {
+  const handleFabricantChange = async (fabId: string) => {
+    setSelectedFabricantId(fabId);
+    setCart([]);
+    setCatalog([]);
+    if (!fabId) return;
+
+    setLoadingCatalog(true);
+    try {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('lots_medicaments')
+        .select('nom_medicament, dosage, forme_galenique')
+        .eq('fabricant_id', fabId)
+        .eq('statut_actuel', 'en_stock_fabricant')
+        .gte('date_expiration', todayStr);
+
+      if (error) throw error;
+
+      // Déduplication du catalogue
+      const uniqueItems: CatalogItem[] = [];
+      const keys = new Set<string>();
+      (data ?? []).forEach((item) => {
+        const key = `${item.nom_medicament.toLowerCase()}-${item.dosage.toLowerCase()}-${(item.forme_galenique || '').toLowerCase()}`;
+        if (!keys.has(key)) {
+          keys.add(key);
+          uniqueItems.push({
+            nom_medicament: item.nom_medicament,
+            dosage: item.dosage,
+            forme_galenique: item.forme_galenique,
+          });
+        }
+      });
+
+      setCatalog(uniqueItems);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingCatalog(false);
+    }
+  };
+
+  const handleCatalogSelect = (indexStr: string) => {
+    setSelectedCatalogIndex(indexStr);
+    if (indexStr === 'custom') {
+      setItemForm({ nomMedicament: '', dosage: '', formeGalenique: '', quantite: '' });
+    } else {
+      const idx = parseInt(indexStr, 10);
+      const item = catalog[idx];
+      if (item) {
+        setItemForm({
+          nomMedicament: item.nom_medicament,
+          dosage: item.dosage,
+          formeGalenique: item.forme_galenique ?? '',
+          quantite: '',
+        });
+      }
+    }
+  };
+
+  const addItemToCart = () => {
+    if (!itemForm.nomMedicament.trim() || !itemForm.dosage.trim() || !itemForm.quantite.trim()) {
       setConfirmModal({
         title: 'Champs requis',
-        message: 'Veuillez remplir tous les champs obligatoires.',
+        message: 'Veuillez saisir le nom, le dosage et la quantité.',
         color: '#C0392B',
         icon: 'triangle-exclamation',
         onConfirm: () => setConfirmModal(null),
@@ -109,11 +249,52 @@ export default function MesDemandesScreen() {
       return;
     }
 
-    const qtyVal = parseInt(form.quantite, 10);
+    const qtyVal = parseInt(itemForm.quantite, 10);
     if (isNaN(qtyVal) || qtyVal <= 0) {
       setConfirmModal({
         title: 'Quantité invalide',
-        message: 'La quantité demandée doit être un nombre supérieur à 0.',
+        message: 'La quantité doit être un nombre supérieur à 0.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+        onConfirm: () => setConfirmModal(null),
+      });
+      return;
+    }
+
+    const newItem: CartItem = {
+      nom_medicament: itemForm.nomMedicament.trim(),
+      dosage: itemForm.dosage.trim(),
+      forme_galenique: itemForm.formeGalenique.trim() || 'Comprimé',
+      quantite: String(qtyVal),
+      isCustom: selectedCatalogIndex === 'custom',
+    };
+
+    setCart([...cart, newItem]);
+    // Reset item form
+    setItemForm({ nomMedicament: '', dosage: '', formeGalenique: '', quantite: '' });
+    setSelectedCatalogIndex('custom');
+  };
+
+  const removeItemFromCart = (index: number) => {
+    setCart(cart.filter((_, idx) => idx !== index));
+  };
+
+  const handleCreateRequest = async () => {
+    if (!selectedFabricantId) {
+      setConfirmModal({
+        title: 'Fabricant requis',
+        message: 'Veuillez choisir un fabricant destinataire.',
+        color: '#C0392B',
+        icon: 'triangle-exclamation',
+        onConfirm: () => setConfirmModal(null),
+      });
+      return;
+    }
+
+    if (cart.length === 0) {
+      setConfirmModal({
+        title: 'Panier vide',
+        message: 'Veuillez ajouter au moins un produit à votre demande.',
         color: '#C0392B',
         icon: 'triangle-exclamation',
         onConfirm: () => setConfirmModal(null),
@@ -126,25 +307,31 @@ export default function MesDemandesScreen() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { error } = await supabase.from('demandes_stock').insert({
+      const groupeId = generateUuid();
+      const insertRows = cart.map((item) => ({
         pharmacie_id: session.user.id,
-        fabricant_id: form.fabricantId,
-        nom_medicament: form.nomMedicament,
-        dosage: form.dosage,
-        quantite_demandee: qtyVal,
-        notes_pharmacie: form.notes || null,
+        fabricant_id: selectedFabricantId,
+        nom_medicament: item.nom_medicament,
+        dosage: item.dosage,
+        forme_galenique: item.forme_galenique,
+        quantite_demandee: parseInt(item.quantite, 10),
+        notes_pharmacie: globalNote.trim() || null,
         statut: 'en_attente',
-      });
+        groupe_id: groupeId,
+      }));
 
+      const { error } = await supabase.from('demandes_stock').insert(insertRows);
       if (error) throw error;
 
       setShowCreateModal(false);
-      setForm({ fabricantId: '', nomMedicament: '', dosage: '', quantite: '', notes: '' });
+      setCart([]);
+      setGlobalNote('');
+      setSelectedFabricantId('');
       await loadData();
 
       setConfirmModal({
         title: 'Demande envoyée',
-        message: 'Votre demande a été transmise avec succès au fabricant.',
+        message: `Votre demande contenant ${insertRows.length} produit(s) a été transmise avec succès.`,
         color: '#27AE60',
         icon: 'circle-check',
         onConfirm: () => setConfirmModal(null),
@@ -163,19 +350,23 @@ export default function MesDemandesScreen() {
     }
   };
 
-  const handleCancelRequest = async (demande: DemandeRow) => {
+  const handleCancelGroupRequest = async (group: GroupedDemande) => {
     try {
+      // Annuler toutes les demandes du groupe qui sont en attente
+      const ids = group.items.filter(i => i.statut === 'en_attente').map(i => i.id);
+      if (ids.length === 0) return;
+
       const { error } = await supabase
         .from('demandes_stock')
         .update({ statut: 'annule' })
-        .eq('id', demande.id);
+        .in('id', ids);
 
       if (error) throw error;
 
       await loadData();
       setConfirmModal({
         title: 'Demande annulée',
-        message: 'La demande de stock a été annulée.',
+        message: 'La demande de stock a été annulée avec succès.',
         color: '#7F8C8D',
         icon: 'circle-check',
         onConfirm: () => setConfirmModal(null),
@@ -200,12 +391,14 @@ export default function MesDemandesScreen() {
         return { bg: 'bg-pharma-green/10', text: 'text-pharma-green', label: 'Satisfait' };
       case 'refuse':
         return { bg: 'bg-pharma-red/10', text: 'text-pharma-red', label: 'Refusé' };
+      case 'partiel':
+        return { bg: 'bg-blue-50', text: 'text-blue', label: 'Partiel' };
       default:
         return { bg: 'bg-gray-100', text: 'text-gray-500', label: 'Annulé' };
     }
   };
 
-  if (loading && demandes.length === 0) {
+  if (loading && groupedDemandes.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-bg">
         <ActivityIndicator color="#27AE60" size="large" />
@@ -218,15 +411,15 @@ export default function MesDemandesScreen() {
       {/* Header / Actions */}
       <View className="px-4 py-3 bg-white border-b border-blue-light flex-row justify-between items-center">
         <View>
-          <Text className="text-navy font-bold text-base">{demandes.length} demandes effectuées</Text>
-          <Text className="text-muted text-xs mt-0.5">Demander du stock auprès des laboratoires agréés</Text>
+          <Text className="text-navy font-bold text-base">{groupedDemandes.length} demandes effectuées</Text>
+          <Text className="text-muted text-xs mt-0.5">Demander du stock auprès des fabricants</Text>
         </View>
         <TouchableOpacity
           onPress={() => setShowCreateModal(true)}
           className="bg-pharma-green px-4 h-10 rounded-lg flex-row items-center gap-2"
         >
           <FAIcon name="plus" size={14} color="#fff" family="FontAwesome6" />
-          <Text className="text-white font-bold text-sm">Nouvelle demande</Text>
+          <Text className="text-white font-bold text-sm">Créer une demande</Text>
         </TouchableOpacity>
       </View>
 
@@ -234,33 +427,40 @@ export default function MesDemandesScreen() {
         className="flex-1 p-4"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {demandes.map((d) => {
+        {groupedDemandes.map((d) => {
           const style = getStatusStyle(d.statut);
           return (
             <TouchableOpacity
               key={d.id}
-              onPress={() => setSelectedDemande(d)}
+              onPress={() => setSelectedGroup(d)}
               className="bg-white rounded-xl p-4 mb-3 border border-blue-light shadow-sm"
               activeOpacity={0.7}
             >
               <View className="flex-row justify-between items-start mb-2">
                 <View className="flex-1 mr-2">
-                  <Text className="text-navy font-bold text-base">{d.nom_medicament}</Text>
-                  <Text className="text-muted text-xs mt-1">Dosage : {d.dosage} · Quantité : {d.quantite_demandee} unités</Text>
+                  <Text className="text-navy font-bold text-base">Demande de réapprovisionnement</Text>
+                  <Text className="text-muted text-xs mt-0.5">Pour : {d.fabricant}</Text>
                 </View>
                 <View className={`${style.bg} px-2 py-0.5 rounded-full`}>
                   <Text className={`${style.text} text-[10px] font-bold uppercase`}>{style.label}</Text>
                 </View>
               </View>
 
-              <Text className="text-muted text-xs mb-3">Vers : {d.fabricant_id?.nom_entite ?? 'Fabricant'}</Text>
-              
+              {/* Résumé des items */}
+              <View className="my-2 bg-bg/50 p-2.5 rounded-lg border border-blue-light/40">
+                {d.items.map((it, index) => (
+                  <Text key={it.id} className="text-xs text-navy font-medium mb-1">
+                    • {it.nom_medicament} {it.dosage} · <Text className="font-bold text-blue">{it.quantite_demandee} u.</Text>
+                  </Text>
+                ))}
+              </View>
+
               <View className="flex-row justify-between items-center border-t border-bg pt-3">
                 <Text className="text-muted text-[10px]">
-                  Fait le : {new Date(d.created_at).toLocaleDateString('fr-FR')}
+                  Envoyée le : {new Date(d.created_at).toLocaleDateString('fr-FR')}
                 </Text>
                 
-                {d.statut === 'en_attente' && (
+                {d.items.some(i => i.statut === 'en_attente') && (
                   <TouchableOpacity
                     onPress={(e) => {
                       e.stopPropagation();
@@ -268,14 +468,14 @@ export default function MesDemandesScreen() {
                     }}
                     className="px-3 py-1 border border-pharma-red/30 rounded-lg"
                   >
-                    <Text className="text-pharma-red text-xs font-semibold">Annuler</Text>
+                    <Text className="text-pharma-red text-xs font-semibold">Annuler tout</Text>
                   </TouchableOpacity>
                 )}
               </View>
             </TouchableOpacity>
           );
         })}
-        {demandes.length === 0 && (
+        {groupedDemandes.length === 0 && (
           <View className="items-center justify-center py-12">
             <FAIcon name="clipboard-list" size={48} color="#BACAD6" family="FontAwesome6" />
             <Text className="text-navy font-bold text-base mt-4">Aucune demande</Text>
@@ -292,12 +492,17 @@ export default function MesDemandesScreen() {
         visible={showCreateModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowCreateModal(false)}
+        onRequestClose={() => {
+          setShowCreateModal(false);
+          setCart([]);
+          setSelectedFabricantId('');
+          setGlobalNote('');
+        }}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <View className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-xl" style={{ maxHeight: '85%' }}>
+          <View className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl" style={{ maxHeight: '85%' }}>
             <View className="flex-row justify-between items-center mb-4 border-b border-bg pb-3">
-              <Text className="text-navy font-black text-lg">Nouvelle Demande</Text>
+              <Text className="text-navy font-black text-lg">Nouvelle Demande Multi-Produits</Text>
               <TouchableOpacity onPress={() => setShowCreateModal(false)} className="p-1">
                 <FAIcon name="xmark" size={18} color="#C0392B" family="FontAwesome6" />
               </TouchableOpacity>
@@ -310,8 +515,8 @@ export default function MesDemandesScreen() {
                   <Text className="text-navy font-bold text-xs mb-1.5">Fabricant destinataire *</Text>
                   <View className="bg-bg border border-blue-light rounded-xl overflow-hidden">
                     <select
-                      value={form.fabricantId}
-                      onChange={(e) => setForm({ ...form, fabricantId: e.target.value })}
+                      value={selectedFabricantId}
+                      onChange={(e) => handleFabricantChange(e.target.value)}
                       style={{
                         width: '100%',
                         height: 48,
@@ -321,6 +526,7 @@ export default function MesDemandesScreen() {
                         fontSize: 14,
                         color: '#1A3A5C',
                         outline: 'none',
+                        fontWeight: 'bold',
                       }}
                     >
                       <option value="">Sélectionner un fabricant...</option>
@@ -331,55 +537,130 @@ export default function MesDemandesScreen() {
                   </View>
                 </View>
 
-                {/* Nom médicament */}
-                <View>
-                  <Text className="text-navy font-bold text-xs mb-1.5">Nom du médicament *</Text>
-                  <TextInput
-                    className="bg-bg border border-blue-light rounded-xl h-12 px-4 text-sm text-navy"
-                    placeholder="Ex : Ceftriaxone"
-                    placeholderTextColor="#bbb"
-                    value={form.nomMedicament}
-                    onChangeText={(val) => setForm({ ...form, nomMedicament: val })}
-                  />
-                </View>
+                {selectedFabricantId ? (
+                  <View className="border border-blue-light/50 bg-[#F4F9FD] p-4 rounded-xl">
+                    <Text className="text-navy font-extrabold text-xs mb-3">Ajouter un produit à la demande :</Text>
+                    {loadingCatalog ? (
+                      <ActivityIndicator size="small" color="#1A3A5C" className="my-2" />
+                    ) : (
+                      <View className="gap-3">
+                        {/* Dropdown catalogue */}
+                        <View>
+                          <Text className="text-muted text-[10px] uppercase font-bold mb-1">Médicaments du catalogue fabricant</Text>
+                          <View className="bg-white border border-blue-light rounded-xl overflow-hidden">
+                            <select
+                              value={selectedCatalogIndex}
+                              onChange={(e) => handleCatalogSelect(e.target.value)}
+                              style={{
+                                width: '100%',
+                                height: 40,
+                                padding: '0 12px',
+                                border: 'none',
+                                background: 'transparent',
+                                fontSize: 13,
+                                color: '#1A3A5C',
+                                outline: 'none',
+                              }}
+                            >
+                              <option value="custom">Saisie manuelle (autre produit)</option>
+                              {catalog.map((c, idx) => (
+                                <option key={idx} value={String(idx)}>
+                                  {c.nom_medicament} ({c.dosage} · {c.forme_galenique || '—'})
+                                </option>
+                              ))}
+                            </select>
+                          </View>
+                        </View>
 
-                {/* Dosage */}
-                <View>
-                  <Text className="text-navy font-bold text-xs mb-1.5">Dosage *</Text>
-                  <TextInput
-                    className="bg-bg border border-blue-light rounded-xl h-12 px-4 text-sm text-navy"
-                    placeholder="Ex : 1g"
-                    placeholderTextColor="#bbb"
-                    value={form.dosage}
-                    onChangeText={(val) => setForm({ ...form, dosage: val })}
-                  />
-                </View>
+                        {/* Nom (editable si custom) */}
+                        <View className="flex-row gap-2">
+                          <View className="flex-2">
+                            <Text className="text-muted text-[10px] uppercase font-bold mb-1">Nom commercial</Text>
+                            <TextInput
+                              className="bg-white border border-blue-light rounded-xl h-10 px-3 text-xs text-navy"
+                              placeholder="Ex : Ceftriaxone"
+                              value={itemForm.nomMedicament}
+                              onChangeText={(t) => setItemForm({ ...itemForm, nomMedicament: t })}
+                              editable={selectedCatalogIndex === 'custom'}
+                            />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-muted text-[10px] uppercase font-bold mb-1">Dosage</Text>
+                            <TextInput
+                              className="bg-white border border-blue-light rounded-xl h-10 px-3 text-xs text-navy"
+                              placeholder="Ex : 1g"
+                              value={itemForm.dosage}
+                              onChangeText={(t) => setItemForm({ ...itemForm, dosage: t })}
+                            />
+                          </View>
+                        </View>
 
-                {/* Quantité */}
-                <View>
-                  <Text className="text-navy font-bold text-xs mb-1.5">Quantité demandée (unités) *</Text>
-                  <TextInput
-                    className="bg-bg border border-blue-light rounded-xl h-12 px-4 text-sm text-navy"
-                    placeholder="Ex : 500"
-                    placeholderTextColor="#bbb"
-                    value={form.quantite}
-                    keyboardType="numeric"
-                    onChangeText={(val) => setForm({ ...form, quantite: val.replace(/[^0-9]/g, '') })}
-                  />
-                </View>
+                        <View className="flex-row gap-2">
+                          <View className="flex-1">
+                            <Text className="text-muted text-[10px] uppercase font-bold mb-1">Forme galénique</Text>
+                            <TextInput
+                              className="bg-white border border-blue-light rounded-xl h-10 px-3 text-xs text-navy"
+                              placeholder="Ex : Comprimé, Injection"
+                              value={itemForm.formeGalenique}
+                              onChangeText={(t) => setItemForm({ ...itemForm, formeGalenique: t })}
+                            />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-muted text-[10px] uppercase font-bold mb-1">Quantité (u.)</Text>
+                            <TextInput
+                              className="bg-white border border-blue-light rounded-xl h-10 px-3 text-xs text-navy font-bold"
+                              placeholder="Nombre"
+                              keyboardType="numeric"
+                              value={itemForm.quantite}
+                              onChangeText={(t) => setItemForm({ ...itemForm, quantite: t.replace(/[^0-9]/g, '') })}
+                            />
+                          </View>
+                        </View>
 
-                {/* Notes */}
+                        <TouchableOpacity
+                          onPress={addItemToCart}
+                          className="h-10 bg-navy rounded-xl items-center justify-center mt-1"
+                        >
+                          <Text className="text-white font-bold text-xs">Ajouter au panier</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                ) : null}
+
+                {/* Panier d'items */}
+                {cart.length > 0 && (
+                  <View className="border border-blue-light p-3 rounded-xl bg-white">
+                    <Text className="text-navy font-black text-xs mb-2">Panier de la demande ({cart.length})</Text>
+                    {cart.map((item, index) => (
+                      <View key={index} className="flex-row justify-between items-center py-2 border-b border-bg flex-wrap gap-2">
+                        <View className="flex-1 pr-2">
+                          <Text className="text-navy font-bold text-xs">{item.nom_medicament}</Text>
+                          <Text className="text-muted text-[10px]">{item.dosage} · {item.forme_galenique}</Text>
+                        </View>
+                        <View className="flex-row items-center gap-3">
+                          <Text className="text-blue font-black text-sm">{item.quantite} u.</Text>
+                          <TouchableOpacity onPress={() => removeItemFromCart(index)} className="p-1">
+                            <FAIcon name="trash" size={13} color="#C0392B" family="FontAwesome" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {/* Note globale */}
                 <View>
-                  <Text className="text-navy font-bold text-xs mb-1.5">Notes additionnelles</Text>
+                  <Text className="text-navy font-bold text-xs mb-1.5">Note globale de commande (optionnel)</Text>
                   <TextInput
                     className="bg-bg border border-blue-light rounded-xl p-3 text-sm text-navy"
-                    placeholder="Précisions de livraison, urgence..."
+                    placeholder="Précisions pour la livraison globale de la commande..."
                     placeholderTextColor="#bbb"
-                    value={form.notes}
-                    onChangeText={(val) => setForm({ ...form, notes: val })}
+                    value={globalNote}
+                    onChangeText={setGlobalNote}
                     multiline
-                    numberOfLines={3}
-                    style={{ minHeight: 70, textAlignVertical: 'top' }}
+                    numberOfLines={2}
+                    style={{ minHeight: 50, textAlignVertical: 'top' }}
                   />
                 </View>
               </View>
@@ -387,20 +668,25 @@ export default function MesDemandesScreen() {
 
             <View className="flex-row gap-3 mt-6 pt-3 border-t border-bg">
               <TouchableOpacity
-                onPress={() => setShowCreateModal(false)}
+                onPress={() => {
+                  setShowCreateModal(false);
+                  setCart([]);
+                  setSelectedFabricantId('');
+                  setGlobalNote('');
+                }}
                 className="flex-1 h-12 border border-blue-light rounded-xl items-center justify-center"
               >
                 <Text className="text-navy font-bold text-sm">Annuler</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleCreateRequest}
-                disabled={submitting}
-                className="flex-1 h-12 bg-pharma-green rounded-xl items-center justify-center"
+                disabled={submitting || cart.length === 0}
+                className={`flex-1 h-12 rounded-xl items-center justify-center ${cart.length === 0 ? 'bg-pharma-green/40' : 'bg-pharma-green'}`}
               >
                 {submitting ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text className="text-white font-bold text-sm">Envoyer</Text>
+                  <Text className="text-white font-bold text-sm">Envoyer la demande</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -408,51 +694,65 @@ export default function MesDemandesScreen() {
         </View>
       </Modal>
 
-      {/* Modal Détails d'une Demande */}
+      {/* Modal Détails d'une Demande Groupée */}
       <Modal
-        visible={selectedDemande !== null}
+        visible={selectedGroup !== null}
         transparent
         animationType="fade"
-        onRequestClose={() => setSelectedDemande(null)}
+        onRequestClose={() => setSelectedGroup(null)}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <View className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-xl" style={{ maxHeight: '85%' }}>
             <View className="flex-row justify-between items-center mb-4 border-b border-bg pb-3">
               <Text className="text-navy font-black text-lg">Détails Demande</Text>
-              <TouchableOpacity onPress={() => setSelectedDemande(null)} className="p-1">
+              <TouchableOpacity onPress={() => setSelectedGroup(null)} className="p-1">
                 <FAIcon name="xmark" size={18} color="#C0392B" family="FontAwesome6" />
               </TouchableOpacity>
             </View>
 
-            {selectedDemande && (
+            {selectedGroup && (
               <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={true}>
                 <View className="gap-3">
-                  <View className="bg-pharma-green/10 p-3 rounded-xl mb-2">
-                    <Text className="text-pharma-green font-bold text-base">{selectedDemande.nom_medicament}</Text>
-                    <Text className="text-muted text-xs mt-1">{selectedDemande.dosage}</Text>
+                  <View className="border-b border-bg pb-2">
+                    <Text className="text-navy font-black text-sm">Fabricant : {selectedGroup.fabricant}</Text>
+                    <Text className="text-muted text-[10px] mt-0.5">Envoyée le {new Date(selectedGroup.created_at).toLocaleString('fr-FR')}</Text>
                   </View>
 
-                  <DetailRow label="Fabricant" value={selectedDemande.fabricant_id?.nom_entite ?? '—'} />
-                  <DetailRow label="Quantité" value={`${selectedDemande.quantite_demandee} unités`} />
-                  <DetailRow label="Fait le" value={new Date(selectedDemande.created_at).toLocaleString('fr-FR')} />
+                  <Text className="text-navy font-bold text-xs uppercase tracking-wider mt-1">Produits demandés :</Text>
                   
-                  <View className="py-2 border-b border-bg">
-                    <Text className="text-muted text-[10px] uppercase tracking-wider mb-1">Notes Pharmacie</Text>
-                    <Text className="text-navy text-sm font-medium">{selectedDemande.notes_pharmacie ?? 'Aucune note.'}</Text>
-                  </View>
+                  {selectedGroup.items.map((item) => {
+                    const itemStyle = getStatusStyle(item.statut);
+                    return (
+                      <View key={item.id} className="bg-bg/40 border border-blue-light/50 rounded-xl p-3 mb-2">
+                        <View className="flex-row justify-between items-center mb-1">
+                          <Text className="text-navy font-bold text-xs flex-1 mr-2">{item.nom_medicament}</Text>
+                          <View className={`${itemStyle.bg} px-2 py-0.5 rounded-full`}>
+                            <Text className={`${itemStyle.text} text-[9px] font-bold uppercase`}>{itemStyle.label}</Text>
+                          </View>
+                        </View>
+                        <Text className="text-muted text-[10px] mb-1">Dosage : {item.dosage} · Forme : {item.forme_galenique || '—'}</Text>
+                        <Text className="text-navy text-xs font-bold">Quantité : {item.quantite_demandee} unités</Text>
+                        
+                        {item.notes_fabricant && (
+                          <View className="mt-2 bg-white p-2 rounded border border-blue-light/30">
+                            <Text className="text-[9px] text-muted font-bold uppercase">Notes Fabricant</Text>
+                            <Text className="text-navy text-[10px] font-medium">{item.notes_fabricant}</Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
 
-                  {selectedDemande.notes_fabricant && (
-                    <View className="py-2 border-b border-bg">
-                      <Text className="text-muted text-[10px] uppercase tracking-wider mb-1">Motif de réponse fabricant</Text>
-                      <Text className="text-navy text-sm font-semibold">{selectedDemande.notes_fabricant}</Text>
-                    </View>
-                  )}
+                  <View className="py-2 border-t border-bg mt-2">
+                    <Text className="text-muted text-[10px] uppercase tracking-wider mb-1">Note globale pharmacie</Text>
+                    <Text className="text-navy text-xs font-medium">{selectedGroup.notes_pharmacie ?? 'Aucune note globale.'}</Text>
+                  </View>
                 </View>
               </ScrollView>
             )}
 
             <TouchableOpacity
-              onPress={() => setSelectedDemande(null)}
+              onPress={() => setSelectedGroup(null)}
               className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center"
             >
               <Text className="text-white font-bold text-sm">Fermer</Text>
@@ -465,14 +765,14 @@ export default function MesDemandesScreen() {
       <ConfirmModal
         visible={!!cancelTarget}
         title="Annuler la demande"
-        message="Voulez-vous vraiment annuler cette demande de stock ?"
+        message="Voulez-vous vraiment annuler tous les articles en attente de cette demande ?"
         confirmText="Annuler la demande"
         cancelText="Conserver"
         confirmColor="#C0392B"
         icon="triangle-exclamation"
         onConfirm={async () => {
           if (cancelTarget) {
-            await handleCancelRequest(cancelTarget);
+            await handleCancelGroupRequest(cancelTarget);
             setCancelTarget(null);
           }
         }}
@@ -491,17 +791,9 @@ export default function MesDemandesScreen() {
           if (confirmModal?.onConfirm) {
             confirmModal.onConfirm();
           }
+          setConfirmModal(null);
         }}
       />
-    </View>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="flex-row justify-between py-2 border-b border-bg">
-      <Text className="text-muted text-[10px] uppercase tracking-wider">{label}</Text>
-      <Text className="text-sm font-semibold text-text text-right flex-1 ml-4">{value}</Text>
     </View>
   );
 }

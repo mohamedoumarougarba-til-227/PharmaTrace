@@ -6,30 +6,39 @@ import { supabase } from '../../lib/supabase';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
 
-type DemandeRow = {
+type DemandeItem = {
   id: string;
   nom_medicament: string;
   dosage: string;
+  forme_galenique: string | null;
   quantite_demandee: number;
-  notes_pharmacie: string | null;
-  notes_fabricant: string | null;
   statut: 'en_attente' | 'satisfait' | 'refuse' | 'annule';
-  created_at: string;
-  pharmacie_id: { id: string; nom_entite: string } | null;
+  notes_fabricant: string | null;
   transfert_id: string | null;
+};
+
+type GroupedDemande = {
+  id: string; // group_id or individual row id
+  groupe_id: string | null;
+  statut: string;
+  created_at: string;
+  pharmacie: string;
+  pharmacie_id: string;
+  notes_pharmacie: string | null;
+  items: DemandeItem[];
 };
 
 export default function RequetesStockScreen() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
 
-  const [demandes, setDemandes] = useState<DemandeRow[]>([]);
+  const [groupedDemandes, setGroupedDemandes] = useState<GroupedDemande[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedDemande, setSelectedDemande] = useState<DemandeRow | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<GroupedDemande | null>(null);
   
-  // Refus
-  const [refusTarget, setRefusTarget] = useState<DemandeRow | null>(null);
+  // Refus d'un item particulier
+  const [refusTarget, setRefusTarget] = useState<DemandeItem | null>(null);
   const [motifRefus, setMotifRefus] = useState('');
   const [refusing, setRefusing] = useState(false);
 
@@ -48,12 +57,66 @@ export default function RequetesStockScreen() {
 
       const { data, error } = await supabase
         .from('demandes_stock')
-        .select('id, nom_medicament, dosage, quantite_demandee, notes_pharmacie, notes_fabricant, statut, created_at, pharmacie_id(id, nom_entite), transfert_id')
+        .select('id, nom_medicament, dosage, forme_galenique, quantite_demandee, notes_pharmacie, notes_fabricant, statut, created_at, groupe_id, pharmacie_id(id, nom_entite), transfert_id')
         .eq('fabricant_id', session.user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDemandes((data ?? []) as unknown as DemandeRow[]);
+
+      // Groupement par groupe_id ou par ID de ligne
+      const groupsMap: { [key: string]: GroupedDemande } = {};
+      (data ?? []).forEach((row: any) => {
+        const key = row.groupe_id || row.id;
+        if (!groupsMap[key]) {
+          groupsMap[key] = {
+            id: key,
+            groupe_id: row.groupe_id,
+            statut: row.statut,
+            created_at: row.created_at,
+            pharmacie: row.pharmacie_id?.nom_entite ?? 'Pharmacie',
+            pharmacie_id: row.pharmacie_id?.id ?? '',
+            notes_pharmacie: row.notes_pharmacie,
+            items: [],
+          };
+        }
+        groupsMap[key].items.push({
+          id: row.id,
+          nom_medicament: row.nom_medicament,
+          dosage: row.dosage,
+          forme_galenique: row.forme_galenique,
+          quantite_demandee: row.quantite_demandee,
+          statut: row.statut,
+          notes_fabricant: row.notes_fabricant,
+          transfert_id: row.transfert_id,
+        });
+      });
+
+      // Mettre à jour le statut global du groupe
+      Object.values(groupsMap).forEach((g) => {
+        const statuses = g.items.map((i) => i.statut);
+        if (statuses.every((s) => s === 'en_attente')) {
+          g.statut = 'en_attente';
+        } else if (statuses.every((s) => s === 'satisfait')) {
+          g.statut = 'satisfait';
+        } else if (statuses.every((s) => s === 'refuse')) {
+          g.statut = 'refuse';
+        } else if (statuses.every((s) => s === 'annule')) {
+          g.statut = 'annule';
+        } else {
+          g.statut = 'partiel'; // statut mixte
+        }
+      });
+
+      const sortedGroups = Object.values(groupsMap).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setGroupedDemandes(sortedGroups);
+
+      // Si un groupe est actuellement ouvert en détails, on met à jour ses données
+      if (selectedGroup) {
+        const updated = sortedGroups.find(g => g.id === selectedGroup.id);
+        if (updated) setSelectedGroup(updated);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -73,7 +136,7 @@ export default function RequetesStockScreen() {
     await loadDemandes();
   };
 
-  const handleRefus = async () => {
+  const handleRefusItem = async () => {
     if (!refusTarget) return;
     if (!motifRefus.trim()) {
       setSuccessModal({
@@ -100,9 +163,10 @@ export default function RequetesStockScreen() {
       setRefusTarget(null);
       setMotifRefus('');
       await loadDemandes();
+      
       setSuccessModal({
-        title: 'Demande refusée',
-        message: 'La demande a été rejetée et la pharmacie en a été notifiée.',
+        title: 'Article refusé',
+        message: 'Cet article a été refusé avec succès.',
         color: '#E67E22',
         icon: 'circle-check',
       });
@@ -119,15 +183,15 @@ export default function RequetesStockScreen() {
     }
   };
 
-  const handleRepondreTransfert = (demande: DemandeRow) => {
-    if (!demande.pharmacie_id?.id) return;
+  const handleRepondreTransfert = (item: DemandeItem, pharmacieId: string) => {
+    setSelectedGroup(null);
     router.push({
       pathname: '/(fabricant)/nouveau-transfert',
       params: {
-        demandeId: demande.id,
-        nomMedicament: demande.nom_medicament,
-        destinataireId: demande.pharmacie_id.id,
-        quantite: String(demande.quantite_demandee),
+        demandeId: item.id,
+        nomMedicament: item.nom_medicament,
+        destinataireId: pharmacieId,
+        quantite: String(item.quantite_demandee),
       },
     });
   };
@@ -140,12 +204,14 @@ export default function RequetesStockScreen() {
         return { bg: 'bg-pharma-green/10', text: 'text-pharma-green', label: 'Satisfait' };
       case 'refuse':
         return { bg: 'bg-pharma-red/10', text: 'text-pharma-red', label: 'Refusé' };
+      case 'partiel':
+        return { bg: 'bg-blue-50', text: 'text-blue', label: 'Partiel' };
       default:
         return { bg: 'bg-gray-100', text: 'text-gray-500', label: 'Annulé' };
     }
   };
 
-  if (loading && demandes.length === 0) {
+  if (loading && groupedDemandes.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-bg">
         <ActivityIndicator color="#1A3A5C" size="large" />
@@ -153,61 +219,67 @@ export default function RequetesStockScreen() {
     );
   }
 
-  const enAttente = demandes.filter((d) => d.statut === 'en_attente');
-  const historique = demandes.filter((d) => d.statut !== 'en_attente');
+  const enAttente = groupedDemandes.filter((d) => d.statut === 'en_attente' || d.statut === 'partiel');
+  const historique = groupedDemandes.filter((d) => d.statut !== 'en_attente' && d.statut !== 'partiel');
 
   return (
     <ScrollView
       className="flex-1 bg-bg p-4"
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      {/* Section En attente */}
+      {/* Section Demandes Actives */}
       <View className="mb-4 flex-row items-center gap-2">
         <FAIcon name="bell" size={16} color="#E67E22" family="FontAwesome6" />
-        <Text className="text-navy font-bold text-base">{enAttente.length} demandes en attente</Text>
+        <Text className="text-navy font-bold text-base">{enAttente.length} demandes actives</Text>
       </View>
 
       {enAttente.map((d) => (
-        <View key={d.id} className="bg-white rounded-xl p-4 mb-3 border-l-4 border-pharma-orange shadow-sm">
+        <TouchableOpacity
+          key={d.id}
+          onPress={() => setSelectedGroup(d)}
+          className="bg-white rounded-xl p-4 mb-3 border-l-4 border-pharma-orange shadow-sm"
+          activeOpacity={0.7}
+        >
           <View className="flex-row justify-between items-start mb-2">
             <View className="flex-1 mr-2">
-              <Text className="text-navy font-bold text-base">{d.nom_medicament}</Text>
-              <Text className="text-muted text-xs mt-1">Dosage : {d.dosage} · Quantité demandée : {d.quantite_demandee} unités</Text>
+              <Text className="text-navy font-bold text-base">Demande de réapprovisionnement</Text>
+              <Text className="text-muted text-xs mt-1">De : {d.pharmacie}</Text>
             </View>
             <View className="bg-pharma-orange/10 px-2 py-0.5 rounded-full">
-              <Text className="text-pharma-orange text-[10px] font-bold uppercase">Nouveau</Text>
+              <Text className="text-pharma-orange text-[10px] font-bold uppercase">Actif</Text>
             </View>
           </View>
-          <Text className="text-muted text-xs mb-2">De : {d.pharmacie_id?.nom_entite ?? 'Pharmacie'}</Text>
+          
+          <View className="my-2 bg-bg/50 p-2.5 rounded-lg border border-blue-light/40">
+            {d.items.map((it) => (
+              <Text key={it.id} className="text-xs text-navy font-medium mb-1">
+                • {it.nom_medicament} {it.dosage} · <Text className="font-bold text-blue">{it.quantite_demandee} u.</Text>
+                {it.statut !== 'en_attente' && (
+                  <Text className={`text-[10px] uppercase font-bold ml-2 ${it.statut === 'satisfait' ? 'text-pharma-green' : 'text-pharma-red'}`}>
+                    ({it.statut})
+                  </Text>
+                )}
+              </Text>
+            ))}
+          </View>
+
           {d.notes_pharmacie && (
-            <View className="bg-bg p-3 rounded-lg mb-3 border border-blue-light">
-              <Text className="text-[10px] text-muted font-bold uppercase mb-1">Message pharmacie</Text>
-              <Text className="text-navy text-xs">{d.notes_pharmacie}</Text>
-            </View>
+            <Text className="text-muted text-xs italic mb-2">Note pharmacie : "{d.notes_pharmacie}"</Text>
           )}
 
-          <View className="flex-row gap-2 border-t border-bg pt-3">
-            <TouchableOpacity
-              onPress={() => setRefusTarget(d)}
-              className="flex-1 h-10 border border-pharma-red rounded-lg items-center justify-center"
-            >
-              <Text className="text-pharma-red font-semibold text-sm">Refuser</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleRepondreTransfert(d)}
-              className="flex-2 h-10 bg-navy rounded-lg items-center justify-center flex-row gap-2"
-            >
-              <FAIcon name="share" size={12} color="#fff" family="FontAwesome6" />
-              <Text className="text-white font-bold text-sm">Répondre par transfert</Text>
-            </TouchableOpacity>
+          <View className="flex-row justify-between items-center border-t border-bg pt-3">
+            <Text className="text-muted text-[10px]">
+              Reçue le : {new Date(d.created_at).toLocaleDateString('fr-FR')}
+            </Text>
+            <Text className="text-blue text-xs font-semibold">Traiter la demande →</Text>
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
 
       {enAttente.length === 0 && (
         <View className="bg-white rounded-xl p-6 mb-4 items-center justify-center border border-blue-light">
           <FAIcon name="circle-check" size={32} color="#27AE60" family="FontAwesome6" />
-          <Text className="text-navy font-bold text-sm mt-3">Aucune demande en attente</Text>
+          <Text className="text-navy font-bold text-sm mt-3">Aucune demande active</Text>
         </View>
       )}
 
@@ -220,21 +292,21 @@ export default function RequetesStockScreen() {
             return (
               <TouchableOpacity
                 key={d.id}
-                onPress={() => setSelectedDemande(d)}
+                onPress={() => setSelectedGroup(d)}
                 className="bg-white rounded-xl p-4 mb-3 border border-blue-light shadow-sm"
                 activeOpacity={0.7}
               >
                 <View className="flex-row justify-between items-start mb-2">
                   <View className="flex-1 mr-2">
-                    <Text className="text-navy font-bold text-sm">{d.nom_medicament}</Text>
-                    <Text className="text-muted text-xs mt-0.5">{d.quantite_demandee} unités · {d.dosage}</Text>
+                    <Text className="text-navy font-bold text-sm">Demande de stock ({d.items.length} prod.)</Text>
+                    <Text className="text-muted text-xs mt-0.5">De : {d.pharmacie}</Text>
                   </View>
                   <View className={`${style.bg} px-2 py-0.5 rounded-full`}>
                     <Text className={`${style.text} text-[10px] font-bold uppercase`}>{style.label}</Text>
                   </View>
                 </View>
                 <Text className="text-muted text-[10px]">
-                  De : {d.pharmacie_id?.nom_entite ?? 'Pharmacie'} · Le : {new Date(d.created_at).toLocaleDateString('fr-FR')}
+                  Fermée le : {new Date(d.created_at).toLocaleDateString('fr-FR')}
                 </Text>
               </TouchableOpacity>
             );
@@ -242,7 +314,7 @@ export default function RequetesStockScreen() {
         </>
       )}
 
-      {/* Modal Formulaire de Refus */}
+      {/* Modal Formulaire de Refus d'un Item */}
       <Modal
         visible={refusTarget !== null}
         transparent
@@ -252,19 +324,21 @@ export default function RequetesStockScreen() {
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <View className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-xl">
             <View className="flex-row justify-between items-center mb-4 border-b border-bg pb-3">
-              <Text className="text-navy font-black text-lg">Refuser la demande</Text>
+              <Text className="text-navy font-black text-lg">Refuser l'article</Text>
               <TouchableOpacity onPress={() => setRefusTarget(null)} className="p-1">
                 <FAIcon name="xmark" size={18} color="#C0392B" family="FontAwesome6" />
               </TouchableOpacity>
             </View>
 
-            <Text className="text-muted text-xs mb-3">
-              Veuillez saisir la raison pour laquelle vous ne pouvez pas satisfaire cette demande (ex: rupture de stock).
-            </Text>
+            {refusTarget && (
+              <Text className="text-navy font-bold text-sm mb-3">
+                Raison du refus de "{refusTarget.nom_medicament} {refusTarget.dosage}" :
+              </Text>
+            )}
 
             <TextInput
               className="bg-bg border border-blue-light rounded-xl p-3 text-sm text-navy mb-4"
-              placeholder="Saisissez le motif de refus..."
+              placeholder="Saisissez le motif de refus (ex: stock insuffisant)..."
               placeholderTextColor="#bbb"
               value={motifRefus}
               onChangeText={setMotifRefus}
@@ -281,7 +355,7 @@ export default function RequetesStockScreen() {
                 <Text className="text-navy font-bold text-sm">Annuler</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={handleRefus}
+                onPress={handleRefusItem}
                 disabled={refusing}
                 className="flex-1 h-12 bg-pharma-red rounded-xl items-center justify-center"
               >
@@ -296,51 +370,83 @@ export default function RequetesStockScreen() {
         </View>
       </Modal>
 
-      {/* Modal Détails Demande */}
+      {/* Modal Détails d'une Demande Groupée */}
       <Modal
-        visible={selectedDemande !== null}
+        visible={selectedGroup !== null}
         transparent
         animationType="fade"
-        onRequestClose={() => setSelectedDemande(null)}
+        onRequestClose={() => setSelectedGroup(null)}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <View className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-xl" style={{ maxHeight: '85%' }}>
+          <View className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl" style={{ maxHeight: '85%' }}>
             <View className="flex-row justify-between items-center mb-4 border-b border-bg pb-3">
               <Text className="text-navy font-black text-lg">Détails Demande</Text>
-              <TouchableOpacity onPress={() => setSelectedDemande(null)} className="p-1">
+              <TouchableOpacity onPress={() => setSelectedGroup(null)} className="p-1">
                 <FAIcon name="xmark" size={18} color="#C0392B" family="FontAwesome6" />
               </TouchableOpacity>
             </View>
 
-            {selectedDemande && (
+            {selectedGroup && (
               <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={true}>
                 <View className="gap-3">
-                  <View className="bg-pharma-green/10 p-3 rounded-xl mb-2">
-                    <Text className="text-pharma-green font-bold text-base">{selectedDemande.nom_medicament}</Text>
-                    <Text className="text-muted text-xs mt-1">{selectedDemande.dosage}</Text>
+                  <View className="border-b border-bg pb-2">
+                    <Text className="text-navy font-black text-sm">De : {selectedGroup.pharmacie}</Text>
+                    <Text className="text-muted text-[10px] mt-0.5">Reçue le {new Date(selectedGroup.created_at).toLocaleString('fr-FR')}</Text>
                   </View>
 
-                  <DetailRow label="Pharmacie" value={selectedDemande.pharmacie_id?.nom_entite ?? '—'} />
-                  <DetailRow label="Quantité" value={`${selectedDemande.quantite_demandee} unités`} />
-                  <DetailRow label="Fait le" value={new Date(selectedDemande.created_at).toLocaleString('fr-FR')} />
+                  <Text className="text-navy font-bold text-xs uppercase tracking-wider mt-1">Articles demandés :</Text>
                   
-                  <View className="py-2 border-b border-bg">
-                    <Text className="text-muted text-[10px] uppercase tracking-wider mb-1">Message pharmacie</Text>
-                    <Text className="text-navy text-sm font-medium">{selectedDemande.notes_pharmacie ?? 'Aucun message.'}</Text>
-                  </View>
+                  {selectedGroup.items.map((item) => {
+                    const itemStyle = getStatusStyle(item.statut);
+                    return (
+                      <View key={item.id} className="bg-bg/40 border border-blue-light/50 rounded-xl p-3 mb-2">
+                        <View className="flex-row justify-between items-center mb-1">
+                          <Text className="text-navy font-bold text-xs flex-1 mr-2">{item.nom_medicament}</Text>
+                          <View className={`${itemStyle.bg} px-2 py-0.5 rounded-full`}>
+                            <Text className={`${itemStyle.text} text-[9px] font-bold uppercase`}>{itemStyle.label}</Text>
+                          </View>
+                        </View>
+                        <Text className="text-muted text-[10px] mb-1">Dosage : {item.dosage} · Forme : {item.forme_galenique || '—'}</Text>
+                        <Text className="text-navy text-xs font-bold mb-2">Quantité : {item.quantite_demandee} unités</Text>
+                        
+                        {item.statut === 'en_attente' && (
+                          <View className="flex-row gap-2 mt-2 pt-2 border-t border-blue-light/30">
+                            <TouchableOpacity
+                              onPress={() => setRefusTarget(item)}
+                              className="flex-1 h-8 border border-pharma-red/40 rounded-lg items-center justify-center"
+                            >
+                              <Text className="text-pharma-red text-[11px] font-semibold">Refuser</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => handleRepondreTransfert(item, selectedGroup.pharmacie_id)}
+                              className="flex-2 h-8 bg-navy rounded-lg items-center justify-center flex-row gap-1"
+                            >
+                              <FAIcon name="share" size={9} color="#fff" family="FontAwesome6" />
+                              <Text className="text-white text-[11px] font-bold">Livrer par transfert</Text>
+                            </TouchableOpacity>
+                          </View>
+                        )}
 
-                  {selectedDemande.notes_fabricant && (
-                    <View className="py-2 border-b border-bg">
-                      <Text className="text-muted text-[10px] uppercase tracking-wider mb-1">Motif de refus fabricant</Text>
-                      <Text className="text-navy text-sm font-semibold">{selectedDemande.notes_fabricant}</Text>
-                    </View>
-                  )}
+                        {item.notes_fabricant && (
+                          <View className="mt-2 bg-white p-2 rounded border border-blue-light/30">
+                            <Text className="text-[9px] text-muted font-bold uppercase">Notes Fabricant</Text>
+                            <Text className="text-navy text-[10px] font-medium">{item.notes_fabricant}</Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+
+                  <View className="py-2 border-t border-bg mt-2">
+                    <Text className="text-muted text-[10px] uppercase tracking-wider mb-1">Message pharmacie (global)</Text>
+                    <Text className="text-navy text-xs font-medium">{selectedGroup.notes_pharmacie ?? 'Aucune note.'}</Text>
+                  </View>
                 </View>
               </ScrollView>
             )}
 
             <TouchableOpacity
-              onPress={() => setSelectedDemande(null)}
+              onPress={() => setSelectedGroup(null)}
               className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center"
             >
               <Text className="text-white font-bold text-sm">Fermer</Text>
@@ -360,14 +466,5 @@ export default function RequetesStockScreen() {
         onConfirm={async () => setSuccessModal(null)}
       />
     </ScrollView>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="flex-row justify-between py-2 border-b border-bg">
-      <Text className="text-muted text-[10px] uppercase tracking-wider">{label}</Text>
-      <Text className="text-sm font-semibold text-text text-right flex-1 ml-4">{value}</Text>
-    </View>
   );
 }

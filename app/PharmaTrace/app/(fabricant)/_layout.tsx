@@ -19,6 +19,7 @@ const NAV_ITEMS: NavItem[] = [
   { route: "/(fabricant)/lots", label: "Lots", icon: "box", matchPaths: ["/lots"] },
   { route: "/(fabricant)/nouveau-lot", label: "Créer", icon: "plus", matchPaths: ["/nouveau-lot"] },
   { route: "/(fabricant)/transferts", label: "Transferts", icon: "right-left", matchPaths: ["/transferts"] },
+  { route: "/(fabricant)/demandes", label: "Demandes", icon: "clipboard-list", matchPaths: ["/demandes"] },
   { route: "/(fabricant)/compte", label: "Compte", icon: "user", matchPaths: ["/compte"] },
 ];
 
@@ -366,6 +367,14 @@ export default function FabricantLayout() {
           title: "Transferts",
           tabBarLabel: "Transferts",
           tabBarIcon: ({ color }) => <FAIcon name="right-left" size={20} color={color} family="FontAwesome6" />,
+        }}
+      />
+      <Tabs.Screen
+        name="demandes"
+        options={{
+          title: "Demandes de Stock Reçues",
+          tabBarLabel: "Demandes",
+          tabBarIcon: ({ color }) => <FAIcon name="clipboard-list" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen

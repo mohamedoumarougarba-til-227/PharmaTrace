@@ -37,14 +37,18 @@ export default function PharmacieCompteScreen() {
       const todayStr = new Date().toISOString().split('T')[0];
 
       // Stats pharmacie
-      const [stockRes, recusRes, verifRes] = await Promise.all([
-        supabase.from('lots_medicaments').select('id', { count: 'exact' }).eq('statut_actuel', 'en_pharmacie').eq('is_archived', false).gte('date_expiration', todayStr),
+      const [transfertsStockRes, recusRes, verifRes] = await Promise.all([
+        supabase.from('transferts').select('id, lot_id(date_expiration)').eq('destinataire_id', session.user.id).eq('statut', 'receptionne'),
         supabase.from('transferts').select('id', { count: 'exact' }).eq('destinataire_id', session.user.id).eq('statut', 'receptionne'),
         supabase.from('historique_scans').select('id', { count: 'exact' }).eq('scanneur_id', session.user.id),
       ]);
 
+      const activeStockCount = (transfertsStockRes.data ?? []).filter((t: any) => {
+        return t.lot_id?.date_expiration ? t.lot_id.date_expiration >= todayStr : true;
+      }).length;
+
       setStats({
-        enStock:       stockRes.count ?? 0,
+        enStock:       activeStockCount,
         recus:         recusRes.count ?? 0,
         verifications: verifRes.count ?? 0,
       });

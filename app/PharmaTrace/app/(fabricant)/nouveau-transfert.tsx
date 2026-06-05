@@ -23,7 +23,14 @@ type LotInfo = {
 };
 
 export default function NouveauTransfertScreen() {
-  const { lotId } = useLocalSearchParams<{ lotId?: string }>();
+  const { lotId, demandeId, nomMedicament, destinataireId, quantite } = useLocalSearchParams<{
+    lotId?: string;
+    demandeId?: string;
+    nomMedicament?: string;
+    destinataireId?: string;
+    quantite?: string;
+  }>();
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [pharmacies, setPharmacies] = useState<PharmacieOption[]>([]);
@@ -31,6 +38,8 @@ export default function NouveauTransfertScreen() {
   const [showPicker, setShowPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [lot, setLot] = useState<LotInfo | null>(null);
+  const [matchingLots, setMatchingLots] = useState<LotInfo[]>([]);
+  const [selectedLotId, setSelectedLotId] = useState<string>('');
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [successModal, setSuccessModal] = useState<{
     title: string;
@@ -68,42 +77,75 @@ export default function NouveauTransfertScreen() {
         return;
       }
 
-      const [pharmaciesRes, lotRes] = await Promise.all([
-        supabase
-          .from('utilisateurs')
-          .select('id, nom_entite, adresse, ville')
-          .eq('role', 'pharmacie')
-          .eq('statut', 'actif')
-          .order('nom_entite', { ascending: true }),
-        lotId
-          ? supabase
-              .from('lots_medicaments')
-              .select('id, numero_lot, nom_medicament, quantite_initiale, quantite_actuelle, date_expiration')
-              .eq('id', lotId)
-              .eq('fabricant_id', session.user.id)
-              .single()
-          : Promise.resolve({ data: null, error: null } as any),
-      ]);
+      // Load pharmacies
+      const { data: pharmData, error: pharmError } = await supabase
+        .from('utilisateurs')
+        .select('id, nom_entite, adresse, ville')
+        .eq('role', 'pharmacie')
+        .eq('statut', 'actif')
+        .order('nom_entite', { ascending: true });
 
-      if (pharmaciesRes.error) throw pharmaciesRes.error;
-      if (lotRes?.error) throw lotRes.error;
+      if (pharmError) throw pharmError;
+      setPharmacies((pharmData ?? []) as PharmacieOption[]);
 
-      const dataPharmacies = (pharmaciesRes.data ?? []) as PharmacieOption[];
-      setPharmacies(dataPharmacies);
+      // Auto-pre-fill destinataire destination
+      if (destinataireId && quantite) {
+        setSelectedDestinations([{
+          pharmacieId: destinataireId,
+          quantite: quantite,
+          note: demandeId ? 'Réponse à votre demande de stock' : '',
+        }]);
+      }
 
-      if (lotRes?.data) {
-        const lotData = lotRes.data as LotInfo;
-        if (lotData.date_expiration && new Date(lotData.date_expiration) < new Date()) {
-          setSuccessModal({
-            title: 'Lot expiré',
-            message: 'Ce lot a expiré. Il est interdit d\'initier un transfert pour un produit périmé.',
-            color: '#C0392B',
-            icon: 'triangle-exclamation',
-            onConfirm: () => router.replace('/(fabricant)/lots'),
-          });
-          return;
+      // Load specific lot if lotId is given
+      if (lotId) {
+        const { data: lotData, error: lotError } = await supabase
+          .from('lots_medicaments')
+          .select('id, numero_lot, nom_medicament, quantite_initiale, quantite_actuelle, date_expiration')
+          .eq('id', lotId)
+          .eq('fabricant_id', session.user.id)
+          .single();
+
+        if (lotError) throw lotError;
+
+        if (lotData) {
+          const lInfo = lotData as LotInfo;
+          if (lInfo.date_expiration && new Date(lInfo.date_expiration) < new Date()) {
+            setSuccessModal({
+              title: 'Lot expiré',
+              message: 'Ce lot a expiré. Il est interdit d\'initier un transfert pour un produit périmé.',
+              color: '#C0392B',
+              icon: 'triangle-exclamation',
+              onConfirm: () => router.replace('/(fabricant)/lots'),
+            });
+            return;
+          }
+          setLot(lInfo);
+          setSelectedLotId(lInfo.id);
         }
-        setLot(lotData);
+      } else if (demandeId && nomMedicament) {
+        // Find matching manufacturer lots for this medicine name
+        const todayStr = new Date().toISOString().split('T')[0];
+        const { data: matchedLots, error: matchedError } = await supabase
+          .from('lots_medicaments')
+          .select('id, numero_lot, nom_medicament, quantite_initiale, quantite_actuelle, date_expiration')
+          .eq('fabricant_id', session.user.id)
+          .eq('statut_actuel', 'en_stock_fabricant')
+          .ilike('nom_medicament', `%${nomMedicament}%`)
+          .gte('date_expiration', todayStr)
+          .order('date_expiration', { ascending: true });
+
+        if (matchedError) throw matchedError;
+
+        const availableLots = (matchedLots ?? []) as LotInfo[];
+        setMatchingLots(availableLots);
+
+        const requestedQty = Number(quantite || 0);
+        const autoLot = availableLots.find(l => (l.quantite_actuelle ?? l.quantite_initiale) >= requestedQty) || availableLots[0];
+        if (autoLot) {
+          setLot(autoLot);
+          setSelectedLotId(autoLot.id);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -121,7 +163,7 @@ export default function NouveauTransfertScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [lotId]),
+    }, [lotId, demandeId, nomMedicament, destinataireId, quantite]),
   );
 
   const togglePharmacie = (id: string) => {
@@ -234,8 +276,13 @@ export default function NouveauTransfertScreen() {
         notes_expediteur: dest.note.trim() || null,
       }));
 
-      const insertRes = await supabase.from('transferts').insert(transferRows);
-      if (insertRes.error) throw insertRes.error;
+      const { data: insertedData, error: insertError } = await supabase
+        .from('transferts')
+        .insert(transferRows)
+        .select('id');
+
+      if (insertError) throw insertError;
+      const createdTransferId = insertedData?.[0]?.id;
 
       // 2. Decrement lot quantity in database
       const newQty = availableQty - totalQty;
@@ -253,6 +300,20 @@ export default function NouveauTransfertScreen() {
         .eq('fabricant_id', session.user.id);
 
       if (updateLotRes.error) throw updateLotRes.error;
+
+      // 3. Link stock request if applicable
+      if (demandeId && createdTransferId) {
+        const { error: updateDemandeError } = await supabase
+          .from('demandes_stock')
+          .update({
+            statut: 'satisfait',
+            transfert_id: createdTransferId,
+            notes_fabricant: 'Demande satisfaite et lot expédié.',
+          })
+          .eq('id', demandeId);
+
+        if (updateDemandeError) throw updateDemandeError;
+      }
 
       setShowConfirmSubmit(false);
       setSuccessModal({
@@ -288,7 +349,19 @@ export default function NouveauTransfertScreen() {
     return (
       <View className="flex-1 bg-bg items-center justify-center px-6">
         <Text className="text-navy font-semibold text-base text-center">Aucun lot sélectionné pour le transfert</Text>
-        <Text className="text-muted text-sm text-center mt-2">Ouvrez le détail d'un lot puis cliquez sur "Initier un transfert".</Text>
+        {demandeId ? (
+          <Text className="text-pharma-red text-sm text-center mt-2 font-bold">
+            Vous n'avez aucun lot actif de "{nomMedicament}" en stock pour répondre à cette demande.
+          </Text>
+        ) : (
+          <Text className="text-muted text-sm text-center mt-2">Ouvrez le détail d'un lot puis cliquez sur "Initier un transfert".</Text>
+        )}
+        <TouchableOpacity
+          onPress={() => router.replace('/(fabricant)/demandes')}
+          className="mt-6 px-5 py-2.5 bg-navy rounded-xl"
+        >
+          <Text className="text-white font-bold text-sm">Retour aux demandes</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -300,13 +373,49 @@ export default function NouveauTransfertScreen() {
         {/* En-tête Lot Info */}
         <View className="bg-[#EEF4FB] border border-blue-light rounded-2xl p-4 mb-4">
           <Text className="text-blue uppercase text-xs font-bold tracking-widest mb-2">Lot à transférer</Text>
-          <Text className="text-navy font-black text-[32px]">{lot.nom_medicament}</Text>
-          <View className="flex-row items-center mt-2 gap-2 flex-wrap">
-            <View className="bg-navy px-2 py-1 rounded-md">
-              <Text className="text-white text-xs font-bold">{lot.numero_lot}</Text>
+          {matchingLots.length > 1 ? (
+            <View>
+              <Text className="text-navy font-bold text-xs mb-1.5">Sélectionner le lot pour répondre ({nomMedicament}) :</Text>
+              <View className="bg-white border border-blue-light rounded-xl overflow-hidden mb-2">
+                <select
+                  value={selectedLotId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelectedLotId(id);
+                    const chosen = matchingLots.find(l => l.id === id);
+                    if (chosen) setLot(chosen);
+                  }}
+                  style={{
+                    width: '100%',
+                    height: 44,
+                    padding: '0 12px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: 14,
+                    color: '#1A3A5C',
+                    fontWeight: 'bold',
+                    outline: 'none',
+                  }}
+                >
+                  {matchingLots.map(l => (
+                    <option key={l.id} value={l.id}>
+                      Lot: {l.numero_lot} (Stock: {l.quantite_actuelle ?? l.quantite_initiale} u. · Exp: {l.date_expiration})
+                    </option>
+                  ))}
+                </select>
+              </View>
             </View>
-            <Text className="text-[#27AE60] text-sm font-semibold">{availableQty.toLocaleString('fr-FR')} unités disponibles</Text>
-          </View>
+          ) : (
+            <>
+              <Text className="text-navy font-black text-[32px]">{lot.nom_medicament}</Text>
+              <View className="flex-row items-center mt-2 gap-2 flex-wrap">
+                <View className="bg-navy px-2 py-1 rounded-md">
+                  <Text className="text-white text-xs font-bold">{lot.numero_lot}</Text>
+                </View>
+                <Text className="text-[#27AE60] text-sm font-semibold">{availableQty.toLocaleString('fr-FR')} unités disponibles</Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Section Sélection des Pharmacies */}

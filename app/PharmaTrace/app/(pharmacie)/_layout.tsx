@@ -18,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { route: "/(pharmacie)/", label: "Accueil", icon: "chart-bar", matchPaths: ["/", "/index"] },
   { route: "/(pharmacie)/transferts", label: "Entrants", icon: "inbox", matchPaths: ["/transferts"] },
   { route: "/(pharmacie)/stock", label: "Stock", icon: "box", matchPaths: ["/stock"] },
+  { route: "/(pharmacie)/demandes", label: "Demandes", icon: "clipboard-list", matchPaths: ["/demandes"] },
   { route: "/(pharmacie)/verifier", label: "Scanner", icon: "magnifying-glass", matchPaths: ["/verifier"] },
   { route: "/(pharmacie)/compte", label: "Compte", icon: "user", matchPaths: ["/compte"] },
 ];
@@ -358,6 +359,14 @@ export default function PharmacieLayout() {
           title: "Mon Stock",
           tabBarLabel: "Stock",
           tabBarIcon: ({ color }) => <FAIcon name="box" size={20} color={color} family="FontAwesome6" />,
+        }}
+      />
+      <Tabs.Screen
+        name="demandes"
+        options={{
+          title: "Mes Demandes de Stock",
+          tabBarLabel: "Demandes",
+          tabBarIcon: ({ color }) => <FAIcon name="clipboard-list" size={20} color={color} family="FontAwesome6" />,
         }}
       />
       <Tabs.Screen

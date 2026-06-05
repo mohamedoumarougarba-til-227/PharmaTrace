@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, useWindowDimensions } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useLocalSearchParams, router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -33,6 +33,9 @@ type VerifyResult =
     };
 
 export default function PharmacyScannerScreen() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+
   const { transfertId, expectedLotId, expectedLotNum, expectedLotNom } = useLocalSearchParams();
 
   const [input, setInput] = useState('');
@@ -248,197 +251,206 @@ export default function PharmacyScannerScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-bg p-5" keyboardShouldPersistTaps="handled">
-      {/* Bannière Mode Réception si actif */}
-      {expectedLotId && result.status === 'idle' && (
-        <View className="bg-pharma-orange/10 border-l-4 border-pharma-orange p-3 rounded-r-xl mb-4">
-          <Text className="text-pharma-orange font-bold text-xs uppercase tracking-wider">Mode Réception de Lot</Text>
-          <Text className="text-navy font-semibold text-sm mt-1">Veuillez scanner le lot attendu :</Text>
-          <Text className="text-text text-xs mt-0.5">{expectedLotNom} (N° {expectedLotNum})</Text>
-        </View>
-      )}
+    <ScrollView className="flex-1 bg-bg" keyboardShouldPersistTaps="handled">
+      <View style={isDesktop ? { maxWidth: 840, width: '100%', alignSelf: 'center', padding: 24 } : { padding: 20 }}>
+        {/* Bannière Mode Réception si actif */}
+        {expectedLotId && result.status === 'idle' && (
+          <View className="bg-pharma-orange/10 border-l-4 border-pharma-orange p-3 rounded-r-xl mb-4">
+            <Text className="text-pharma-orange font-bold text-xs uppercase tracking-wider">Mode Réception de Lot</Text>
+            <Text className="text-navy font-semibold text-sm mt-1">Veuillez scanner le lot attendu :</Text>
+            <Text className="text-text text-xs mt-0.5">{expectedLotNom} (N° {expectedLotNum})</Text>
+          </View>
+        )}
 
-      {result.status === 'idle' && (
-        <View>
-          {/* Zone Caméra */}
-          <View className="items-center mb-6">
-            {cameraActive && permission?.granted ? (
-              <View style={styles.cameraFrame}>
-                <View style={[styles.corner, styles.cornerTL]} />
-                <View style={[styles.corner, styles.cornerTR]} />
-                <View style={[styles.corner, styles.cornerBL]} />
-                <View style={[styles.corner, styles.cornerBR]} />
-                <View style={styles.scanLine} />
-                <CameraView
-                  style={StyleSheet.absoluteFillObject}
-                  facing="back"
-                  onBarcodeScanned={handleBarcodeScanned}
-                  barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-                />
-                <TouchableOpacity onPress={() => setCameraActive(false)} style={styles.cancelBtn}>
-                  <Text className="text-white text-xs font-bold">Annuler</Text>
+        {result.status === 'idle' && (
+          <View style={isDesktop ? { flexDirection: 'row', gap: 16, alignItems: 'stretch', marginBottom: 16 } : undefined}>
+            {/* Zone Caméra (colonne gauche sur desktop) */}
+            <View style={isDesktop ? { flex: 1.2, marginBottom: 0 } : { width: '100%', marginBottom: 24 }}>
+              {cameraActive && permission?.granted ? (
+                <View style={[styles.cameraFrame, isDesktop ? { height: '100%', minHeight: 280 } : undefined]}>
+                  <View style={[styles.corner, styles.cornerTL]} />
+                  <View style={[styles.corner, styles.cornerTR]} />
+                  <View style={[styles.corner, styles.cornerBL]} />
+                  <View style={[styles.corner, styles.cornerBR]} />
+                  <View style={styles.scanLine} />
+                  <CameraView
+                    style={StyleSheet.absoluteFillObject}
+                    facing="back"
+                    onBarcodeScanned={handleBarcodeScanned}
+                    barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                  />
+                  <TouchableOpacity onPress={() => setCameraActive(false)} style={styles.cancelBtn}>
+                    <Text className="text-white text-xs font-bold">Annuler</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={activateCamera}
+                  style={[styles.cameraFramePlaceholder, isDesktop ? { height: '100%', minHeight: 240 } : undefined]}
+                  className="bg-white border border-blue-light rounded-2xl items-center justify-center p-6 w-full"
+                  activeOpacity={0.8}
+                >
+                  <FAIcon name="camera" size={48} color="#27AE60" family="FontAwesome6" />
+                  <Text className="text-navy font-bold text-base mt-4">Activer la caméra</Text>
+                  <Text className="text-muted text-xs mt-2 text-center">
+                    Scannez le code QR sur la boîte pour authentifier ou réceptionner le lot
+                  </Text>
                 </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity
-                onPress={activateCamera}
-                style={styles.cameraFramePlaceholder}
-                className="bg-white border border-blue-light rounded-2xl items-center justify-center p-6 w-full"
-                activeOpacity={0.8}
-              >
-                <FAIcon name="camera" size={48} color="#27AE60" family="FontAwesome6" />
-                <Text className="text-navy font-bold text-base mt-4">Activer la caméra</Text>
-                <Text className="text-muted text-xs mt-2 text-center">
-                  Scannez le code QR sur la boîte pour authentifier ou réceptionner le lot
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Saisie Manuelle */}
-          <View className="bg-white border border-blue-light rounded-2xl p-4 mb-4">
-            <Text className="text-navy font-bold text-sm mb-2">Saisie manuelle du lot</Text>
-            <TextInput
-              className="bg-bg border border-blue-light rounded-xl h-12 px-4 text-sm text-navy mb-3"
-              placeholder="Ex : FAB-2026-049"
-              placeholderTextColor="#bbb"
-              value={input}
-              onChangeText={setInput}
-              autoCapitalize="characters"
-              onSubmitEditing={() => handleVerify()}
-            />
-            <TouchableOpacity
-              onPress={() => handleVerify()}
-              disabled={!input.trim()}
-              className="h-12 bg-navy rounded-xl items-center justify-center"
-              style={{ opacity: !input.trim() ? 0.6 : 1 }}
-            >
-              <Text className="text-white font-bold text-sm">Vérifier le lot</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {/* Résultat : Chargement */}
-      {result.status === 'loading' && (
-        <View className="items-center justify-center py-20 bg-white rounded-2xl border border-blue-light p-6 shadow-sm">
-          <ActivityIndicator size="large" color="#27AE60" />
-          <Text className="text-navy font-bold text-base mt-4">Vérification en cours...</Text>
-        </View>
-      )}
-
-      {/* Résultat : Authentique */}
-      {result.status === 'authentique' && (
-        <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
-          <View className="flex-row items-center gap-3 mb-4 bg-green-50 p-3 rounded-xl">
-            <View className="w-8 h-8 rounded-full bg-pharma-green items-center justify-center">
-              <FAIcon name="check" size={14} color="#fff" family="FontAwesome6" />
+              )}
             </View>
-            <View>
-              <Text className="text-pharma-green font-black text-sm uppercase tracking-wider">Médicament Authentique</Text>
-              <Text className="text-muted text-[10px] mt-0.5">Enregistré sur PharmaTrace</Text>
-            </View>
-          </View>
 
-          <Text className="text-navy font-black text-lg mb-4">{result.data.nom}</Text>
-          
-          <ResultRow label="Numéro de lot" value={result.data.num} />
-          <ResultRow label="Dosage" value={result.data.dosage} />
-          <ResultRow label="Fabricant" value={result.data.fabricant} />
-          <ResultRow label="Date d'expiration" value={result.data.expiration} />
-          <ResultRow label="Statut actuel" value={result.data.statut} isStatus />
-
-          {/* Bouton de Réception s'il y a un transfert en attente */}
-          {result.pendingTransfer ? (
-            <View className="bg-pharma-orange/10 border border-pharma-orange/30 rounded-xl p-4 mt-5">
-              <View className="flex-row items-center gap-2 mb-2">
-                <FAIcon name="truck-ramp-box" size={14} color="#E67E22" family="FontAwesome6" />
-                <Text className="text-pharma-orange font-bold text-sm">Transfert en attente trouvé</Text>
-              </View>
-              <Text className="text-muted text-xs mb-3">
-                Ce lot vous a été expédié par {result.pendingTransfer.expediteur} (Quantité: {result.pendingTransfer.qte} unités).
-              </Text>
+            {/* Saisie Manuelle (colonne droite sur desktop) */}
+            <View style={isDesktop ? { flex: 1 } : undefined} className="bg-white border border-blue-light rounded-2xl p-5 justify-center shadow-sm">
+              <Text className="text-navy font-bold text-sm mb-2">Saisie manuelle du lot</Text>
+              <TextInput
+                className="bg-bg border border-blue-light rounded-xl h-12 px-4 text-sm text-navy mb-3"
+                placeholder="Ex : FAB-2026-049"
+                placeholderTextColor="#bbb"
+                value={input}
+                onChangeText={setInput}
+                autoCapitalize="characters"
+                onSubmitEditing={() => handleVerify()}
+              />
               <TouchableOpacity
-                onPress={() => handleConfirmReception(result.pendingTransfer!.id, result.data.id)}
-                disabled={recepting}
-                className="w-full h-11 bg-pharma-green rounded-xl items-center justify-center flex-row gap-2"
+                onPress={() => handleVerify()}
+                disabled={!input.trim()}
+                className="h-12 bg-navy rounded-xl items-center justify-center"
+                style={{ opacity: !input.trim() ? 0.6 : 1 }}
               >
-                {recepting ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <FAIcon name="check" size={12} color="#fff" family="FontAwesome6" />
-                    <Text className="text-white font-bold text-sm">Réceptionner ce lot</Text>
-                  </>
-                )}
+                <Text className="text-white font-bold text-sm">Vérifier le lot</Text>
               </TouchableOpacity>
             </View>
-          ) : null}
+          </View>
+        )}
 
-          <TouchableOpacity onPress={reset} className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center">
-            <Text className="text-white font-bold text-sm">Scanner un autre médicament</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Résultat : Expire */}
-      {result.status === 'expire' && (
-        <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
-          <View className="flex-row items-center gap-3 mb-4 bg-orange-50 p-3 rounded-xl">
-            <View className="w-8 h-8 rounded-full bg-pharma-orange items-center justify-center">
-              <FAIcon name="triangle-exclamation" size={14} color="#fff" family="FontAwesome6" />
-            </View>
-            <View>
-              <Text className="text-pharma-orange font-black text-sm uppercase tracking-wider">Lot Expiré</Text>
-              <Text className="text-muted text-[10px] mt-0.5">Ce produit a dépassé sa date limite</Text>
+        {/* Résultat : Chargement */}
+        {result.status === 'loading' && (
+          <View style={isDesktop ? { maxWidth: 500, alignSelf: 'center', width: '100%' } : undefined}>
+            <View className="items-center justify-center py-20 bg-white rounded-2xl border border-blue-light p-6 shadow-sm">
+              <ActivityIndicator size="large" color="#27AE60" />
+              <Text className="text-navy font-bold text-base mt-4">Vérification en cours...</Text>
             </View>
           </View>
+        )}
 
-          <Text className="text-navy font-black text-lg mb-4">{result.data.nom}</Text>
-          
-          <ResultRow label="Numéro de lot" value={result.data.num} />
-          <ResultRow label="Dosage" value={result.data.dosage} />
-          <ResultRow label="Fabricant" value={result.data.fabricant} />
-          <ResultRow label="Expiré le" value={result.data.expiration} />
+        {/* Résultat : Authentique */}
+        {result.status === 'authentique' && (
+          <View style={isDesktop ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : undefined}>
+            <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
+              <View className="flex-row items-center gap-3 mb-4 bg-green-50 p-3 rounded-xl">
+                <View className="w-8 h-8 rounded-full bg-pharma-green items-center justify-center">
+                  <FAIcon name="check" size={14} color="#fff" family="FontAwesome6" />
+                </View>
+                <View>
+                  <Text className="text-pharma-green font-black text-sm uppercase tracking-wider">Médicament Authentique</Text>
+                  <Text className="text-muted text-[10px] mt-0.5">Enregistré sur PharmaTrace</Text>
+                </View>
+              </View>
 
-          <View className="bg-red-50 p-4 rounded-xl border border-red-100 mt-4 items-center">
-            <Text className="text-pharma-red font-bold text-sm">INTERDICTION DE VENTE</Text>
-            <Text className="text-muted text-xs mt-1 text-center">Ce lot doit être retiré du stock et retourné pour destruction.</Text>
-          </View>
+              <Text className="text-navy font-black text-lg mb-4">{result.data.nom}</Text>
+              
+              <ResultRow label="Numéro de lot" value={result.data.num} />
+              <ResultRow label="Dosage" value={result.data.dosage} />
+              <ResultRow label="Fabricant" value={result.data.fabricant} />
+              <ResultRow label="Date d'expiration" value={result.data.expiration} />
+              <ResultRow label="Statut actuel" value={result.data.statut} isStatus />
 
-          <TouchableOpacity onPress={reset} className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center">
-            <Text className="text-white font-bold text-sm">Scanner un autre médicament</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+              {/* Bouton de Réception s'il y a un transfert en attente */}
+              {result.pendingTransfer ? (
+                <View className="bg-pharma-orange/10 border border-pharma-orange/30 rounded-xl p-4 mt-5">
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <FAIcon name="truck-ramp-box" size={14} color="#E67E22" family="FontAwesome6" />
+                    <Text className="text-pharma-orange font-bold text-sm">Transfert en attente trouvé</Text>
+                  </View>
+                  <Text className="text-muted text-xs mb-3">
+                    Ce lot vous a été expédié par {result.pendingTransfer.expediteur} (Quantité: {result.pendingTransfer.qte} unités).
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleConfirmReception(result.pendingTransfer!.id, result.data.id)}
+                    disabled={recepting}
+                    className="w-full h-11 bg-pharma-green rounded-xl items-center justify-center flex-row gap-2"
+                  >
+                    {recepting ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <>
+                        <FAIcon name="check" size={12} color="#fff" family="FontAwesome6" />
+                        <Text className="text-white font-bold text-sm">Réceptionner ce lot</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ) : null}
 
-      {/* Résultat : Suspect / Non trouvé */}
-      {result.status === 'suspect' && (
-        <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
-          <View className="flex-row items-center gap-3 mb-4 bg-red-50 p-3 rounded-xl">
-            <View className="w-8 h-8 rounded-full bg-pharma-red items-center justify-center">
-              <FAIcon name="xmark" size={14} color="#fff" family="FontAwesome6" />
+              <TouchableOpacity onPress={reset} className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center">
+                <Text className="text-white font-bold text-sm">Scanner un autre médicament</Text>
+              </TouchableOpacity>
             </View>
-            <View>
-              <Text className="text-pharma-red font-black text-sm uppercase tracking-wider">Lot Suspect / Non Enregistré</Text>
-              <Text className="text-muted text-[10px] mt-0.5">Aucune trace de ce lot dans le registre</Text>
+          </View>
+        )}
+
+        {/* Résultat : Expire */}
+        {result.status === 'expire' && (
+          <View style={isDesktop ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : undefined}>
+            <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
+              <View className="flex-row items-center gap-3 mb-4 bg-orange-50 p-3 rounded-xl">
+                <View className="w-8 h-8 rounded-full bg-pharma-orange items-center justify-center">
+                  <FAIcon name="triangle-exclamation" size={14} color="#fff" family="FontAwesome6" />
+                </View>
+                <View>
+                  <Text className="text-pharma-orange font-black text-sm uppercase tracking-wider">Lot Expiré</Text>
+                  <Text className="text-muted text-[10px] mt-0.5">Ce produit a dépassé sa date limite</Text>
+                </View>
+              </View>
+
+              <Text className="text-navy font-black text-lg mb-4">{result.data.nom}</Text>
+              
+              <ResultRow label="Numéro de lot" value={result.data.num} />
+              <ResultRow label="Dosage" value={result.data.dosage} />
+              <ResultRow label="Fabricant" value={result.data.fabricant} />
+              <ResultRow label="Expiré le" value={result.data.expiration} />
+
+              <View className="bg-red-50 p-4 rounded-xl border border-red-100 mt-4 items-center">
+                <Text className="text-pharma-red font-bold text-sm">INTERDICTION DE VENTE</Text>
+                <Text className="text-muted text-xs mt-1 text-center">Ce lot doit être retiré du stock et retourné pour destruction.</Text>
+              </View>
+
+              <TouchableOpacity onPress={reset} className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center">
+                <Text className="text-white font-bold text-sm">Scanner un autre médicament</Text>
+              </TouchableOpacity>
             </View>
           </View>
+        )}
 
-          <Text className="text-navy font-bold text-sm mb-3">Recherche effectuée pour :</Text>
-          <Text className="text-pharma-red font-mono bg-bg border border-blue-light rounded-xl p-3 text-center mb-4">{result.query}</Text>
+        {/* Résultat : Suspect / Non trouvé */}
+        {result.status === 'suspect' && (
+          <View style={isDesktop ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : undefined}>
+            <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
+              <View className="flex-row items-center gap-3 mb-4 bg-red-50 p-3 rounded-xl">
+                <View className="w-8 h-8 rounded-full bg-pharma-red items-center justify-center">
+                  <FAIcon name="xmark" size={14} color="#fff" family="FontAwesome6" />
+                </View>
+                <View>
+                  <Text className="text-pharma-red font-black text-sm uppercase tracking-wider">Lot Suspect / Non Enregistré</Text>
+                  <Text className="text-muted text-[10px] mt-0.5">Aucune trace de ce lot dans le registre</Text>
+                </View>
+              </View>
 
-          <View className="bg-red-50 p-4 rounded-xl border border-red-100 items-center">
-            <Text className="text-pharma-red font-bold text-sm">ALERTE CONTREFAÇON</Text>
-            <Text className="text-muted text-xs mt-1 text-center">Ce code ou numéro de lot est inconnu. Ne distribuez pas ce produit.</Text>
+              <Text className="text-navy font-bold text-sm mb-3">Recherche effectuée pour :</Text>
+              <Text className="text-pharma-red font-mono bg-bg border border-blue-light rounded-xl p-3 text-center mb-4">{result.query}</Text>
+
+              <View className="bg-red-50 p-4 rounded-xl border border-red-100 items-center">
+                <Text className="text-pharma-red font-bold text-sm">ALERTE CONTREFAÇON</Text>
+                <Text className="text-muted text-xs mt-1 text-center">Ce code ou numéro de lot est inconnu. Ne distribuez pas ce produit.</Text>
+              </View>
+
+              <TouchableOpacity onPress={reset} className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center">
+                <Text className="text-white font-bold text-sm">Scanner un autre médicament</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-
-          <TouchableOpacity onPress={reset} className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center">
-            <Text className="text-white font-bold text-sm">Scanner un autre médicament</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      <View className="h-10" />
+        )}
+      </View>
     </ScrollView>
   );
 }

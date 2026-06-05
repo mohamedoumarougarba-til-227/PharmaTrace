@@ -1,2 +1,2 @@
-Lien du prototype fonctionnel PharmaTrace :
-https://pharmatrace-eta.vercel.app/
+Lien du prototype fonctionnel PharmaTrace (Application Web) :
+https://pharmatraceapp.vercel.app/

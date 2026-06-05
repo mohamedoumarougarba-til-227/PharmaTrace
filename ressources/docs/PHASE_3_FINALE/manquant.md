@@ -1,12 +1,9 @@
 # Phase 3 — Finale : Livrables Manquants
 
 ## ✅ Livrables déjà fournis :
-_(Aucun livrable Phase 3 encore déposé)_
+- [x] **Lien du MVP complet** → `lien_mvp.txt`
 
 ## ❌ Livrables manquants :
-- [ ] **Lien du MVP complet**
-  - Fichier attendu : `lien_mvp.txt`
-  - Consigne : Lien vers le MVP complet intégré (toutes les interfaces interconnectées)
 - [ ] **Documentation technique en PDF**
   - Fichier attendu : `documentation_technique.pdf`
   - Consigne : Architecture, choix techniques, API, base de données, sécurité

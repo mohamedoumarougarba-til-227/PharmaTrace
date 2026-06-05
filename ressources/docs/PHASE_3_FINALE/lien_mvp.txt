@@ -1,0 +1,8 @@
+Lien du MVP complet PharmaTrace (Application Web) :
+https://pharmatraceapp.vercel.app/
+
+Dépôt de code GitHub :
+https://github.com/mohamedoumarougarba-til-227/PharmaTrace
+
+Site vitrine :
+https://pharmatrace-eta.vercel.app/

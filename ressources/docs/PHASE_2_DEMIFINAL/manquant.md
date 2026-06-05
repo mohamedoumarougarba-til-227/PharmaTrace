@@ -11,3 +11,8 @@
 - [ ] **Document PDF de notes sur la démonstration**
   - Fichier attendu : `notes_demonstration.pdf`
   - Consigne : Document décrivant les acteurs simulés et le flux démontré
+
+## 💡 Optionnel (bonus) :
+- [ ] **Lien de l'application mobile (APK Android)**
+  - Fichier attendu : `lien_app_mobile.txt`
+  - Options de partage : lien direct APK, Expo Go, ou Google Drive

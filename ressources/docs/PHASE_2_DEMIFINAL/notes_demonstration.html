@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaTrace — Notes de Démonstration (Phase 2 Demi-finale)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --navy: #1A3A5C;
+            --blue: #0D6EF5;
+            --green: #27AE60;
+            --purple: #8E44AD;
+            --orange: #E67E22;
+            --red: #E74C3C;
+            --gray: #6B7280;
+            --light-bg: #F8FAFC;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: #1E293B;
+            line-height: 1.7;
+            background: #fff;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 40px 50px;
+        }
+
+        @media print {
+            body { padding: 20px 30px; }
+            .page-break { page-break-before: always; }
+            .no-print { display: none; }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            border-bottom: 3px solid var(--navy);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--navy);
+            letter-spacing: -0.5px;
+        }
+        .header .subtitle {
+            font-size: 14px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+        .header .badge {
+            display: inline-block;
+            background: var(--navy);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-top: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Sections */
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--navy);
+            margin: 28px 0 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #E2E8F0;
+        }
+        h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #334155;
+            margin: 18px 0 8px;
+        }
+        p, li {
+            font-size: 13px;
+            color: #475569;
+        }
+        ul { padding-left: 20px; margin: 6px 0; }
+        li { margin-bottom: 4px; }
+
+        /* Actor Cards */
+        .actors-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 14px 0;
+        }
+        .actor-card {
+            border: 1.5px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 14px;
+            background: var(--light-bg);
+        }
+        .actor-card .actor-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .actor-card .actor-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #fff;
+            font-weight: 700;
+        }
+        .actor-card .actor-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--navy);
+        }
+        .actor-card .actor-role {
+            font-size: 11px;
+            color: var(--gray);
+        }
+        .actor-card ul { margin: 0; padding-left: 16px; }
+        .actor-card li { font-size: 12px; margin-bottom: 2px; }
+
+        /* Flow Steps */
+        .flow-step {
+            display: flex;
+            gap: 14px;
+            margin: 14px 0;
+            align-items: flex-start;
+        }
+        .step-number {
+            min-width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 800;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .step-content {
+            flex: 1;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            background: var(--light-bg);
+        }
+        .step-content .step-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 4px;
+        }
+        .step-content .step-desc {
+            font-size: 12px;
+            color: #64748B;
+            line-height: 1.6;
+        }
+        .step-content .step-actor {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tech Stack Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+        th {
+            background: var(--navy);
+            color: #fff;
+            text-align: left;
+            padding: 8px 12px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #E2E8F0;
+            color: #475569;
+        }
+        tr:nth-child(even) td { background: #F8FAFC; }
+
+        /* Info box */
+        .info-box {
+            border-left: 4px solid var(--blue);
+            background: #EFF6FF;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 14px 0;
+            font-size: 12px;
+            color: #1E40AF;
+        }
+        .warning-box {
+            border-left: 4px solid var(--red);
+            background: #FEF2F2;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 14px 0;
+            font-size: 12px;
+            color: #991B1B;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 2px solid #E2E8F0;
+            text-align: center;
+            font-size: 11px;
+            color: var(--gray);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>📋 PharmaTrace — Notes de Démonstration</h1>
+        <div class="subtitle">Phase 2 · Demi-finale — MIABE Hackathon 2026 · Niger</div>
+        <div class="badge">Équipe TrustGrid · Code N-01 MBH / D03</div>
+    </div>
+
+    <!-- 1. CONTEXTE -->
+    <h2>1. Contexte du Projet</h2>
+    <p>
+        <strong>PharmaTrace</strong> est une plateforme de traçabilité pharmaceutique conçue pour lutter contre la contrefaçon de médicaments au Niger.
+        Chaque lot de médicaments est enregistré avec un hash SHA-256 unique et un QR code, permettant à tout acteur de la chaîne
+        (fabricant, pharmacien, patient) de vérifier l'authenticité d'un médicament en quelques secondes.
+    </p>
+    <div class="info-box">
+        <strong>🔗 Accès au prototype :</strong> <a href="https://pharmatraceapp.vercel.app/">https://pharmatraceapp.vercel.app/</a><br>
+        <strong>💻 Code source :</strong> <a href="https://github.com/mohamedoumarougarba-til-227/PharmaTrace">github.com/mohamedoumarougarba-til-227/PharmaTrace</a>
+    </div>
+
+    <!-- 2. ACTEURS SIMULÉS -->
+    <h2>2. Acteurs Simulés</h2>
+    <p>La démonstration met en scène <strong>4 acteurs</strong> représentant l'ensemble de la chaîne pharmaceutique nigérienne :</p>
+
+    <div class="actors-grid">
+        <!-- Fabricant -->
+        <div class="actor-card">
+            <div class="actor-header">
+                <div class="actor-icon" style="background: var(--navy);">🏭</div>
+                <div>
+                    <div class="actor-name">Fabricant</div>
+                    <div class="actor-role">Niger Pharma S.A.</div>
+                </div>
+            </div>
+            <ul>
+                <li>Enregistre de nouveaux lots de médicaments</li>
+                <li>Génère les QR codes et hashs SHA-256</li>
+                <li>Initie les transferts vers les pharmacies</li>
+                <li>Gère son stock et répond aux demandes</li>
+            </ul>
+        </div>
+
+        <!-- Pharmacie -->
+        <div class="actor-card">
+            <div class="actor-header">
+                <div class="actor-icon" style="background: var(--green);">💊</div>
+                <div>
+                    <div class="actor-name">Pharmacie</div>
+                    <div class="actor-role">Pharmacie Centrale</div>
+                </div>
+            </div>
+            <ul>
+                <li>Réceptionne les lots par scan QR</li>
+                <li>Gère son stock local en temps réel</li>
+                <li>Vérifie les médicaments avant délivrance</li>
+                <li>Émet des demandes de réapprovisionnement</li>
+            </ul>
+        </div>
+
+        <!-- Patient -->
+        <div class="actor-card">
+            <div class="actor-header">
+                <div class="actor-icon" style="background: var(--orange);">👤</div>
+                <div>
+                    <div class="actor-name">Patient / Public</div>
+                    <div class="actor-role">Citoyen nigérien</div>
+                </div>
+            </div>
+            <ul>
+                <li>Scanne le QR code d'un médicament</li>
+                <li>Reçoit un verdict instantané d'authenticité</li>
+                <li>Aucune inscription ni connexion requise</li>
+                <li>Accès public via le site web ou l'app</li>
+            </ul>
+        </div>
+
+        <!-- Agent DPH -->
+        <div class="actor-card">
+            <div class="actor-header">
+                <div class="actor-icon" style="background: var(--purple);">🛡️</div>
+                <div>
+                    <div class="actor-name">Agent DPH</div>
+                    <div class="actor-role">Direction de la Pharmacie et des Laboratoires</div>
+                </div>
+            </div>
+            <ul>
+                <li>Surveille les alertes de contrefaçon</li>
+                <li>Visualise les statistiques nationales</li>
+                <li>Reçoit les alertes critiques en temps réel</li>
+                <li>Prend en charge les incidents signalés</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 3. FLUX DÉMONTRÉ -->
+    <div class="page-break"></div>
+    <h2>3. Flux de Démonstration (Bout en Bout)</h2>
+    <p>La démonstration suit un scénario réaliste en <strong>5 étapes</strong> couvrant tout le cycle de vie d'un médicament :</p>
+
+    <!-- Étape 1 -->
+    <div class="flow-step">
+        <div class="step-number" style="background: var(--navy);">1</div>
+        <div class="step-content">
+            <div class="step-title">Enregistrement d'un nouveau lot</div>
+            <div class="step-desc">
+                Le fabricant <strong>Niger Pharma</strong> se connecte à l'application et crée un nouveau lot de médicaments
+                (ex : Paracétamol 500mg, 100 unités). Le système génère automatiquement un <strong>hash SHA-256 unique</strong>
+                et un <strong>QR code</strong> imprimable contenant l'identifiant de traçabilité.
+            </div>
+            <div class="step-actor" style="background: #1A3A5C20; color: var(--navy);">🏭 Fabricant</div>
+        </div>
+    </div>
+
+    <!-- Étape 2 -->
+    <div class="flow-step">
+        <div class="step-number" style="background: var(--blue);">2</div>
+        <div class="step-content">
+            <div class="step-title">Transfert vers la pharmacie</div>
+            <div class="step-desc">
+                Le fabricant initie un transfert du lot vers <strong>Pharmacie Centrale</strong>.
+                Il sélectionne les quantités à transférer, attache une note optionnelle, et valide l'envoi.
+                La pharmacie reçoit immédiatement une notification de transfert entrant.
+            </div>
+            <div class="step-actor" style="background: #1A3A5C20; color: var(--navy);">🏭 Fabricant → 💊 Pharmacie</div>
+        </div>
+    </div>
+
+    <!-- Étape 3 -->
+    <div class="flow-step">
+        <div class="step-number" style="background: var(--green);">3</div>
+        <div class="step-content">
+            <div class="step-title">Réception et validation par la pharmacie</div>
+            <div class="step-desc">
+                La pharmacie se connecte, consulte les transferts entrants, et <strong>scanne le QR code</strong> pour valider
+                la réception du lot. Le stock local est mis à jour automatiquement en temps réel.
+                La pharmacie peut également vérifier l'authenticité avant de délivrer au patient.
+            </div>
+            <div class="step-actor" style="background: #27AE6020; color: var(--green);">💊 Pharmacie</div>
+        </div>
+    </div>
+
+    <!-- Étape 4 -->
+    <div class="flow-step">
+        <div class="step-number" style="background: var(--orange);">4</div>
+        <div class="step-content">
+            <div class="step-title">Vérification par le patient</div>
+            <div class="step-desc">
+                Un patient (ou pharmacien) scanne le QR code du médicament depuis l'interface publique <strong>sans aucune inscription</strong>.
+                Le système retourne un verdict instantané :
+                <strong style="color: var(--green);">✅ Authentique</strong>,
+                <strong style="color: var(--orange);">⚠️ Suspect</strong>,
+                <strong style="color: var(--red);">❌ Non trouvé</strong>, ou
+                <strong style="color: var(--gray);">⏰ Expiré</strong>.
+            </div>
+            <div class="step-actor" style="background: #E67E2220; color: var(--orange);">👤 Patient / Public</div>
+        </div>
+    </div>
+
+    <!-- Étape 5 -->
+    <div class="flow-step">
+        <div class="step-number" style="background: var(--red);">5</div>
+        <div class="step-content">
+            <div class="step-title">⚠️ Simulation de fraude — Détection automatique</div>
+            <div class="step-desc">
+                Un <strong>faux QR code</strong> (non enregistré dans le système) est scanné.
+                Le système rejette immédiatement la vérification avec le verdict <strong style="color: var(--red);">❌ Médicament non trouvé</strong>
+                et génère automatiquement une <strong>alerte critique</strong> envoyée à l'Agent DPH en temps réel.
+                L'agent peut alors prendre en charge l'incident, déclencher une enquête et suivre la localisation de la tentative de fraude.
+            </div>
+            <div class="step-actor" style="background: #E74C3C20; color: var(--red);">🛡️ Alerte → Agent DPH</div>
+        </div>
+    </div>
+
+    <!-- 4. STACK TECHNIQUE -->
+    <h2>4. Stack Technique</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Composant</th>
+                <th>Technologie</th>
+                <th>Rôle</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Frontend Mobile & Web</strong></td>
+                <td>React Native (Expo SDK 54)</td>
+                <td>Application cross-platform unique (iOS, Android, Web)</td>
+            </tr>
+            <tr>
+                <td><strong>Backend & Base de données</strong></td>
+                <td>Supabase (PostgreSQL)</td>
+                <td>Authentification, stockage, temps réel, RLS</td>
+            </tr>
+            <tr>
+                <td><strong>Intégrité des données</strong></td>
+                <td>SHA-256 (hashing)</td>
+                <td>Empreinte unique et immuable par lot</td>
+            </tr>
+            <tr>
+                <td><strong>QR Codes</strong></td>
+                <td>react-native-qrcode-svg</td>
+                <td>Génération et scan de QR codes</td>
+            </tr>
+            <tr>
+                <td><strong>Déploiement Web</strong></td>
+                <td>Vercel</td>
+                <td>Hébergement de l'app web et du site vitrine</td>
+            </tr>
+            <tr>
+                <td><strong>Site Vitrine</strong></td>
+                <td>HTML/CSS/JS</td>
+                <td>Page de présentation publique</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 5. DONNÉES DE DÉMONSTRATION -->
+    <h2>5. Données de Démonstration</h2>
+    <p>Les données suivantes sont pré-chargées pour la démonstration :</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Médicament</th>
+                <th>Dosage</th>
+                <th>Forme</th>
+                <th>Fabricant</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Paracétamol</td><td>500 mg</td><td>Comprimé</td><td>Niger Pharma</td></tr>
+            <tr><td>Amoxicilline</td><td>250 mg</td><td>Gélule</td><td>Niger Pharma</td></tr>
+            <tr><td>Ibuprofène</td><td>400 mg</td><td>Comprimé</td><td>Niger Pharma</td></tr>
+            <tr><td>Chloroquine</td><td>100 mg</td><td>Comprimé</td><td>Niger Pharma</td></tr>
+            <tr><td>Artéméther/Luméfantrine</td><td>20/120 mg</td><td>Comprimé</td><td>Niger Pharma</td></tr>
+        </tbody>
+    </table>
+
+    <div class="info-box">
+        <strong>💡 Accès rapide Jury :</strong> Sur la page de connexion de l'application, des boutons d'accès démo permettent
+        de se connecter instantanément en tant que Fabricant, Pharmacie ou Agent DPH — sans saisie de mot de passe.
+    </div>
+
+    <!-- 6. RÉSULTATS ATTENDUS -->
+    <h2>6. Résultats Attendus de la Démonstration</h2>
+    <ul>
+        <li>✅ Un lot est créé avec hash SHA-256 et QR code unique → <strong>Traçabilité assurée</strong></li>
+        <li>✅ Le transfert fabricant → pharmacie est enregistré et vérifiable → <strong>Chaîne de distribution traçable</strong></li>
+        <li>✅ Le scan QR par le patient retourne un verdict fiable → <strong>Confiance rétablie</strong></li>
+        <li>✅ Un faux médicament est détecté et signalé automatiquement → <strong>Protection proactive</strong></li>
+        <li>✅ L'Agent DPH reçoit l'alerte en temps réel → <strong>Surveillance nationale effective</strong></li>
+    </ul>
+
+    <div class="warning-box">
+        <strong>⚠️ Note importante :</strong> Cette démonstration utilise des données fictives à des fins d'illustration.
+        En production, le système serait connecté aux registres officiels de la DPH et aux fabricants agréés du Niger.
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p><strong>PharmaTrace</strong> — Équipe TrustGrid · MIABE Hackathon 2026 · Niger</p>
+        <p>© 2026 Équipe TrustGrid. Tous droits réservés.</p>
+    </div>
+
+</body>
+</html>

@@ -3,7 +3,9 @@ https://pharmatraceapp.vercel.app/
 
 Lien de l'application mobile (Android APK) :
 - Page de la Release (Présentation & Instructions) : https://github.com/mohamedoumarougarba-til-227/PharmaTrace/releases/tag/v1.0.0
-- Téléchargement direct de l'APK : https://github.com/mohamedoumarougarba-til-227/PharmaTrace/releases/download/v1.0.0/PharmaTrace_v1.0.0.apk
+- Téléchargement direct de l'APK (GitHub) : https://github.com/mohamedoumarougarba-til-227/PharmaTrace/releases/download/v1.0.0/PharmaTrace_v1.0.0.apk
+- Lien alternatif de téléchargement (EAS Build) : https://expo.dev/artifacts/eas/ttiVjMAdRa6E3DkoEqnEo4.apk
+- Page du Build Expo (QR Code) : https://expo.dev/accounts/med2568/projects/pharmatrace/builds/de76de6a-e35d-430b-b36c-3f28bc2f26df
 
 Dépôt de code GitHub :
 https://github.com/mohamedoumarougarba-til-227/PharmaTrace

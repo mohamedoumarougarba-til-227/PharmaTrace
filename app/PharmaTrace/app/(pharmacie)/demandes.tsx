@@ -79,6 +79,9 @@ export default function MesDemandesScreen() {
     quantite: '',
   });
 
+  const [showFabricantPicker, setShowFabricantPicker] = useState(false);
+  const [showCatalogPicker, setShowCatalogPicker] = useState(false);
+
   const [confirmModal, setConfirmModal] = useState<{
     title: string;
     message: string;
@@ -327,6 +330,8 @@ export default function MesDemandesScreen() {
       setCart([]);
       setGlobalNote('');
       setSelectedFabricantId('');
+      setShowFabricantPicker(false);
+      setShowCatalogPicker(false);
       await loadData();
 
       setConfirmModal({
@@ -497,13 +502,25 @@ export default function MesDemandesScreen() {
           setCart([]);
           setSelectedFabricantId('');
           setGlobalNote('');
+          setShowFabricantPicker(false);
+          setShowCatalogPicker(false);
         }}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <View className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl" style={{ maxHeight: '85%' }}>
             <View className="flex-row justify-between items-center mb-4 border-b border-bg pb-3">
               <Text className="text-navy font-black text-lg">Nouvelle Demande Multi-Produits</Text>
-              <TouchableOpacity onPress={() => setShowCreateModal(false)} className="p-1">
+              <TouchableOpacity
+                onPress={() => {
+                  setShowCreateModal(false);
+                  setCart([]);
+                  setSelectedFabricantId('');
+                  setGlobalNote('');
+                  setShowFabricantPicker(false);
+                  setShowCatalogPicker(false);
+                }}
+                className="p-1"
+              >
                 <FAIcon name="xmark" size={18} color="#C0392B" family="FontAwesome6" />
               </TouchableOpacity>
             </View>
@@ -511,30 +528,52 @@ export default function MesDemandesScreen() {
             <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={true}>
               <View className="gap-4">
                 {/* Choix Fabricant */}
-                <View>
+                <View style={{ zIndex: 20 }}>
                   <Text className="text-navy font-bold text-xs mb-1.5">Fabricant destinataire *</Text>
-                  <View className="bg-bg border border-blue-light rounded-xl overflow-hidden">
-                    <select
-                      value={selectedFabricantId}
-                      onChange={(e) => handleFabricantChange(e.target.value)}
-                      style={{
-                        width: '100%',
-                        height: 48,
-                        padding: '0 16px',
-                        border: 'none',
-                        background: 'transparent',
-                        fontSize: 14,
-                        color: '#1A3A5C',
-                        outline: 'none',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      <option value="">Sélectionner un fabricant...</option>
-                      {fabricants.map((f) => (
-                        <option key={f.id} value={f.id}>{f.nom_entite}</option>
-                      ))}
-                    </select>
-                  </View>
+                  <TouchableOpacity
+                    className="h-12 border border-blue-light rounded-xl px-4 flex-row items-center justify-between bg-bg/50 active:bg-blue-light/10"
+                    onPress={() => {
+                      setShowFabricantPicker(v => !v);
+                      setShowCatalogPicker(false);
+                    }}
+                  >
+                    <Text className="text-navy font-bold text-sm">
+                      {selectedFabricantId 
+                        ? (fabricants.find(f => f.id === selectedFabricantId)?.nom_entite ?? 'Sélectionner un fabricant...')
+                        : 'Sélectionner un fabricant...'}
+                    </Text>
+                    <FAIcon name={showFabricantPicker ? 'chevron-up' : 'chevron-down'} size={14} color="#6B7D90" family="FontAwesome6" />
+                  </TouchableOpacity>
+
+                  {showFabricantPicker && (
+                    <View className="mt-2 border border-blue-light rounded-xl overflow-hidden bg-white shadow-sm max-h-48">
+                      <ScrollView nestedScrollEnabled className="flex-grow">
+                        <TouchableOpacity
+                          className="px-4 py-3 border-b border-bg bg-white active:bg-[#F3F8FF]"
+                          onPress={() => {
+                            handleFabricantChange('');
+                            setShowFabricantPicker(false);
+                          }}
+                        >
+                          <Text className="text-navy font-bold text-xs">Sélectionner un fabricant...</Text>
+                        </TouchableOpacity>
+                        {fabricants.map((f) => (
+                          <TouchableOpacity
+                            key={f.id}
+                            className={`px-4 py-3 border-b border-bg active:bg-[#F3F8FF] ${selectedFabricantId === f.id ? 'bg-[#F3F8FF]' : 'bg-white'}`}
+                            onPress={() => {
+                              handleFabricantChange(f.id);
+                              setShowFabricantPicker(false);
+                            }}
+                          >
+                            <Text className={`font-bold text-xs ${selectedFabricantId === f.id ? 'text-blue' : 'text-navy'}`}>
+                              {f.nom_entite}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
                 </View>
 
                 {selectedFabricantId ? (
@@ -545,31 +584,58 @@ export default function MesDemandesScreen() {
                     ) : (
                       <View className="gap-3">
                         {/* Dropdown catalogue */}
-                        <View>
+                        <View style={{ zIndex: 10 }}>
                           <Text className="text-muted text-[10px] uppercase font-bold mb-1">Médicaments du catalogue fabricant</Text>
-                          <View className="bg-white border border-blue-light rounded-xl overflow-hidden">
-                            <select
-                              value={selectedCatalogIndex}
-                              onChange={(e) => handleCatalogSelect(e.target.value)}
-                              style={{
-                                width: '100%',
-                                height: 40,
-                                padding: '0 12px',
-                                border: 'none',
-                                background: 'transparent',
-                                fontSize: 13,
-                                color: '#1A3A5C',
-                                outline: 'none',
-                              }}
-                            >
-                              <option value="custom">Saisie manuelle (autre produit)</option>
-                              {catalog.map((c, idx) => (
-                                <option key={idx} value={String(idx)}>
-                                  {c.nom_medicament} ({c.dosage} · {c.forme_galenique || '—'})
-                                </option>
-                              ))}
-                            </select>
-                          </View>
+                          <TouchableOpacity
+                            className="h-10 border border-blue-light rounded-xl px-3 flex-row items-center justify-between bg-white active:bg-blue-light/10"
+                            onPress={() => {
+                              setShowCatalogPicker(v => !v);
+                              setShowFabricantPicker(false);
+                            }}
+                          >
+                            <Text className="text-navy font-semibold text-xs flex-1" numberOfLines={1}>
+                              {selectedCatalogIndex === 'custom'
+                                ? 'Saisie manuelle (autre produit)'
+                                : (() => {
+                                    const idx = parseInt(selectedCatalogIndex, 10);
+                                    const c = catalog[idx];
+                                    return c ? `${c.nom_medicament} (${c.dosage} · ${c.forme_galenique || '—'})` : 'Saisie manuelle (autre produit)';
+                                  })()}
+                            </Text>
+                            <FAIcon name={showCatalogPicker ? 'chevron-up' : 'chevron-down'} size={12} color="#6B7D90" family="FontAwesome6" />
+                          </TouchableOpacity>
+
+                          {showCatalogPicker && (
+                            <View className="mt-1 border border-blue-light rounded-xl overflow-hidden bg-white shadow-sm max-h-48">
+                              <ScrollView nestedScrollEnabled className="flex-grow">
+                                <TouchableOpacity
+                                  className={`px-3 py-2 border-b border-bg active:bg-[#F3F8FF] ${selectedCatalogIndex === 'custom' ? 'bg-[#F3F8FF]' : 'bg-white'}`}
+                                  onPress={() => {
+                                    handleCatalogSelect('custom');
+                                    setShowCatalogPicker(false);
+                                  }}
+                                >
+                                  <Text className={`font-bold text-xs ${selectedCatalogIndex === 'custom' ? 'text-blue' : 'text-navy'}`}>
+                                    Saisie manuelle (autre produit)
+                                  </Text>
+                                </TouchableOpacity>
+                                {catalog.map((c, idx) => (
+                                  <TouchableOpacity
+                                    key={idx}
+                                    className={`px-3 py-2 border-b border-bg active:bg-[#F3F8FF] ${selectedCatalogIndex === String(idx) ? 'bg-[#F3F8FF]' : 'bg-white'}`}
+                                    onPress={() => {
+                                      handleCatalogSelect(String(idx));
+                                      setShowCatalogPicker(false);
+                                    }}
+                                  >
+                                    <Text className={`font-bold text-xs ${selectedCatalogIndex === String(idx) ? 'text-blue' : 'text-navy'}`}>
+                                      {c.nom_medicament} ({c.dosage} · {c.forme_galenique || '—'})
+                                    </Text>
+                                  </TouchableOpacity>
+                                ))}
+                              </ScrollView>
+                            </View>
+                          )}
                         </View>
 
                         {/* Nom (editable si custom) */}
@@ -673,6 +739,8 @@ export default function MesDemandesScreen() {
                   setCart([]);
                   setSelectedFabricantId('');
                   setGlobalNote('');
+                  setShowFabricantPicker(false);
+                  setShowCatalogPicker(false);
                 }}
                 className="flex-1 h-12 border border-blue-light rounded-xl items-center justify-center"
               >

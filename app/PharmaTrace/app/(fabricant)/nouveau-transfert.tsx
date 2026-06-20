@@ -40,6 +40,7 @@ export default function NouveauTransfertScreen() {
   const [lot, setLot] = useState<LotInfo | null>(null);
   const [matchingLots, setMatchingLots] = useState<LotInfo[]>([]);
   const [selectedLotId, setSelectedLotId] = useState<string>('');
+  const [showLotPicker, setShowLotPicker] = useState(false);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [successModal, setSuccessModal] = useState<{
     title: string;
@@ -385,32 +386,43 @@ export default function NouveauTransfertScreen() {
             <View>
               <Text className="text-navy font-bold text-xs mb-1.5">Sélectionner le lot pour répondre ({nomMedicament}) :</Text>
               <View className="bg-white border border-blue-light rounded-xl overflow-hidden mb-2">
-                <select
-                  value={selectedLotId}
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    setSelectedLotId(id);
-                    const chosen = matchingLots.find(l => l.id === id);
-                    if (chosen) setLot(chosen);
-                  }}
-                  style={{
-                    width: '100%',
-                    height: 44,
-                    padding: '0 12px',
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: 14,
-                    color: '#1A3A5C',
-                    fontWeight: 'bold',
-                    outline: 'none',
-                  }}
+                <TouchableOpacity
+                  className="h-11 px-3 flex-row items-center justify-between bg-white active:bg-blue-light/10"
+                  onPress={() => setShowLotPicker(v => !v)}
                 >
-                  {matchingLots.map(l => (
-                    <option key={l.id} value={l.id}>
-                      Lot: {l.numero_lot} (Stock: {l.quantite_actuelle ?? l.quantite_initiale} u. · Exp: {l.date_expiration})
-                    </option>
-                  ))}
-                </select>
+                  <Text className="text-navy font-bold text-sm flex-1" numberOfLines={1}>
+                    {(() => {
+                      const chosen = matchingLots.find(l => l.id === selectedLotId);
+                      return chosen 
+                        ? `Lot: ${chosen.numero_lot} (Stock: ${chosen.quantite_actuelle ?? chosen.quantite_initiale} u. · Exp: ${chosen.date_expiration})`
+                        : 'Sélectionner un lot...';
+                    })()}
+                  </Text>
+                  <FAIcon name={showLotPicker ? 'chevron-up' : 'chevron-down'} size={14} color="#6B7D90" family="FontAwesome6" />
+                </TouchableOpacity>
+
+                {showLotPicker && (
+                  <View className="border-t border-blue-light bg-white shadow-sm max-h-48">
+                    <ScrollView nestedScrollEnabled className="flex-grow">
+                      {matchingLots.map((l) => (
+                        <TouchableOpacity
+                          key={l.id}
+                          className={`px-3 py-2.5 border-b border-bg active:bg-[#F3F8FF] ${selectedLotId === l.id ? 'bg-[#F3F8FF]' : 'bg-white'}`}
+                          onPress={() => {
+                            setSelectedLotId(l.id);
+                            const chosen = matchingLots.find(item => item.id === l.id);
+                            if (chosen) setLot(chosen);
+                            setShowLotPicker(false);
+                          }}
+                        >
+                          <Text className={`font-bold text-xs ${selectedLotId === l.id ? 'text-blue' : 'text-navy'}`}>
+                            Lot: {l.numero_lot} (Stock: {l.quantite_actuelle ?? l.quantite_initiale} u. · Exp: {l.date_expiration})
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             </View>
           ) : (

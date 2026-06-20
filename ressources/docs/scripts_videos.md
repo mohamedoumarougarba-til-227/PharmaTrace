@@ -1,0 +1,42 @@
+# 🎬 Scripts Vidéos de Présentation — PharmaTrace (TrustGrid Niger)
+
+Ce document contient les scénarios et scripts de voix-off détaillés pour les deux vidéos de livrables du hackathon **MIABE HACKATHON 2026** (Projet N-01 MBH / D03), structurés selon les critères et temps alloués officiels (7 minutes chacun).
+
+---
+
+## 🖥️ Configuration de l'Écran pour la Démonstration (Recommandée)
+Pour une démonstration fluide et professionnelle en une seule prise :
+* **Partie Gauche (Chrome Browser)** : L'application Web de démo connectée en tant que **Fabricant (Niger Pharma S.A.)**.
+* **Partie Droite (Vysor / Écran miroir du Smartphone)** : L'application Android connectée en tant que **Pharmacie (Pharmacie Centrale)**.
+* **💡 Conseil technique (Live Updates)** : Dans l'application mobile Pharmacie, l'écran des **Transferts** se rafraîchit automatiquement lors de la navigation (grâce au hook `useFocusEffect`). Si vous êtes déjà sur cet écran lors de l'envoi du Fabricant, **faites simplement glisser le doigt vers le bas (pull-to-refresh)** pour faire apparaître le nouveau transfert en transit en direct.
+
+---
+
+## 📹 1. Vidéo de Démo du Prototype (Phase 2)
+* **Durée totale allouée** : 7 minutes
+* **Médicament vedette** : **Artéméther/Luméfantrine 20/120 mg** (traitement antipaludique essentiel au Niger).
+* **Objectif** : Valider l'architecture de traçabilité, de la production au patient, et la surveillance réglementaire.
+
+| Temps | Section | Action à l'écran | Narration (Voix-off) |
+| :--- | :--- | :--- | :--- |
+| **0:00 - 0:30** | **1. Rappel & Évolutions** | Afficher la Landing Page de PharmaTrace, puis l'écran de connexion. | *"Bonjour à tous. Nous sommes l'équipe TrustGrid. PharmaTrace est notre solution de traçabilité contre les médicaments contrefaits au Niger. Depuis la Phase 1, nous avons développé le prototype complet comprenant les espaces Fabricant, Pharmacie, Régulateur et la vérification publique pour les patients."* |
+| **0:30 - 1:30** | **2. Architecture & Blockchain** | Présenter rapidement un schéma de l'architecture technique (SHA-256, Supabase, Vercel). | *"Notre solution repose sur un registre cryptographique immuable. Chaque lot reçoit une signature SHA-256 unique scellée par des politiques de sécurité et des triggers SQL (PostgreSQL RLS). Cela empêche toute altération ou suppression ultérieure, garantissant l'intégrité de la chaîne."* |
+| **1:30 - 3:30** | **3. Démo Live : Fabricant** (Chrome - Gauche) | 1. Cliquer sur **Accès Rapide Fabricant**.<br>2. Cliquer sur "Enregistrer un lot" et saisir :<br>- Médicament : *Artéméther/Luméfantrine 20/120 mg* (Comprimé)<br>- Lot : *AL-2026-N09*<br>- Qte : *5 000*<br>- Exp : *Dans 2 ans*<br>3. Valider, afficher le QR code généré.<br>4. Cliquer sur "Transférer", choisir *Pharmacie Centrale*, saisir *1 500* et valider. | *"Connectons-nous en tant que fabricant (Niger Pharma S.A.). J'enregistre un lot d'Artéméther/Luméfantrine 20/120 mg. Notre système calcule son hash unique et génère un QR code sécurisé. J'initie ensuite un transfert de 1 500 unités vers la Pharmacie Centrale. Mon stock restant est automatiquement décompté."* |
+| **3:30 - 5:00** | **4. Démo Live : Pharmacie** (Vysor - Droite) | 1. Cliquer sur **Accès Rapide Pharmacie** sur Vysor.<br>2. Aller sur l'onglet **Transferts** (faire un glisser vers le bas pour rafraîchir).<br>3. Le transfert d'Artéméther/Luméfantrine apparaît en transit.<br>4. Cliquer sur "Réceptionner par Scan", puis pointer l'appareil photo vers le QR code à l'écran de gauche.<br>5. Le lot passe en "Réceptionné". | *"Côté pharmacie sur mobile, je vois le transfert entrant s'afficher après un simple rafraîchissement. Lors de la livraison physique, je scanne le QR code du fabricant pour authentifier et accepter le produit. Mon stock de pharmacie est mis à jour et validé."* |
+| **5:00 - 6:00** | **5. Vérification Patient** (Hors connexion) | 1. Ouvrir la page publique `/verify`.<br>2. Simuler le scan du QR code authentique (verdict vert **AUTHENTIQUE**).<br>3. Scanner un faux QR code ou saisir un identifiant inexistant (verdict rouge **SUSPECT**). | *"Pour le patient nigérien, la vérification est publique et instantanée. Un scan de 3 secondes confirme l'authenticité (verdict vert). Si un faussaire tente de vendre une boîte copiée avec un QR code inexistant, le verdict vire au rouge critique, alertant le patient."* |
+| **6:00 - 7:00** | **6. Régulateur DPH** | 1. Cliquer sur **Accès Rapide Agent DPH**.<br>2. Montrer la nouvelle alerte générée par le scan frauduleux précédent avec la géolocalisation.<br>3. Cliquer sur "Prendre en charge". | *"Enfin, la Direction de la Pharmacie (DPH) reçoit une alerte géolocalisée en direct dès qu'un produit suspect est scanné. L'agent prend en charge l'alerte pour lancer immédiatement des investigations sur le point de vente."* |
+
+---
+
+## 📢 2. Vidéo de Pitch Final (Phase 3)
+* **Durée totale allouée** : 7 minutes
+* **Objectif** : Démontrer la valeur commerciale, la maturité technique du MVP avec le module de demandes de stock, et la simulation d'une fraude déjouée.
+
+| Temps | Section | Diapo / Action à l'écran | Narration (Voix-off) |
+| :--- | :--- | :--- | :--- |
+| **0:00 - 0:30** | **1. Rappel du projet & Parcours** | **Slide 1** : Logo PharmaTrace, équipe TrustGrid, ODD 3.<br>*(Visuel soigné et professionnel)* | *"Messieurs les membres du jury, nous vous présentons PharmaTrace, un bouclier numérique contre les faux médicaments au Niger. En Afrique subsaharienne, ce fléau tue 500 000 personnes chaque année. Notre mission est d'assurer que chaque boîte de médicament distribuée au Niger soit vérifiable et conforme."* |
+| **0:30 - 3:00** | **2. Démonstration live du MVP Complet** | **Action à l'écran (Double affichage Gauche-Droite)** :<br>1. **Demande** (Vysor) : Pharmacie crée une demande de *1 200* unités d'*Artéméther/Luméfantrine 20/120 mg*.<br>2. **Réponse** (Chrome) : Fabricant reçoit la demande, clique sur "Répondre", sélectionne le lot valide *AL-2026-N09* (le système exclut les lots périmés), et valide l'envoi.<br>3. **Validation** (Vysor) : Pharmacie reçoit l'envoi, scanne le QR code pour accepter.<br>4. **Vérification** : Scan d'une boîte invalide générant une alerte instantanée DPH. | *"Notre MVP gère le cycle complet. Une pharmacie peut émettre une demande de stock ciblée sur mobile. Le fabricant reçoit cette demande sur son portail web, sélectionne un lot certifié et initie le transfert. À la livraison, la pharmacie valide la réception par scan. Si un médicament suspect s'insère dans le circuit, il est immédiatement bloqué et signalé."* |
+| **3:00 - 4:00** | **3. Architecture technique finale** | **Slide 2** : Stack technique (Expo SDK 54, React Native, Supabase, PostgreSQL Triggers). | *"Techniquement, PharmaTrace est une application cross-platforme développée en React Native et Expo, garantissant une expérience fluide sur Web et Mobile. Les données de traçabilité sont scellées cryptographiquement (SHA-256) avec des politiques strictes de sécurité RLS qui protègent la souveraineté des données de chaque officine."* |
+| **4:00 - 5:00** | **4. Impact & Données chiffrées** | **Slide 3** : Statistiques d'impact (médicament vérifié en 3s, réduction des circuits parallèles, baisse de mortalité). | *"L'impact de PharmaTrace est immédiat. Moins de 10 % des médicaments au Niger sont traçables aujourd'hui ; avec notre application, n'importe quel citoyen ou inspecteur valide une boîte en 3 secondes. Les officines nettoient leur stock en éliminant automatiquement les lots périmés."* |
+| **5:00 - 6:00** | **5. Plan de déploiement réaliste** | **Slide 4** : Modèle économique (Abonnement grossistes/laboratoires, gratuité pour les patients et les pharmaciens) et stratégie d'intégration nationale. | *"Pour déployer PharmaTrace au Niger, nous ciblons un partenariat public-privé avec le Ministère de la Santé Publique et la DPH. Notre modèle économique repose sur un service 100 % gratuit pour les patients et pharmacies, financé par un abonnement minime des laboratoires importateurs pour la certification de leurs lots."* |
+| **6:00 - 7:00** | **6. Conclusion & Vision** | **Slide 5** : Titre de fin, slogan *"La confiance gravée dans le code pour sauver des vies"*. | *"PharmaTrace apporte une traçabilité inviolable là où les bases de données centralisées classiques échouent. C'est un outil souverain, moderne et indispensable pour assainir la chaîne du médicament et sauver des vies au Niger. Merci pour votre attention."* |

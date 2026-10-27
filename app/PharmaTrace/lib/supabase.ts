@@ -236,7 +236,7 @@ export let MOCK_SCANS: any[] = [
   }
 ];
 
-function addMockScan(values: any) {
+export function addMockScan(values: any) {
   const newScan = {
     id: `mock-scan-${Date.now()}`,
     created_at: new Date().toISOString(),

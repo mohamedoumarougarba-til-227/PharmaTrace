@@ -12,8 +12,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { supabase } from "../../lib/supabase";
+import { getBusinessAccess } from "../../lib/businessRole";
 import { FAIcon } from '../../constants/icons';
 import { verifyMedication, journalVerificationScan, type VerificationSource } from '../../lib/verification';
 import VerificationNotice from '../../components/VerificationNotice';
@@ -54,21 +53,8 @@ export default function VerifyScreen() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const isDemo = await AsyncStorage.getItem('pt_demo_mode') === 'true';
-          if (isDemo) {
-            const role = await AsyncStorage.getItem('pt_demo_role');
-            setUserRole(role);
-          } else {
-            const { data: profile } = await supabase
-              .from('utilisateurs')
-              .select('role')
-              .eq('id', session.user.id)
-              .maybeSingle();
-            setUserRole(profile?.role ?? null);
-          }
-        }
+        const access = await getBusinessAccess();
+        setUserRole(access.status === 'AUTHORIZED' ? access.role : null);
       } catch (err) {
         console.error(err);
       }

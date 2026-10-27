@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -16,12 +16,24 @@ import { router } from "expo-router";
 import { FAIcon } from '../../constants/icons';
 import { StatusBar } from "expo-status-bar";
 import { supabase } from "../../lib/supabase";
+import { BUSINESS_ROUTES, getBusinessAccess, UNPROVISIONED_MESSAGE } from "../../lib/businessRole";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [accessMessage, setAccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getBusinessAccess().then(access => {
+      if (!active) return;
+      if (access.status === 'UNPROVISIONED') setAccessMessage(UNPROVISIONED_MESSAGE);
+      else if (access.status === 'UNAVAILABLE') setAccessMessage('Impossible de vérifier les droits du compte. Réessayez plus tard.');
+    });
+    return () => { active = false; };
+  }, []);
 
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -47,37 +59,22 @@ export default function LoginScreen() {
       return;
     }
     setLoading(true);
+    setAccessMessage(null);
     try {
       await AsyncStorage.setItem("pt_demo_mode", "false");
-    } catch (e) {}
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
-
-    if (error) {
-      Alert.alert("Connexion échouée", error.message);
-      return;
-    }
-
-    const { data: user } = await supabase
-      .from("utilisateurs")
-      .select("role")
-      .eq("id", data.user.id)
-      .single();
-
-    if (user?.role === "fabricant") {
-      router.replace("/(fabricant)");
-      return;
-    }
-    if (user?.role === "pharmacie") {
-      router.replace("/(pharmacie)");
-      return;
-    }
-    if (user?.role === "agent_dph") {
-      router.replace("/(agent-dph)");
-      return;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        Alert.alert("Connexion échouée", error.message);
+        return;
+      }
+      const access = await getBusinessAccess();
+      if (access.status === 'AUTHORIZED') router.replace(BUSINESS_ROUTES[access.role]);
+      else if (access.status === 'UNPROVISIONED') setAccessMessage(UNPROVISIONED_MESSAGE);
+      else setAccessMessage('Impossible de vérifier les droits du compte. Réessayez plus tard.');
+    } catch {
+      setAccessMessage('Connexion indisponible. Réessayez plus tard.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -136,6 +133,9 @@ export default function LoginScreen() {
             {/* Carte formulaire */}
             <View className="bg-white rounded-2xl p-5 shadow-lg">
               <Text className="text-navy font-black text-2xl mb-0.5 text-center">Connexion</Text>
+              {accessMessage && (
+                <Text accessibilityRole="alert" className="text-navy bg-orange-50 p-3 rounded-xl my-3">{accessMessage}</Text>
+              )}
               <Text className="text-muted text-sm mb-4 text-center">
                 Accédez à votre espace
               </Text>

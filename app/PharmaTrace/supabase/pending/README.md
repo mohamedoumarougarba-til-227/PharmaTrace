@@ -1,18 +1,16 @@
-# Phase restrictive en attente
+# Historique de la phase restrictive
 
-`20261027205457_restrict_legacy_verification_access.sql` a été créée avec la CLI,
-puis conservée hors de `migrations/` pour empêcher une application accidentelle
-par `supabase db push` pendant LOT 0.3A.
+Le candidat `20261027205457_restrict_legacy_verification_access.sql` a été créé
+avec la CLI puis conservé hors de `migrations/` pendant A/B1. Son brouillon gardé
+est préservé dans `docs/archive/lot-03b2-guarded-preflight.sql`.
 
-**NON APPLIQUÉE.** Ne pas la déplacer, l'appliquer ou la pousser sans le feu vert
-LOT 0.3B et une stratégie validée pour les anciens clients déjà chargés.
-Voir [le checkpoint LOT 0.3A](../../../../docs/lot-03a-additive.md).
+Après les gates autorisés B2, la restriction finale est enregistrée sous
+`20261028232100_restrict_legacy_public_access.sql` dans `migrations/`.
+Ne pas réappliquer le brouillon ni le candidat archivé.
 
-Pendant B1, ce fichier a été révisé comme proposition B2 : lectures anonymes vides
-via RLS, et INSERT de scan ancien absorbé sans persistance. Un garde SQL interdit
-son exécution : cette implémentation n'a PAS été testée sur PostgreSQL/PostgREST.
-Seule la réaction de l'ancien JavaScript à des réponses simulées a été observée.
-Les 59 assertions antérieures décrivent le candidat avant cette révision, conservé
-dans `docs/archive/lot-03b-restrictive-before-b1.sql`. Il faut adapter ces assertions
-et valider les réponses HTTP réelles avant toute levée du garde.
-Voir [la proposition et les preuves B1](../../../../docs/lot-03b1-production.md).
+Les anciennes 59 assertions décrivent le premier candidat ; la cible actuelle
+est testée par `tests/p03b2_legacy_compat.sql` (60 assertions) et les tests HTTP.
+Pour la validation installée, utiliser
+`node scripts/prepare-lot03b2-rehearsal.cjs --installed` et exécuter le SQL généré
+sur le projet autorisé. Ce SQL annule toutes ses fixtures avant de rendre les résultats.
+Voir [le rapport B2](../../../../docs/lot-03b2-restriction.md).

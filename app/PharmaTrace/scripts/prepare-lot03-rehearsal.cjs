@@ -11,6 +11,7 @@ function migration(suffix, directory = 'migrations') {
   return read('supabase/' + directory + '/' + matches[0]);
 }
 const phaseA = process.argv.includes('--phase-a');
+if (!phaseA) throw new Error('Historical monolithic target superseded: use prepare-lot03b2-rehearsal.cjs --installed after B2. --phase-a describes the earlier additive checkpoint only.');
 const installed = process.argv.includes('--additive-installed');
 if (process.argv.slice(2).some(arg => !['--phase-a', '--additive-installed'].includes(arg))) throw new Error('Unknown rehearsal option');
 const additive = installed ? '' : migration('_add_safe_verification_surfaces.sql');

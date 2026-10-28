@@ -16,6 +16,11 @@ if (process.argv.slice(2).some(arg => !['--phase-a', '--additive-installed'].inc
 const additive = installed ? '' : migration('_add_safe_verification_surfaces.sql');
 // Phase B is deliberately outside migrations/: a normal db push must not apply it.
 const restrictive = phaseA ? '' : migration('_restrict_legacy_verification_access.sql', 'pending');
+// B1 may revise the unexecuted draft. The original 59 checks describe the archived
+// permission-denied target, not the new empty-read/no-op proposal. Fail before SQL.
+if (restrictive.includes('B2_DRAFT_REQUIRES_REHEARSAL')) {
+  throw new Error('B2 draft is not authorized/rehearsed; use --phase-a for the installed additive contract. The old 59 restrictive assertions must be adapted before B2.');
+}
 const p02 = read('supabase/tests/p02_roles.sql').replace(/select pg_temp\.lot02_roles\(\) as role_tests;\s*$/, '');
 const p03 = read('supabase/tests/p03_public_contract.sql');
 const p03a = read('supabase/tests/p03a_additive.sql');

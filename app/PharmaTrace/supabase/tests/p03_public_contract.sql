@@ -1,5 +1,7 @@
 -- Restrictive target only: run inside the documented rehearsal after phase B.
 -- Phase A alone intentionally preserves legacy access and cannot satisfy these 59 checks.
+-- Historical target before B1: several permission-denied expectations are intentionally
+-- incompatible with the new B2 draft. Retained as regression inventory, not as proof of B2.
 -- This function rolls back every LOT03_TEST fixture; no historical row is changed.
 create or replace function pg_temp.lot03_expect(statement text, expected_state text)
 returns boolean language plpgsql as $expect$

@@ -1,4 +1,11 @@
 -- LOT 0.3B: NOT AUTHORIZED FOR APPLICATION. Requires production client validation first.
+-- B2_DRAFT_REQUIRES_REHEARSAL: revised during B1, NEVER executed, even transactionally.
+-- Safety guard must be reviewed/removed only after explicit B2 authorization.
+-- Explicit transaction also prevents psql from continuing DDL after the guard fails.
+begin;
+do $blocked$ begin
+  raise exception 'B2 draft: PostgreSQL + PostgREST compatibility tests are still required';
+end; $blocked$;
 -- No historical rows are changed. Transfert/demande write policies are outside this lot.
 
 
@@ -7,6 +14,9 @@
 
 
 revoke all privileges on public.lots_medicaments from public, anon;
+-- Keep API SELECT privilege: RLS hides every row from anonymous legacy readers.
+-- This avoids a permission error in the old FAB-* catch for valid legacy queries.
+grant select on public.lots_medicaments to anon;
 drop policy "lots: lecture publique" on public.lots_medicaments;
 create policy "lots: lecture metier necessaire" on public.lots_medicaments
 for select to authenticated using (
@@ -21,6 +31,9 @@ for select to authenticated using (
 -- Preserve embedding of names needed by transfers/requests; private profile columns
 -- are not SELECT-granted. Full own contact details use a UID-scoped RPC below.
 revoke select on public.utilisateurs from public, anon, authenticated;
+-- Anonymous UID is NULL: no existing profile SELECT policy matches.
+-- Keep all-column privilege here so legacy embeds/SELECTs can return an empty set.
+grant select on public.utilisateurs to anon;
 grant select(id,nom_entite,ville,pays,role,statut) on public.utilisateurs to authenticated;
 drop policy "utilisateurs: lecture pour les connectes" on public.utilisateurs;
 create policy "utilisateurs: projections partenaires" on public.utilisateurs
@@ -49,7 +62,27 @@ for select to authenticated using (
 
 
 revoke all privileges on public.historique_scans from public, anon, authenticated;
-grant select on public.historique_scans to authenticated;
+-- Compatibility-only INSERT privilege. It must NOT permit a persisted client row.
+grant select, insert on public.historique_scans to anon, authenticated;
+
+create function private.discard_legacy_scan()
+returns trigger language plpgsql security invoker set search_path = '' as $sink$
+begin
+  -- Clients cannot select current_user. JWT identity is deliberately NOT a bypass.
+  -- The controlled SECURITY DEFINER RPC executes as postgres; it still computes
+  -- and validates all authority/columns itself. Other privileged writers are trusted.
+  if current_user in ('anon','authenticated') then return null; end if;
+  return new;
+end;
+$sink$;
+revoke all on function private.discard_legacy_scan() from public,anon,authenticated,service_role;
+create trigger discard_legacy_client_scan
+before insert on public.historique_scans
+for each row execute function private.discard_legacy_scan();
+
+-- BEFORE RETURN NULL must precede row checks and suppress AFTER alert triggers.
+-- Verify actual minimal-return/representation HTTP responses in B2. Invalid JSON,
+-- casts, unknown columns and outages can still fail before this trigger executes.
 drop policy "scans: insertion publique" on public.historique_scans;
 drop policy "scans: voir ses scans" on public.historique_scans;
 create policy "scans: propres ou supervision" on public.historique_scans
@@ -60,6 +93,8 @@ for select to authenticated using (
 
 revoke insert on public.alertes from public, anon, authenticated;
 revoke all privileges on public.alertes from anon;
+-- No anonymous SELECT policy matches; needed for old invoker aggregate views.
+grant select on public.alertes to anon;
 drop policy "alertes: insertion publique (déclenchée auto)" on public.alertes;
 create or replace function public.auto_alerte_scan_suspect()
 returns trigger language plpgsql security invoker set search_path = '' as $function$
@@ -82,7 +117,7 @@ select l.*,u.nom_entite as fabricant_nom,u.ville as fabricant_ville,
   null::varchar(20) as fabricant_tel
 from public.lots_medicaments l join public.utilisateurs u on u.id=l.fabricant_id;
 revoke all privileges on public.lots_avec_fabricant from public, anon, authenticated;
-grant select on public.lots_avec_fabricant to authenticated;
+grant select on public.lots_avec_fabricant to anon, authenticated;
 
 -- Keep historical calculations; access is now invoker + an explicit DPH predicate.
 create or replace view public.stats_dashboard with (security_invoker=true) as
@@ -94,6 +129,7 @@ select
   (select count(*) from public.historique_scans where resultat='non_trouve') as total_suspects
 where (select public.get_my_role())='agent_dph';
 revoke all privileges on public.stats_dashboard from public, anon, authenticated;
-grant select on public.stats_dashboard to authenticated;
+grant select on public.stats_dashboard to anon, authenticated;
 
 notify pgrst, 'reload schema';
+commit;

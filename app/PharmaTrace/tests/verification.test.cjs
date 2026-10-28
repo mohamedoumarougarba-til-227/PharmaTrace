@@ -7,9 +7,9 @@ const ts = require('typescript');
 
 const root = path.resolve(__dirname, '..');
 const realLot = {
-  id: 'fixture-real-lot', numero_lot: 'REAL-2026-001', nom_medicament: 'Lot de test réel',
-  dosage: '10mg', date_expiration: '2099-12-31', statut_actuel: 'en_stock_fabricant',
-  utilisateurs: { nom_entite: 'Fabricant de test', ville: 'Ville de test' },
+  numero_lot: 'REAL-2026-001', nom_medicament: 'Lot de test réel',
+  dosage: '10mg', date_expiration: '2099-12-31', etat: 'enregistre',
+  fabricant_public: 'Fabricant de test',
 };
 
 // Load the actual TypeScript modules and screens. Every native/SDK import is
@@ -19,28 +19,37 @@ function environment() {
   const state = {
     lookup: { data: null, error: null }, lookupCalls: 0, insertCalls: 0, authCalls: 0,
     sdkCalls: 0, readThrows: false, journalFailure: null, storageFailure: false,
-    journalWait: null, pendingFailure: false, session: null,
+    journalWait: null, pendingFailure: false, session: { user: { id: 'fixture-pharmacy' } },
+    rpcCalls: [], pendingData: null, routeParams: {}, workflowProfile: null,
+    workflowCatalog: [], workflowPartners: [], workflowError: null,
   };
   const client = {
     auth: { async getSession() { state.authCalls++; return { data: { session: state.session }, error: null }; } },
+    async rpc(name, args) {
+      state.rpcCalls.push({ name, args });
+      if (name === 'get_my_profile') return { data: state.workflowProfile, error: state.workflowError };
+      if (name === 'get_manufacturer_catalog') return { data: state.workflowCatalog, error: state.workflowError };
+      if (name === 'get_business_partners') return { data: state.workflowPartners, error: state.workflowError };
+      assert.deepEqual(Object.keys(args), ['p_identifier']);
+      if (name === 'verify_public_lot') {
+        state.lookupCalls++;
+        if (state.readThrows) throw new Error('Injected read rejection');
+        const response = await (typeof state.lookup === 'function' ? state.lookup() : state.lookup);
+        return { ...response, data: response.data === null ? [] : Array.isArray(response.data) ? response.data : [response.data] };
+      }
+      assert.equal(name, 'record_verification_scan');
+      state.insertCalls++; // RPC journal calls, never raw INSERTs.
+      if (state.journalWait) await state.journalWait;
+      if (state.journalFailure === 'throw') throw new Error('Injected journal rejection');
+      return { error: state.journalFailure === 'return' ? new Error('Injected journal error') : null };
+    },
     from(table) {
+      assert.equal(table, 'transferts', 'Verification may only enrich an authorized transfer; no raw lots/profiles/scans');
       return {
-        select() { return this; }, or() { return this; }, eq() { return this; },
+        select() { return this; }, eq() { return this; },
         async maybeSingle() {
-          if (table === 'lots_medicaments') {
-            state.lookupCalls++;
-            if (state.readThrows) throw new Error('Injected read rejection');
-            return typeof state.lookup === 'function' ? state.lookup() : state.lookup;
-          }
           if (table === 'transferts' && state.pendingFailure) throw new Error('Injected transfer rejection');
-          return { data: null, error: null };
-        },
-        async insert() {
-          assert.equal(table, 'historique_scans');
-          state.insertCalls++;
-          if (state.journalWait) await state.journalWait;
-          if (state.journalFailure === 'throw') throw new Error('Injected journal rejection');
-          return { error: state.journalFailure === 'return' ? new Error('Injected journal error') : null };
+          return { data: state.pendingData, error: null };
         },
       };
     },
@@ -77,7 +86,7 @@ function environment() {
       },
     },
     '@supabase/supabase-js': { createClient() { state.sdkCalls++; return client; } },
-    'expo-router': { router: { replace() {}, back() {} }, useLocalSearchParams: () => ({}) },
+    'expo-router': { router: { replace() {}, back() {} }, useLocalSearchParams: () => state.routeParams },
     'expo-status-bar': { StatusBar: 'StatusBar' },
     'expo-camera': { CameraView: 'CameraView', useCameraPermissions: () => [{ granted: false }, async () => ({ granted: false })] },
   };
@@ -133,7 +142,8 @@ function environment() {
       text() { return nodes(render()).filter(node => typeof node === 'string').join(' '); },
     };
   }
-  return { state, storage, verification, db, screen };
+  const workflow = load(path.join(root, 'lib/workflowReads.ts'));
+  return { state, storage, verification, workflow, db, screen };
 }
 
 for (const kind of ['public', 'pharmacie']) {
@@ -176,7 +186,8 @@ for (const kind of ['public', 'pharmacie']) {
     const result = await env.verification.verifyMedication(realLot.numero_lot);
     assert.equal(result.status, 'FOUND');
     assert.equal(result.source, 'real');
-    assert.equal(result.lot.id, realLot.id);
+    assert.equal(result.lot.numero_lot, realLot.numero_lot);
+    assert.equal('id' in result.lot, false);
     const ui = env.screen(kind);
     await ui.submit(realLot.numero_lot);
     assert.match(ui.text(), /Lot de test réel/);
@@ -191,7 +202,7 @@ for (const kind of ['public', 'pharmacie']) {
       const result = await env.verification.verifyMedication(realLot.numero_lot);
       assert.equal(await env.verification.journalVerificationScan(result, kind), 'FAILED');
       assert.equal(result.status, 'FOUND');
-      assert.equal(result.lot.id, realLot.id);
+      assert.equal(result.lot.numero_lot, realLot.numero_lot);
       const ui = env.screen(kind);
       await ui.submit(realLot.numero_lot);
       assert.match(ui.text(), /Lot de test réel/);
@@ -391,5 +402,161 @@ test('the matching demo transfer can still be shown without a real backend', asy
   assert.match(ui.text(), /Ceftriaxone 1g/);
   assert.match(ui.text(), /Transfert en attente trouvé/);
   assert.match(ui.text(), /DÉMONSTRATION/);
+  assert.equal(env.state.sdkCalls, 0);
+});
+
+test('LOT03: anonymous verification skips journaling without a failure banner', async () => {
+  const env = environment();
+  env.state.session = null;
+  env.state.lookup = { data: realLot, error: null };
+  const ui = env.screen('public');
+  await ui.submit(realLot.numero_lot);
+  assert.match(ui.text(), /Lot de test réel/);
+  assert.doesNotMatch(ui.text(), /scan n’a pas pu être enregistré/);
+  assert.equal(env.state.insertCalls, 0);
+  assert.equal(env.state.rpcCalls.every(call => call.name === 'verify_public_lot'), true);
+});
+
+test('LOT03: normalized QR uses only the public RPC and retains no extra fields', async () => {
+  const env = environment();
+  env.state.lookup = { data: { ...realLot, id: 'PRIVATE_UUID', telephone: 'PRIVATE_PHONE', quantite_actuelle: 999 }, error: null };
+  const result = await env.verification.verifyMedication('https://example.test/verify?hash=REAL-2026-001');
+  assert.equal(result.status, 'FOUND');
+  assert.equal(env.state.rpcCalls[0].name, 'verify_public_lot');
+  assert.equal(env.state.rpcCalls[0].args.p_identifier, realLot.numero_lot);
+  assert.doesNotMatch(JSON.stringify(result), /PRIVATE|quantite_actuelle/);
+});
+
+test('LOT03: missing RPC is unavailable with no raw table fallback', async () => {
+  const env = environment();
+  env.state.lookup = { data: null, error: new Error('Function not found before cutover') };
+  assert.equal((await env.verification.verifyMedication(realLot.numero_lot)).status, 'UNAVAILABLE');
+  assert.equal(env.state.lookupCalls, 1);
+});
+
+test('LOT03: multiple rows and unknown states cannot manufacture a match', async () => {
+  const env = environment();
+  for (const data of [[realLot, realLot], { ...realLot, etat: 'authentique' }]) {
+    env.state.lookup = { data, error: null };
+    assert.equal((await env.verification.verifyMedication(realLot.numero_lot)).status, 'UNAVAILABLE');
+  }
+});
+
+test('LOT03: journal RPC receives no client verdict or scanner identity', async () => {
+  const env = environment();
+  env.state.lookup = { data: realLot, error: null };
+  const found = await env.verification.verifyMedication(realLot.numero_lot);
+  assert.equal(await env.verification.journalVerificationScan(found, 'pharmacie'), 'RECORDED');
+  const call = env.state.rpcCalls.find(call => call.name === 'record_verification_scan');
+  assert.deepEqual(Object.keys(call.args), ['p_identifier']);
+  assert.equal(call.args.p_identifier, realLot.numero_lot);
+});
+
+for (const kind of ['public', 'pharmacie']) {
+  test(`LOT03: ${kind} displays an archived match without a positive verdict`, async () => {
+    const env = environment();
+    env.state.lookup = { data: { ...realLot, etat: 'archive' }, error: null };
+    env.state.journalFailure = 'return';
+    const ui = env.screen(kind);
+    await ui.submit(realLot.numero_lot);
+    assert.match(ui.text(), /Lot archivé/);
+    assert.match(ui.text(), /Lot de test réel/);
+    assert.doesNotMatch(ui.text(), /authentique|suspect|EXPIRÉ|Lot Expiré/);
+  });
+}
+
+test('LOT03: pharmacy gets the internal lot identity only from its authorized transfer', async () => {
+  const env = environment();
+  env.state.lookup = { data: realLot, error: null };
+  env.state.pendingData = { id: 'business-transfer', lot_id: 'business-lot', quantite_transferee: 2, expediteur_id: { nom_entite: 'Partner' } };
+  const found = await env.verification.verifyMedication(realLot.numero_lot);
+  assert.equal('id' in found.lot, false);
+  const transfer = await env.verification.findPendingVerificationTransfer(found);
+  assert.equal(transfer.lotId, 'business-lot');
+  assert.equal(transfer.id, 'business-transfer');
+});
+
+test('LOT03: mismatched expected transfer remains a secondary failure', async () => {
+  const env = environment();
+  env.state.lookup = { data: realLot, error: null };
+  env.state.routeParams = { expectedLotId: 'expected', expectedLotNum: realLot.numero_lot };
+  env.state.pendingData = { id: 'business-transfer', lot_id: 'other', quantite_transferee: 2, expediteur_id: { nom_entite: 'Partner' } };
+  const ui = env.screen('pharmacie');
+  await ui.submit(realLot.numero_lot);
+  assert.match(ui.text(), /Lot de test réel/);
+  assert.match(ui.text(), /recherche du transfert est indisponible/);
+  assert.doesNotMatch(ui.text(), /Transfert en attente trouvé/);
+});
+
+test('LOT03: own contact profile uses only the UID-scoped RPC', async () => {
+  const env = environment();
+  env.state.workflowProfile = { id: 'self', telephone: 'own-contact' };
+  assert.equal((await env.workflow.getOwnProfile()).telephone, 'own-contact');
+  assert.equal(env.state.rpcCalls[0].name, 'get_my_profile');
+  assert.equal(env.state.rpcCalls[0].args, undefined);
+});
+
+test('LOT03: real catalogue keeps only medicine fields', async () => {
+  const env = environment();
+  env.state.workflowCatalog = [{ nom_medicament: 'Medicine', dosage: null, forme_galenique: 'Comprime', quantite_actuelle: 999, id: 'PRIVATE' }];
+  const data = await env.workflow.getManufacturerCatalog('maker');
+  assert.equal(env.state.rpcCalls[0].name, 'get_manufacturer_catalog');
+  assert.equal(env.state.rpcCalls[0].args.p_manufacturer_id, 'maker');
+  assert.doesNotMatch(JSON.stringify(data), /PRIVATE|quantite_actuelle/);
+  assert.equal(data[0].dosage, '');
+});
+
+test('LOT03: workflow RPC errors do not fall back to a broad table read', async () => {
+  const env = environment();
+  env.state.workflowError = new Error('Unavailable workflow RPC');
+  await assert.rejects(env.workflow.getOwnProfile());
+  await assert.rejects(env.workflow.getManufacturerCatalog('maker'));
+});
+
+test('LOT03: demo profile and catalogue stay entirely local', async () => {
+  const env = environment();
+  env.storage.set('pt_demo_mode', 'true');
+  env.storage.set('pt_demo_role', 'fabricant');
+  assert.equal((await env.workflow.getOwnProfile()).role, 'fabricant');
+  assert.equal((await env.workflow.getManufacturerCatalog('unknown-maker')).length, 0);
+  assert.ok((await env.workflow.getManufacturerCatalog('mock-user-id-fabricant')).length > 0);
+  assert.equal(env.state.sdkCalls, 0);
+});
+
+test('LOT03A: directory uses an identity-free scoped RPC and drops private fields', async () => {
+  const env = environment();
+  env.state.workflowPartners = [{ id: 'partner', nom_entite: 'Entity', ville: 'City', pays: 'Niger', telephone: 'PRIVATE' }];
+  const partners = await env.workflow.getBusinessPartners();
+  assert.equal(env.state.rpcCalls[0].name, 'get_business_partners');
+  assert.equal(env.state.rpcCalls[0].args, undefined);
+  assert.equal(partners[0].id, 'partner');
+  assert.doesNotMatch(JSON.stringify(partners), /PRIVATE|telephone/);
+});
+
+test('LOT03A: directory errors do not fall back to global profiles', async () => {
+  const env = environment();
+  env.state.workflowError = new Error('Directory unavailable');
+  await assert.rejects(env.workflow.getBusinessPartners());
+});
+
+test('LOT03A: demo directory follows the selected role without a backend', async () => {
+  const env = environment();
+  env.storage.set('pt_demo_mode', 'true');
+  env.storage.set('pt_demo_role', 'fabricant');
+  assert.ok((await env.workflow.getBusinessPartners()).some(p => p.id === 'mock-user-id-pharmacie'));
+  env.storage.set('pt_demo_role', 'pharmacie');
+  assert.ok((await env.workflow.getBusinessPartners()).some(p => p.id === 'mock-user-id-fabricant'));
+  env.storage.set('pt_demo_role', 'agent_dph');
+  await assert.rejects(env.workflow.getBusinessPartners());
+  assert.equal(env.state.sdkCalls, 0);
+});
+
+test('LOT03A: new business views preserve the explicit local demo', async () => {
+  const env = environment();
+  env.storage.set('pt_demo_mode', 'true');
+  const lot = await env.db.supabase.from('business_lots').select('id').eq('id', 'mock-lot-1').single();
+  const stats = await env.db.supabase.from('supervision_stats').select('*').single();
+  assert.equal(lot.data.id, 'mock-lot-1');
+  assert.equal(typeof stats.data.total_lots, 'number');
   assert.equal(env.state.sdkCalls, 0);
 });

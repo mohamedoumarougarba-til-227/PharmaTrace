@@ -14,7 +14,6 @@ type VerifyResult = { source?: VerificationSource } & (
   | {
       status: 'authentique';
       data: {
-        id: string;
         nom: string;
         num: string;
         dosage: string;
@@ -24,6 +23,7 @@ type VerifyResult = { source?: VerificationSource } & (
       };
       pendingTransfer?: {
         id: string;
+        lotId: string;
         qte: number;
         expediteur: string;
       } | null;
@@ -31,7 +31,7 @@ type VerifyResult = { source?: VerificationSource } & (
   | { status: 'not_found'; query: string }
   | { status: 'unavailable' | 'invalid_input' }
   | {
-      status: 'expire';
+      status: 'expire' | 'archive';
       data: { nom: string; num: string; dosage: string; fabricant: string; expiration: string };
     }
 );
@@ -113,7 +113,8 @@ export default function PharmacyScannerScreen() {
     }
 
     const lot = lookup.lot;
-    if (expectedLotId && lot.id !== expectedLotId) {
+    if ((expectedLotNum && lot.numero_lot !== expectedLotNum)
+      || (lookup.source === 'demo' && expectedLotId && lot.id !== expectedLotId)) {
       setInfoModal({
         title: 'Erreur de lot',
         message: `Le lot scanné (${lot.nom_medicament} N° ${lot.numero_lot}) ne correspond pas au lot attendu pour cette réception (${expectedLotNom} N° ${expectedLotNum}).\n\nVeuillez scanner le bon code QR.`,
@@ -125,9 +126,9 @@ export default function PharmacyScannerScreen() {
     }
 
     const expDate = new Date(lot.date_expiration);
-    if (expDate < new Date()) {
+    if (lot.statut_actuel === 'archive' || expDate < new Date()) {
       setResult({
-        status: 'expire', source: lookup.source,
+        status: lot.statut_actuel === 'archive' ? 'archive' : 'expire', source: lookup.source,
         data: {
           nom: lot.nom_medicament, num: lot.numero_lot, dosage: lot.dosage ?? '—',
           fabricant: lot.utilisateurs?.nom_entite ?? 'Inconnu',
@@ -141,7 +142,7 @@ export default function PharmacyScannerScreen() {
     const found: Extract<VerifyResult, { status: 'authentique' }> = {
       status: 'authentique', source: lookup.source,
       data: {
-        id: lot.id, nom: lot.nom_medicament, num: lot.numero_lot, dosage: lot.dosage ?? '—',
+        nom: lot.nom_medicament, num: lot.numero_lot, dosage: lot.dosage ?? '—',
         fabricant: lot.utilisateurs?.nom_entite ?? 'Inconnu',
         expiration: expDate.toLocaleDateString('fr-FR'),
         statut: lot.statut_actuel.replace(/_/g, ' '),
@@ -154,6 +155,9 @@ export default function PharmacyScannerScreen() {
       try {
         const targetTransferId = typeof transfertId === 'string' ? transfertId : transfertId?.[0];
         const pendingTransfer = await findPendingVerificationTransfer(lookup, targetTransferId);
+        if (expectedLotId && pendingTransfer && pendingTransfer.lotId !== expectedLotId) {
+          throw new Error('Transfer does not match the expected business lot');
+        }
         if (request === verificationRequest.current) setResult({ ...found, pendingTransfer });
       } catch {
         if (request === verificationRequest.current) setTransferLookupFailed(true);
@@ -344,7 +348,7 @@ export default function PharmacyScannerScreen() {
                     Ce lot vous a été expédié par {result.pendingTransfer.expediteur} (Quantité: {result.pendingTransfer.qte} unités).
                   </Text>
                   <TouchableOpacity
-                    onPress={() => handleConfirmReception(result.pendingTransfer!.id, result.data.id)}
+                    onPress={() => handleConfirmReception(result.pendingTransfer!.id, result.pendingTransfer!.lotId)}
                     disabled={recepting}
                     className="w-full h-11 bg-pharma-green rounded-xl items-center justify-center flex-row gap-2"
                   >
@@ -368,7 +372,7 @@ export default function PharmacyScannerScreen() {
         )}
 
         {/* Résultat : Expire */}
-        {result.status === 'expire' && (
+        {(result.status === 'expire' || result.status === 'archive') && (
           <View style={isDesktop ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : undefined}>
             <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
               <View className="flex-row items-center gap-3 mb-4 bg-orange-50 p-3 rounded-xl">
@@ -376,8 +380,8 @@ export default function PharmacyScannerScreen() {
                   <FAIcon name="triangle-exclamation" size={14} color="#fff" family="FontAwesome6" />
                 </View>
                 <View>
-                  <Text className="text-pharma-orange font-black text-sm uppercase tracking-wider">Lot Expiré</Text>
-                  <Text className="text-muted text-[10px] mt-0.5">Ce produit a dépassé sa date limite</Text>
+                  <Text className="text-pharma-orange font-black text-sm uppercase tracking-wider">{result.status === 'archive' ? 'Lot archivé' : 'Lot Expiré'}</Text>
+                  <Text className="text-muted text-[10px] mt-0.5">{result.status === 'archive' ? 'La correspondance existe, mais le lot est archivé.' : 'Ce produit a dépassé sa date limite'}</Text>
                 </View>
               </View>
 
@@ -386,11 +390,11 @@ export default function PharmacyScannerScreen() {
               <ResultRow label="Numéro de lot" value={result.data.num} />
               <ResultRow label="Dosage" value={result.data.dosage} />
               <ResultRow label="Fabricant" value={result.data.fabricant} />
-              <ResultRow label="Expiré le" value={result.data.expiration} />
+              <ResultRow label={result.status === 'archive' ? 'Expiration' : 'Expiré le'} value={result.data.expiration} />
 
               <View className="bg-red-50 p-4 rounded-xl border border-red-100 mt-4 items-center">
-                <Text className="text-pharma-red font-bold text-sm">INTERDICTION DE VENTE</Text>
-                <Text className="text-muted text-xs mt-1 text-center">Ce lot doit être retiré du stock et retourné pour destruction.</Text>
+                <Text className="text-pharma-red font-bold text-sm">{result.status === 'archive' ? 'STATUT ARCHIVÉ' : 'INTERDICTION DE VENTE'}</Text>
+                <Text className="text-muted text-xs mt-1 text-center">{result.status === 'archive' ? 'Vérifiez la situation du lot avant toute réception.' : 'Ce lot doit être retiré du stock et retourné pour destruction.'}</Text>
               </View>
 
               <TouchableOpacity onPress={reset} className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center">

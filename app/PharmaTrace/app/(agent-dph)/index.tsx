@@ -14,7 +14,7 @@ export default function AgentDPHDashboard() {
   const loadStats = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.from('stats_dashboard').select('*').single();
+      const { data, error } = await supabase.from('supervision_stats').select('*').single();
       if (error) throw error;
       setStats({
         total_lots: data.total_lots ?? 0,

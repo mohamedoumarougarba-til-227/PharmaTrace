@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, RefreshControl, Modal, useWindowDimensions } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
+import { getBusinessPartners, getManufacturerCatalog } from '../../lib/workflowReads';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -154,13 +155,7 @@ export default function MesDemandesScreen() {
       setGroupedDemandes(sortedGroups);
 
       // 2. Récupérer la liste des fabricants pour le dropdown
-      const { data: fabData, error: fabError } = await supabase
-        .from('utilisateurs')
-        .select('id, nom_entite')
-        .eq('role', 'fabricant')
-        .eq('statut', 'actif');
-
-      if (fabError) throw fabError;
+      const fabData = await getBusinessPartners();
       setFabricants(fabData ?? []);
     } catch (e) {
       console.error(e);
@@ -189,15 +184,7 @@ export default function MesDemandesScreen() {
 
     setLoadingCatalog(true);
     try {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from('lots_medicaments')
-        .select('nom_medicament, dosage, forme_galenique')
-        .eq('fabricant_id', fabId)
-        .eq('statut_actuel', 'en_stock_fabricant')
-        .gte('date_expiration', todayStr);
-
-      if (error) throw error;
+      const data = await getManufacturerCatalog(fabId);
 
       // Déduplication du catalogue
       const uniqueItems: CatalogItem[] = [];

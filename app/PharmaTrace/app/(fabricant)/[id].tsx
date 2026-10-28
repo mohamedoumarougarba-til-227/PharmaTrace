@@ -28,7 +28,7 @@ export default function LotDetailScreen() {
       setLoading(true);
       if (!id) return;
       const { data, error } = await supabase
-        .from('lots_avec_fabricant')
+        .from('business_lots')
         .select('id, numero_lot, nom_medicament, dosage, quantite_initiale, quantite_actuelle, date_fabrication, date_expiration, qr_code_url, hash_sha256, statut_actuel, fabricant_nom')
         .eq('id', id)
         .single();

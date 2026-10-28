@@ -15,7 +15,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { FAIcon } from '../../constants/icons';
 import { StatusBar } from "expo-status-bar";
-import { supabase } from "../../lib/supabase";
+import { getSupabase } from "../../lib/supabase";
 import { BUSINESS_ROUTES, getBusinessAccess, UNPROVISIONED_MESSAGE } from "../../lib/businessRole";
 
 export default function LoginScreen() {
@@ -62,7 +62,7 @@ export default function LoginScreen() {
     setAccessMessage(null);
     try {
       await AsyncStorage.setItem("pt_demo_mode", "false");
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await getSupabase().auth.signInWithPassword({ email, password });
       if (error) {
         Alert.alert("Connexion échouée", error.message);
         return;

@@ -3,13 +3,13 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator,
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
+import { getBusinessPartners } from '../../lib/workflowReads';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
 
 type PharmacieOption = {
   id: string;
   nom_entite: string;
-  adresse: string | null;
   ville: string | null;
 };
 
@@ -79,14 +79,7 @@ export default function NouveauTransfertScreen() {
       }
 
       // Load pharmacies
-      const { data: pharmData, error: pharmError } = await supabase
-        .from('utilisateurs')
-        .select('id, nom_entite, adresse, ville')
-        .eq('role', 'pharmacie')
-        .eq('statut', 'actif')
-        .order('nom_entite', { ascending: true });
-
-      if (pharmError) throw pharmError;
+      const pharmData = await getBusinessPartners();
       setPharmacies((pharmData ?? []) as PharmacieOption[]);
 
       // Auto-pre-fill destinataire destination
@@ -497,7 +490,7 @@ export default function NouveauTransfertScreen() {
                               <FAIcon name="pills" size={12} color={isSelected ? '#2E6DA4' : '#1A3A5C'} family="FontAwesome6" />
                               <Text className={`font-bold text-sm ${isSelected ? 'text-blue' : 'text-navy'}`}>{p.nom_entite}</Text>
                             </View>
-                            <Text className="text-muted text-xs mt-1">{[p.adresse, p.ville].filter(Boolean).join(', ') || 'Adresse non renseignée'}</Text>
+                            <Text className="text-muted text-xs mt-1">{p.ville || 'Ville non renseignée'}</Text>
                           </View>
                           {isSelected ? (
                             <FAIcon name="check" size={13} color="#2E6DA4" family="FontAwesome6" />

@@ -6,6 +6,7 @@ import {
 import { router } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { supabase, type Utilisateur } from '../../lib/supabase';
+import { getOwnProfile } from '../../lib/workflowReads';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -27,11 +28,7 @@ export default function PharmacieCompteScreen() {
       if (!session) { router.replace('/(auth)/login'); return; }
 
       // Profil
-      const { data: profile } = await supabase
-        .from('utilisateurs')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+      const profile = await getOwnProfile();
       if (profile) setUser(profile);
 
       const todayStr = new Date().toISOString().split('T')[0];

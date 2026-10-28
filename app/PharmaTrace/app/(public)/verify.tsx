@@ -27,12 +27,11 @@ type VerifyResult = { source?: VerificationSource } & (
         fabricant: string;
         expiration: string;
         statut: string;
-        etape: string;
       };
     }
   | { status: "not_found" | "unavailable" | "invalid_input" }
   | {
-      status: "expire";
+      status: "expire" | "archive";
       data: { nom: string; fabricant: string; expiration: string };
     }
 );
@@ -85,9 +84,9 @@ export default function VerifyScreen() {
     } else {
       const lot = lookup.lot;
       const expDate = new Date(lot.date_expiration);
-      if (expDate < new Date()) {
+      if (lot.statut_actuel === 'archive' || expDate < new Date()) {
         setResult({
-          status: 'expire', source: lookup.source,
+          status: lot.statut_actuel === 'archive' ? 'archive' : 'expire', source: lookup.source,
           data: {
             nom: lot.nom_medicament,
             fabricant: lot.utilisateurs?.nom_entite ?? 'Inconnu',
@@ -102,7 +101,6 @@ export default function VerifyScreen() {
             fabricant: lot.utilisateurs?.nom_entite ?? 'Inconnu',
             expiration: expDate.toLocaleDateString('fr-FR'),
             statut: lot.statut_actuel.replace(/_/g, ' '),
-            etape: lot.utilisateurs?.ville ?? 'Niger',
           },
         });
       }
@@ -269,7 +267,6 @@ export default function VerifyScreen() {
                   ["Fabricant", result.data.fabricant],
                   ["Expiration", result.data.expiration],
                   ["Statut", result.data.statut],
-                  ["Dernière étape", result.data.etape],
                 ] as [string, string][]
               ).map(([label, value]) => (
                 <View
@@ -333,7 +330,7 @@ export default function VerifyScreen() {
   }
 
   // ─── Résultat EXPIRÉ ─────────────────────────────────────────────────────
-  if (result.status === "expire") {
+  if (result.status === "expire" || result.status === "archive") {
     return (
       <View style={{ flex: 1, backgroundColor: "#E67E22" }}>
         <StatusBar style="light" />
@@ -368,7 +365,7 @@ export default function VerifyScreen() {
                 letterSpacing: 2,
               }}
             >
-              EXPIRÉ
+              {result.status === 'archive' ? 'Lot archivé' : 'EXPIRÉ'}
             </Text>
             <Text
               style={{
@@ -379,7 +376,7 @@ export default function VerifyScreen() {
                 fontWeight: "600",
               }}
             >
-              Ce médicament a dépassé sa date d'expiration
+              {result.status === 'archive' ? 'La correspondance existe, mais le lot est archivé.' : "Ce médicament a dépassé sa date d'expiration"}
             </Text>
             <View
               style={{
@@ -410,7 +407,7 @@ export default function VerifyScreen() {
                   marginTop: 4,
                 }}
               >
-                Expiré le : {result.data.expiration}
+                {result.status === 'archive' ? 'Expiration : ' : 'Expiré le : '}{result.data.expiration}
               </Text>
               <View
                 style={{
@@ -424,7 +421,7 @@ export default function VerifyScreen() {
                 <Text
                   style={{ color: "#E67E22", fontWeight: "900", fontSize: 15 }}
                 >
-                  NE PAS CONSOMMER
+                  {result.status === 'archive' ? 'STATUT ARCHIVÉ' : 'NE PAS CONSOMMER'}
                 </Text>
                 <Text
                   style={{
@@ -434,7 +431,7 @@ export default function VerifyScreen() {
                     textAlign: "center",
                   }}
                 >
-                  Retournez ce médicament à la pharmacie
+                  {result.status === 'archive' ? 'Demandez conseil à un pharmacien.' : 'Retournez ce médicament à la pharmacie'}
                 </Text>
               </View>
             </View>

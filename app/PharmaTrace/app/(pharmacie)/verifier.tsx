@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator,
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useLocalSearchParams, router } from 'expo-router';
 import { supabase } from '../../lib/supabase';
+import { decideTransfer, workflowError } from '../../lib/businessWorkflows';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
 import VerificationNotice from '../../components/VerificationNotice';
@@ -13,6 +14,7 @@ type VerifyResult = { source?: VerificationSource } & (
   | { status: 'loading' }
   | {
       status: 'authentique';
+      identifier: string;
       data: {
         nom: string;
         num: string;
@@ -126,7 +128,7 @@ export default function PharmacyScannerScreen() {
     }
 
     const expDate = new Date(lot.date_expiration);
-    if (lot.statut_actuel === 'archive' || expDate < new Date()) {
+    if (lot.statut_actuel === 'archive' || lot.date_expiration < new Date().toISOString().slice(0, 10)) {
       setResult({
         status: lot.statut_actuel === 'archive' ? 'archive' : 'expire', source: lookup.source,
         data: {
@@ -140,7 +142,7 @@ export default function PharmacyScannerScreen() {
     }
 
     const found: Extract<VerifyResult, { status: 'authentique' }> = {
-      status: 'authentique', source: lookup.source,
+      status: 'authentique', source: lookup.source, identifier: lookup.identifier,
       data: {
         nom: lot.nom_medicament, num: lot.numero_lot, dosage: lot.dosage ?? '—',
         fabricant: lot.utilisateurs?.nom_entite ?? 'Inconnu',
@@ -166,31 +168,14 @@ export default function PharmacyScannerScreen() {
     await Promise.all([logScan(), loadPendingTransfer()]);
   };
 
-  const handleConfirmReception = async (transfertId: string, lotId: string) => {
+  const handleConfirmReception = async (transfertId: string) => {
     try {
       setRecepting(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Mettre à jour le transfert
-      const { error: tError } = await supabase
-        .from('transferts')
-        .update({
-          statut: 'receptionne',
-          date_reception: new Date().toISOString(),
-          notes_destinataire: 'Réception confirmée par scan QR',
-        })
-        .eq('id', transfertId);
-
-      if (tError) throw tError;
-
-      // Mettre à jour le statut du lot
-      const { error: lError } = await supabase
-        .from('lots_medicaments')
-        .update({ statut_actuel: 'en_pharmacie' })
-        .eq('id', lotId);
-
-      if (lError) throw lError;
+      if (result.status !== 'authentique') throw new Error('A matching verification is required');
+      await decideTransfer(transfertId, 'receptionne', result.identifier);
 
       setInfoModal({
         title: 'Succès',
@@ -205,7 +190,7 @@ export default function PharmacyScannerScreen() {
       console.error(e);
       setInfoModal({
         title: 'Erreur',
-        message: 'Impossible de confirmer la réception.',
+        message: workflowError(e),
         color: '#C0392B',
         icon: 'triangle-exclamation',
       });
@@ -348,7 +333,7 @@ export default function PharmacyScannerScreen() {
                     Ce lot vous a été expédié par {result.pendingTransfer.expediteur} (Quantité: {result.pendingTransfer.qte} unités).
                   </Text>
                   <TouchableOpacity
-                    onPress={() => handleConfirmReception(result.pendingTransfer!.id, result.pendingTransfer!.lotId)}
+                    onPress={() => handleConfirmReception(result.pendingTransfer!.id)}
                     disabled={recepting}
                     className="w-full h-11 bg-pharma-green rounded-xl items-center justify-center flex-row gap-2"
                   >

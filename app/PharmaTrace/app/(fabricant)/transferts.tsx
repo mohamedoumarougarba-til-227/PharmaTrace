@@ -13,6 +13,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { FAIcon } from '../../constants/icons';
 import { supabase } from '../../lib/supabase';
+import { decideTransfer, workflowError } from '../../lib/businessWorkflows';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
@@ -57,7 +58,7 @@ export default function TransfertsScreen() {
 
       const { data, error } = await supabase
         .from('transferts')
-        .select('id, quantite_transferee, date_initiation, statut, lot_id(nom_medicament, numero_lot), destinataire_id(nom_entite, ville, pays)')
+        .select('id, quantite_transferee, date_initiation, statut, lot_id(id, nom_medicament, numero_lot), destinataire_id(nom_entite, ville, pays)')
         .eq('expediteur_id', session.user.id)
         .order('date_initiation', { ascending: false });
 
@@ -72,7 +73,7 @@ export default function TransfertsScreen() {
     }
   };
 
-  const cancelTransferExecution = async (transfertId: string, lotId: string | null, quantite: number) => {
+  const cancelTransferExecution = async (transfertId: string) => {
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -86,41 +87,7 @@ export default function TransfertsScreen() {
         return;
       }
 
-      // 1. Mettre à jour le statut du transfert à "annule" (annulation)
-      const { error: transferError } = await supabase
-        .from('transferts')
-        .update({
-          statut: 'annule',
-          notes_expediteur: 'Annulé par le fabricant',
-          date_reception: new Date().toISOString(),
-        })
-        .eq('id', transfertId)
-        .eq('expediteur_id', session.user.id);
-
-      if (transferError) throw transferError;
-
-      // 2. Restituer le stock au lot
-      if (lotId) {
-        const { data: lotData, error: fetchLotError } = await supabase
-          .from('lots_medicaments')
-          .select('quantite_actuelle')
-          .eq('id', lotId)
-          .single();
-
-        if (fetchLotError) throw fetchLotError;
-
-        const currentQty = lotData?.quantite_actuelle ?? 0;
-
-        const { error: lotError } = await supabase
-          .from('lots_medicaments')
-          .update({
-            statut_actuel: 'en_stock_fabricant',
-            quantite_actuelle: currentQty + quantite,
-          })
-          .eq('id', lotId);
-
-        if (lotError) throw lotError;
-      }
+      await decideTransfer(transfertId, 'annule');
 
       setSuccessModal({
         title: 'Succès',
@@ -133,7 +100,7 @@ export default function TransfertsScreen() {
       console.error(error);
       setSuccessModal({
         title: 'Erreur',
-        message: "Impossible d'annuler le transfert.",
+        message: workflowError(error),
         color: '#C0392B',
         icon: 'triangle-exclamation'
       });
@@ -498,7 +465,7 @@ export default function TransfertsScreen() {
         icon="trash"
         onConfirm={async () => {
           if (cancelTransferTarget) {
-            await cancelTransferExecution(cancelTransferTarget.id, cancelTransferTarget.lot_id?.id, cancelTransferTarget.quantite_transferee);
+            await cancelTransferExecution(cancelTransferTarget.id);
             setCancelTransferTarget(null);
           }
         }}

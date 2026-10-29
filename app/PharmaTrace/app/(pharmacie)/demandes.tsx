@@ -1,7 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, RefreshControl, Modal, useWindowDimensions } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
+import { createRequests, decideRequests, workflowError, type WorkflowIntent } from '../../lib/businessWorkflows';
 import { getBusinessPartners, getManufacturerCatalog } from '../../lib/workflowReads';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -44,14 +45,8 @@ type GroupedDemande = {
   }[];
 };
 
-const generateUuid = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-};
-
 export default function MesDemandesScreen() {
+  const requestIntent = useRef<WorkflowIntent>({});
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
 
@@ -297,21 +292,16 @@ export default function MesDemandesScreen() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const groupeId = generateUuid();
       const insertRows = cart.map((item) => ({
-        pharmacie_id: session.user.id,
         fabricant_id: selectedFabricantId,
         nom_medicament: item.nom_medicament,
         dosage: item.dosage,
         forme_galenique: item.forme_galenique,
-        quantite_demandee: parseInt(item.quantite, 10),
-        notes_pharmacie: globalNote.trim() || null,
-        statut: 'en_attente',
-        groupe_id: groupeId,
+        quantite: Number(item.quantite),
+        note: globalNote.trim() || null,
       }));
 
-      const { error } = await supabase.from('demandes_stock').insert(insertRows);
-      if (error) throw error;
+      await createRequests(insertRows, requestIntent.current);
 
       setShowCreateModal(false);
       setCart([]);
@@ -332,7 +322,7 @@ export default function MesDemandesScreen() {
       console.error(e);
       setConfirmModal({
         title: 'Erreur',
-        message: 'Impossible de soumettre la demande.',
+        message: workflowError(e),
         color: '#C0392B',
         icon: 'triangle-exclamation',
         onConfirm: () => setConfirmModal(null),
@@ -348,12 +338,7 @@ export default function MesDemandesScreen() {
       const ids = group.items.filter(i => i.statut === 'en_attente').map(i => i.id);
       if (ids.length === 0) return;
 
-      const { error } = await supabase
-        .from('demandes_stock')
-        .update({ statut: 'annule' })
-        .in('id', ids);
-
-      if (error) throw error;
+      await decideRequests(ids, 'annule');
 
       await loadData();
       setConfirmModal({
@@ -367,7 +352,7 @@ export default function MesDemandesScreen() {
       console.error(e);
       setConfirmModal({
         title: 'Erreur',
-        message: "Impossible d'annuler la demande.",
+        message: workflowError(e),
         color: '#C0392B',
         icon: 'triangle-exclamation',
         onConfirm: () => setConfirmModal(null),
@@ -407,7 +392,7 @@ export default function MesDemandesScreen() {
           <Text className="text-muted text-xs mt-0.5">Demander du stock auprès des fabricants</Text>
         </View>
         <TouchableOpacity
-          onPress={() => setShowCreateModal(true)}
+          onPress={() => { requestIntent.current = {}; setShowCreateModal(true); }}
           className="bg-pharma-green px-4 h-10 rounded-lg flex-row items-center gap-2"
         >
           <FAIcon name="plus" size={14} color="#fff" family="FontAwesome6" />

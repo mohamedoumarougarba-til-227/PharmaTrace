@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
+import { createTransfers, workflowError, type WorkflowIntent } from '../../lib/businessWorkflows';
 import { getBusinessPartners } from '../../lib/workflowReads';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -23,16 +24,19 @@ type LotInfo = {
 };
 
 export default function NouveauTransfertScreen() {
-  const { lotId, demandeId, nomMedicament, destinataireId, quantite } = useLocalSearchParams<{
+  const { lotId, demandeId, nomMedicament, destinataireId, quantite, dosage, formeGalenique } = useLocalSearchParams<{
     lotId?: string;
     demandeId?: string;
     nomMedicament?: string;
     destinataireId?: string;
     quantite?: string;
+    dosage?: string;
+    formeGalenique?: string;
   }>();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const submitIntent = useRef<WorkflowIntent>({});
   const [pharmacies, setPharmacies] = useState<PharmacieOption[]>([]);
   const [selectedDestinations, setSelectedDestinations] = useState<{ pharmacieId: string; quantite: string; note: string }[]>([]);
   const [showPicker, setShowPicker] = useState(false);
@@ -56,11 +60,13 @@ export default function NouveauTransfertScreen() {
   }, [lot]);
 
   const filteredPharmacies = useMemo(() => {
-    return pharmacies.filter(p => 
-      p.nom_entite.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.ville && p.ville.toLowerCase().includes(searchQuery.toLowerCase()))
+    return pharmacies.filter(p =>
+      (!demandeId || p.id === destinataireId) && (
+        p.nom_entite.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.ville && p.ville.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
     );
-  }, [pharmacies, searchQuery]);
+  }, [pharmacies, searchQuery, demandeId, destinataireId]);
 
   const totalQty = useMemo(() => {
     return selectedDestinations.reduce((sum, dest) => {
@@ -95,7 +101,7 @@ export default function NouveauTransfertScreen() {
       if (lotId) {
         const { data: lotData, error: lotError } = await supabase
           .from('lots_medicaments')
-          .select('id, numero_lot, nom_medicament, quantite_initiale, quantite_actuelle, date_expiration')
+          .select('id, numero_lot, nom_medicament, dosage, forme_galenique, quantite_initiale, quantite_actuelle, date_expiration')
           .eq('id', lotId)
           .eq('fabricant_id', session.user.id)
           .single();
@@ -104,7 +110,7 @@ export default function NouveauTransfertScreen() {
 
         if (lotData) {
           const lInfo = lotData as LotInfo;
-          if (lInfo.date_expiration && new Date(lInfo.date_expiration) < new Date()) {
+          if (lInfo.date_expiration && lInfo.date_expiration < new Date().toISOString().slice(0, 10)) {
             setSuccessModal({
               title: 'Lot expiré',
               message: 'Ce lot a expiré. Il est interdit d\'initier un transfert pour un produit périmé.',
@@ -122,16 +128,18 @@ export default function NouveauTransfertScreen() {
         const todayStr = new Date().toISOString().split('T')[0];
         const { data: matchedLots, error: matchedError } = await supabase
           .from('lots_medicaments')
-          .select('id, numero_lot, nom_medicament, quantite_initiale, quantite_actuelle, date_expiration')
+          .select('id, numero_lot, nom_medicament, dosage, forme_galenique, quantite_initiale, quantite_actuelle, date_expiration')
           .eq('fabricant_id', session.user.id)
           .eq('statut_actuel', 'en_stock_fabricant')
-          .ilike('nom_medicament', `%${nomMedicament}%`)
+          .eq('nom_medicament', nomMedicament)
           .gte('date_expiration', todayStr)
           .order('date_expiration', { ascending: true });
 
         if (matchedError) throw matchedError;
 
-        const availableLots = (matchedLots ?? []) as LotInfo[];
+        const availableLots = (matchedLots ?? []).filter(row =>
+          (row.dosage || '') === (dosage || '') && (row.forme_galenique || '') === (formeGalenique || ''),
+        ) as LotInfo[];
         setMatchingLots(availableLots);
 
         const requestedQty = Number(quantite || 0);
@@ -157,7 +165,7 @@ export default function NouveauTransfertScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [lotId, demandeId, nomMedicament, destinataireId, quantite]),
+    }, [lotId, demandeId, nomMedicament, destinataireId, quantite, dosage, formeGalenique]),
   );
 
   const togglePharmacie = (id: string) => {
@@ -247,6 +255,16 @@ export default function NouveauTransfertScreen() {
       return;
     }
 
+    if (demandeId && (selectedDestinations.length !== 1
+      || selectedDestinations[0].pharmacieId !== destinataireId || totalQty > Number(quantite))) {
+      setSuccessModal({
+        title: 'Demande incompatible',
+        message: 'La livraison doit concerner la pharmacie de la demande et ne peut dépasser la quantité demandée.',
+        color: '#C0392B', icon: 'triangle-exclamation',
+      });
+      return;
+    }
+
     setShowConfirmSubmit(true);
   };
 
@@ -260,62 +278,11 @@ export default function NouveauTransfertScreen() {
         return;
       }
 
-      // 1. Insert transfers
-      const transferRows = selectedDestinations.map(dest => ({
-        lot_id: lot.id,
-        expediteur_id: session.user.id,
-        destinataire_id: dest.pharmacieId,
-        quantite_transferee: Number.parseInt(dest.quantite, 10),
-        statut: 'en_attente',
-        notes_expediteur: dest.note.trim() || null,
-      }));
-
-      const { data: insertedData, error: insertError } = await supabase
-        .from('transferts')
-        .insert(transferRows)
-        .select('id');
-
-      if (insertError) throw insertError;
-      const createdTransferId = insertedData?.[0]?.id;
-
-      // 2. Decrement lot quantity in database
-      const newQty = availableQty - totalQty;
-      const lotUpdatePayload: any = {
-        quantite_actuelle: newQty,
-      };
-      if (newQty === 0) {
-        lotUpdatePayload.statut_actuel = 'en_transit';
-      }
-
-      const updateLotRes = await supabase
-        .from('lots_medicaments')
-        .update(lotUpdatePayload)
-        .eq('id', lot.id)
-        .eq('fabricant_id', session.user.id);
-
-      if (updateLotRes.error) throw updateLotRes.error;
-
-      // 3. Link stock request if applicable
-      if (demandeId && createdTransferId) {
-        const dest = selectedDestinations[0];
-        const delQty = Number.parseInt(dest?.quantite || '0', 10);
-        const reqQty = Number.parseInt(quantite || '0', 10);
-        const isPartial = delQty !== reqQty;
-        const notes = isPartial 
-          ? `Demande satisfaite (livraison partielle de ${delQty} sur ${reqQty} demandées).` 
-          : 'Demande satisfaite et lot expédié.';
-
-        const { error: updateDemandeError } = await supabase
-          .from('demandes_stock')
-          .update({
-            statut: 'satisfait',
-            transfert_id: createdTransferId,
-            notes_fabricant: notes,
-          })
-          .eq('id', demandeId);
-
-        if (updateDemandeError) throw updateDemandeError;
-      }
+      await createTransfers(selectedDestinations.map(dest => ({
+        lot_id: lot.id, destinataire_id: dest.pharmacieId,
+        quantite: Number(dest.quantite), note: dest.note,
+        demande_id: demandeId || null,
+      })), submitIntent.current);
 
       setShowConfirmSubmit(false);
       setSuccessModal({
@@ -330,7 +297,7 @@ export default function NouveauTransfertScreen() {
       setShowConfirmSubmit(false);
       setSuccessModal({
         title: 'Erreur',
-        message: 'La création du transfert a échoué.',
+        message: workflowError(e),
         color: '#C0392B',
         icon: 'triangle-exclamation',
       });

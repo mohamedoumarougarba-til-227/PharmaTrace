@@ -1,5 +1,8 @@
 # Sprint open source — bloc métier final P06/P07/P08/P09
 
+> Checkpoint de préparation conservé. La livraison réelle et le classement final
+> sont décrits dans [Phase 1 — livraison](phase-1-business-delivery.md).
+
 Checkpoint du 29 octobre 2026, Africa/Lagos. Une seule mission de hardening
 métier, suivie du contre-audit demandé. Les autres améliorations ne sont pas
 des prérequis systématiques à la release open source.

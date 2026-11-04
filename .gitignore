@@ -5,6 +5,10 @@
 
 # ── Dossier personnel (à ne jamais publier) ─────────
 A exclure de github/
+app/PharmaTrace/supabase/.temp/
+app/PharmaTrace/fresh-install.sql
+app/PharmaTrace/installed-tests.sql
+.vercel/
 
 # ── Secrets & variables d'environnement ─────────────
 .env

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Illustration de lots enregistrés">
+  <rect x="24" y="42" width="144" height="166" rx="16" fill="#E6EEF8" stroke="#1A3A5C" stroke-width="6"/>
+  <path d="M24 100h144M76 42v58M116 42v58" stroke="#1A3A5C" stroke-width="6"/>
+  <rect x="108" y="134" width="124" height="80" rx="16" fill="#1A3A5C"/>
+  <path d="M136 174h68" stroke="#F4A340" stroke-width="6"/>
+  <circle cx="136" cy="174" r="10" fill="#F4A340"/><circle cx="170" cy="174" r="10" fill="#F4A340"/><circle cx="204" cy="174" r="10" fill="#F4A340"/>
+</svg>

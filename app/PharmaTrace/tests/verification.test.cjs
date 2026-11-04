@@ -192,6 +192,9 @@ for (const kind of ['public', 'pharmacie']) {
     const ui = env.screen(kind);
     await ui.submit(realLot.numero_lot);
     assert.match(ui.text(), /Lot de test réel/);
+    assert.match(ui.text(), /LOT TROUVÉ|Lot trouvé dans le registre/);
+    assert.doesNotMatch(ui.text(), /AUTHENTIQUE|Médicament Authentique/);
+    assert.match(ui.text(), /sans prouver l’authenticité physique/);
     assert.doesNotMatch(ui.text(), /DÉMONSTRATION|indisponible|suspect/i);
   });
 

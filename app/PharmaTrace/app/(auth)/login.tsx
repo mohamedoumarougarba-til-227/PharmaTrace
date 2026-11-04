@@ -105,7 +105,7 @@ export default function LoginScreen() {
               className="text-white/50 text-sm mt-2 max-w-xs leading-relaxed text-center"
               style={{ textAlign: 'center', alignSelf: 'center' }}
             >
-              Réservé aux acteurs agréés de la chaîne pharmaceutique nigérienne
+              MVP expérimental · Interfaces métier sur compte provisionné
             </Text>
             
             {/* Image médicament */}
@@ -237,8 +237,8 @@ export default function LoginScreen() {
                   className="text-white/50 text-xs leading-relaxed text-center"
                   style={{ textAlign: 'center' }}
                 >
-                  L'accès est validé manuellement par l'administrateur. Seuls les
-                  acteurs agréés peuvent se connecter.
+                  L’accès métier est provisionné par l’opérateur du MVP. Les
+                  comptes ne constituent pas un agrément officiel.
                 </Text>
               </View>
             </View>

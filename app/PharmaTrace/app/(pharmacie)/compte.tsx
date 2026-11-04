@@ -81,12 +81,12 @@ export default function PharmacieCompteScreen() {
               <FAIcon name="pills" size={isDesktop ? 26 : 36} color="#27AE60" family="FontAwesome6" />
             </View>
             <Text style={{ fontSize: isDesktop ? 16 : 20, fontWeight: '800', color: '#1A3A5C', marginBottom: isDesktop ? 4 : 6, textAlign: 'center' }}>
-              {user?.nom_entite ?? 'Pharmacie Centrale'}
+              {user?.nom_entite ?? 'Pharmacie'}
             </Text>
             <View style={{ backgroundColor: '#E8F8EC', paddingHorizontal: isDesktop ? 10 : 14, paddingVertical: isDesktop ? 2 : 4, borderRadius: 100 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <FAIcon name="check" size={isDesktop ? 10 : 12} color="#27AE60" family="FontAwesome6" />
-                <Text style={{ color: '#27AE60', fontSize: isDesktop ? 11 : 12, fontWeight: '700' }}>Pharmacie agréée</Text>
+                <Text style={{ color: '#27AE60', fontSize: isDesktop ? 11 : 12, fontWeight: '700' }}>Compte pharmacie</Text>
               </View>
             </View>
           </View>

@@ -299,7 +299,7 @@ export default function LotDetailScreen() {
           </head>
           <body>
             <div class="header">PharmaTrace</div>
-            <div class="tagline">Certificat de Traçabilité Immuable</div>
+            <div class="tagline">Fiche de lot — registre expérimental</div>
             
             <div class="qr-container">
               <img class="qr-image" src="${qrImageUrl}" />
@@ -311,7 +311,7 @@ export default function LotDetailScreen() {
             <table class="info-table">
               <tr>
                 <td class="info-label">Fabricant :</td>
-                <td class="info-value">${lot.fabricant_nom || 'Laboratoire Agréé'}</td>
+                <td class="info-value">${lot.fabricant_nom || 'Fabricant enregistré'}</td>
               </tr>
               <tr>
                 <td class="info-label">Date de Fabrication :</td>
@@ -328,7 +328,7 @@ export default function LotDetailScreen() {
             </table>
             
             <div class="signature-container">
-              <div class="signature-title">Signature Numérique SHA-256</div>
+              <div class="signature-title">Empreinte technique SHA-256</div>
               <div class="signature-hash">${lot.hash_sha256}</div>
             </div>
           </body>
@@ -364,7 +364,7 @@ export default function LotDetailScreen() {
         try {
           // 2. Fallback : Générer un fichier PDF, le copier sous un nom propre et ouvrir le partage
           const printResult = await Print.printToFileAsync({ html });
-          const cleanUri = `${FileSystem.cacheDirectory}Certificat_Lot_${lot.numero_lot}.pdf`;
+          const cleanUri = `${FileSystem.cacheDirectory}Fiche_Lot_${lot.numero_lot}.pdf`;
           
           // Copier vers un nom de fichier lisible au lieu du UUID temporaire
           await FileSystem.copyAsync({
@@ -374,7 +374,7 @@ export default function LotDetailScreen() {
 
           await Sharing.shareAsync(cleanUri, {
             mimeType: 'application/pdf',
-            dialogTitle: `Certificat du lot ${lot.numero_lot}`,
+            dialogTitle: `Fiche du lot ${lot.numero_lot}`,
             UTI: 'com.adobe.pdf',
           });
         } catch (err) {
@@ -447,7 +447,7 @@ export default function LotDetailScreen() {
           <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.8)' }}>Empreinte SHA-256</Text>
         </View>
         <Text className="text-white font-mono" style={{ fontSize: 12, marginTop: 4 }}>{String(lot.hash_sha256).slice(0, 20)}...</Text>
-        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 9, marginTop: 3 }}>Immuable — ne peut jamais être falsifiée</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 9, marginTop: 3 }}>Identifiant technique ; aucune garantie sur la boîte physique</Text>
       </View>
 
       {expired ? (

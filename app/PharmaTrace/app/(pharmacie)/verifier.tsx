@@ -260,7 +260,7 @@ export default function PharmacyScannerScreen() {
                   <FAIcon name="camera" size={48} color="#27AE60" family="FontAwesome6" />
                   <Text className="text-navy font-bold text-base mt-4">Activer la caméra</Text>
                   <Text className="text-muted text-xs mt-2 text-center">
-                    Scannez le code QR sur la boîte pour authentifier ou réceptionner le lot
+                    Scannez un identifiant pour rechercher ou réceptionner un lot
                   </Text>
                 </TouchableOpacity>
               )}
@@ -300,7 +300,7 @@ export default function PharmacyScannerScreen() {
           </View>
         )}
 
-        {/* Résultat : Authentique */}
+        {/* Résultat : correspondance au registre */}
         {result.status === 'authentique' && (
           <View style={isDesktop ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : undefined}>
             <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
@@ -309,7 +309,7 @@ export default function PharmacyScannerScreen() {
                   <FAIcon name="check" size={14} color="#fff" family="FontAwesome6" />
                 </View>
                 <View>
-                  <Text className="text-pharma-green font-black text-sm uppercase tracking-wider">Médicament Authentique</Text>
+                  <Text className="text-pharma-green font-black text-sm uppercase tracking-wider">Lot trouvé dans le registre</Text>
                   <Text className="text-muted text-[10px] mt-0.5">Enregistré sur PharmaTrace</Text>
                 </View>
               </View>

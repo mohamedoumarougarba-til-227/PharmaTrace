@@ -42,9 +42,9 @@ export default function AgentDPHDashboard() {
           isDesktop && { borderBottomLeftRadius: 16, borderBottomRightRadius: 16, marginHorizontal: 20, marginTop: 16 }
         ]}
       >
-        <Text className="text-white/60 text-sm">Direction de la Pharmacie Nigérienne</Text>
-        <Text className="text-white font-black text-xl mt-1">Surveillance nationale</Text>
-        <Text className="text-white/40 text-xs mt-1">Niger · Temps réel</Text>
+        <Text className="text-white/60 text-sm">Interface de supervision · rôle DPH</Text>
+        <Text className="text-white font-black text-xl mt-1">Supervision du registre MVP</Text>
+        <Text className="text-white/40 text-xs mt-1">Niger · Données du registre expérimental</Text>
       </View>
 
       <View style={{ padding: 20 }}>
@@ -54,7 +54,7 @@ export default function AgentDPHDashboard() {
             label="Lots enregistrés" 
             value={String(stats.total_lots)} 
             color="#2E6DA4" 
-            trend="+12% total"
+            trend="Compteur du registre"
             isUp={true}
             svgPath="M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10"
             svgFillPath="M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10 L 115 40 L 15 40 Z"
@@ -66,7 +66,7 @@ export default function AgentDPHDashboard() {
             label="Scans 24h" 
             value={String(stats.scans_24h)} 
             color="#27AE60" 
-            trend={stats.scans_24h > 0 ? "+8% ce jour" : "Aucun scan"}
+            trend={stats.scans_24h > 0 ? "Scans enregistrés" : "Aucun scan"}
             isUp={stats.scans_24h > 0}
             svgPath={stats.scans_24h > 0 ? "M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35"}
             svgFillPath={stats.scans_24h > 0 ? "M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
@@ -78,7 +78,7 @@ export default function AgentDPHDashboard() {
             label="Alertes critiques" 
             value={String(stats.alertes_critiques)} 
             color="#C0392B" 
-            trend={stats.alertes_critiques > 0 ? "Attention" : "Sécurisé"}
+            trend={stats.alertes_critiques > 0 ? "Attention" : "Aucune alerte critique"}
             isUp={stats.alertes_critiques > 0}
             svgPath={stats.alertes_critiques > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35"}
             svgFillPath={stats.alertes_critiques > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
@@ -116,12 +116,8 @@ export default function AgentDPHDashboard() {
         <View style={{ flexDirection: isDesktop ? "row" : "column", gap: 20 }}>
           {/* Section: Scan results (Left on desktop) */}
           <View style={{ flex: isDesktop ? 1.5 : 1 }}>
-            <Text className="text-navy font-bold text-base mb-3">Résultats de scan ce jour</Text>
-            <View className="bg-white rounded-xl p-4 shadow-sm">
-              <StatRow label="Authentiques" icon="circle-check" value={String(Math.round(stats.total_lots * 0.82))} color="#27AE60" percent={78} />
-              <StatRow label="Non trouvés"  icon="circle-xmark" value={String(stats.total_suspects)}   color="#C0392B" percent={15} />
-              <StatRow label="Expirés"      icon="triangle-exclamation" value={String(Math.round(stats.total_lots * 0.07))}    color="#E67E22" percent={7}  />
-            </View>
+            <Text className="text-navy font-bold text-base mb-3">Lecture des indicateurs</Text>
+            <Text className="text-muted text-sm">Les compteurs proviennent du registre. Une alerte n’établit pas une contrefaçon physique. La répartition détaillée des résultats reste à implémenter. Les petites courbes des cartes sont illustratives, sans série temporelle.</Text>
           </View>
 
           {/* Section: Warning/Alerts (Right on desktop) */}

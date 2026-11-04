@@ -163,7 +163,7 @@ export default function VerifyScreen() {
     );
   }
 
-  // ─── Résultat AUTHENTIQUE ────────────────────────────────────────────────
+  // ─── Résultat : correspondance au registre ────────────────────────────────────────────────
   if (result.status === "authentique") {
     return (
       <View style={{ flex: 1, backgroundColor: "#27AE60" }}>
@@ -199,7 +199,7 @@ export default function VerifyScreen() {
                 letterSpacing: 4,
               }}
             >
-              AUTHENTIQUE
+              LOT TROUVÉ
             </Text>
             <Text
               style={{
@@ -209,7 +209,7 @@ export default function VerifyScreen() {
                 marginTop: 8,
               }}
             >
-              Médicament vérifié avec succès
+              Correspondance trouvée dans le registre
             </Text>
 
             <View

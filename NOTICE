@@ -1,0 +1,23 @@
+PharmaTrace
+Copyright 2026 the PharmaTrace contributors, each for their respective
+original contributions. Contributors retain their respective copyrights.
+
+Original project code and original works with established rights are licensed
+under the Apache License, Version 2.0. See LICENSE and docs/licensing.md.
+
+Developed in Niger by the historical TrustGrid team in the context of
+MIABE Hackathon 2026.
+Historical contributors: Mohamed Oumarou Garba; Mahamadou Garba Zakou;
+Abdoul Raouf Harouna Moussa. See CREDITS.md for historical contributions.
+These credits do not transfer individual copyrights to TrustGrid and do not
+imply official institutional endorsement.
+
+Third-party components retain their own licenses and copyrights;
+see THIRD_PARTY_NOTICES.md and docs/licenses/.
+Historical photographs, portraits, design exports, organizer documents,
+media and other assets with separate or uncertain rights are not covered
+by the project's Apache-2.0 grant; see docs/assets-rights.md and
+docs/release/retain-local-manifest.json.
+
+This NOTICE is for attribution and information only; it does not modify
+the Apache License, Version 2.0 or add restrictions to its permissions.

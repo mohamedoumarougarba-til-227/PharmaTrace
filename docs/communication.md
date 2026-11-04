@@ -1,6 +1,6 @@
 # Textes préparés — ne pas publier automatiquement
 
-Remplacer la mention de licence et de version par la décision effective ; utiliser les textes après release, sans présenter un brouillon comme déjà publié.
+Apache-2.0 est retenue pour le code et les créations originales aux droits établis, avec licences tierces distinctes. Renseigner la version effectivement publiée ; utiliser les textes après release, sans présenter un brouillon comme déjà publié.
 
 ## Résumé français
 

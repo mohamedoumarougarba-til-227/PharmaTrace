@@ -2,7 +2,7 @@
 
 ## En préparation — v1.1.0-preview.1 (source)
 
-Pas encore publiée. MVP expérimental, licence en décision.
+Pas encore publiée. MVP expérimental ; Apache-2.0 adoptée localement le 4 novembre 2026 pour le code et les créations originales aux droits établis, sans re-licencier les tiers ni les archives incertaines.
 
 - Panne de recherche distincte d’un verdict, démo sans premier lot automatique, journal secondaire, projection publique minimale.
 - Rôles provisionnés, accès réduits et vues invoker.

@@ -6,7 +6,7 @@ Inventaire initial de 60 fichiers (235 330 866 octets, doublons compris), emprei
 
 | Groupe | Droits / preuve | Traitement préparé |
 | --- | --- | --- |
-| Code original, documentation actuelle | Contributions de l’équipe, accord acquis ; licence exacte en décision | Apache-2.0 proposée, crédits conservés. |
+| Code original, documentation actuelle | Contributions de l’équipe, accord acquis ; Apache-2.0 retenue par le propriétaire le 4 novembre 2026 | Licence appliquée aux contributions originales dont les droits sont établis ; copyright individuel respecté, crédits conservés. |
 | Nouveaux SVG/PNG actifs | Géométrie originale du projet, sources SVG disponibles, aucun stock photo | Cinq anciennes images actives sauvegardées puis remplacées ; les originaux restent locaux. |
 | Font Awesome / Expo vector-icons | MIT + SIL OFL / CC BY selon support, textes officiels conservés | Notices et copyrights maintenus ; aucune re-licence globale. |
 | Export ZIP Figma | ATTRIBUTIONS mentionne shadcn MIT et Unsplash ; sources exactes des images non identifiées | Notice MIT conservée ; export et rendus proposés en conservation locale. Pas d’installation de ses dépendances Vite. |
@@ -19,6 +19,8 @@ Inventaire initial de 60 fichiers (235 330 866 octets, doublons compris), emprei
 ## Snapshot proposé, sans effacement historique
 
 Le [manifeste exact](release/retain-local-manifest.json) contient 46 chemins suivis : archives/médias anciens et huit métadonnées CLI personnelles. **Retrait du suivi non exécuté**, soumis au feu vert final de publication. Le script de préparation vérifie chaque empreinte, sauvegarde localement puis retire uniquement l’index Git ; il ne supprime aucun fichier ni objet historique. Les deux vidéos déjà non suivies restent hors manifeste d’index et inchangées.
+
+Contrôle du 4 novembre 2026 : **6 archives/médias de vitrine, 32 ressources historiques et 8 métadonnées CLI**, tous encore présents et suivis, avec les 46 empreintes conformes. Classification et manifeste conservés sans modification. Le retrait futur porterait sur le prochain arbre source : les archives et métadonnées personnelles n’y seraient plus redistribuées, mais les originaux locaux, leurs justifications et les anciennes copies Git resteraient disponibles. Il ne retire ni migration, ni donnée de la DB MVP. Les deux vidéos restent non suivies et leurs tailles/SHA-256 sont inchangés. La sauvegarde et le retrait d’index du script ne sont pas exécutés dans ce lot de licence.
 
 Ces fichiers restent visibles dans l’historique public existant : aucune prétention d’effacement, aucune réécriture d’histoire. Une réintroduction future nécessite une provenance/permission précise, pas un nouvel accord des membres pour leur code.
 

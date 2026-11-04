@@ -1,17 +1,20 @@
 # Plan final de publication — préparé, non exécuté
 
-## Décisions fermées
+## Décision de licence acquise ; publication non autorisée
 
-1. Adopter ou remplacer la recommandation **Apache-2.0** pour le code original
-   et la documentation active originale. Accord équipe acquis, jamais rouvert.
-2. Autoriser la publication selon ce plan, incluant le manifeste précis de
-   conservation locale, l’intégration GitHub, les settings proposés et le
-   déploiement des nouveaux textes/images. Aucun de ces actes distants n’est
-   exécuté pendant la préparation.
+**Apache-2.0 retenue le 4 novembre 2026 et appliquée localement** au code original
+et aux créations originales dont les droits sont établis. LICENSE canonique,
+NOTICE et références actives finalisés. Accord équipe acquis, jamais rouvert.
+
+Le gate suivant nécessite une autorisation distincte pour préparer la Draft PR,
+notamment le retrait ciblé des 46 chemins de l’index après vérification. Leur
+classification est maintenue, mais **aucun retrait n’a été exécuté**. Le feu vert
+de licence n’autorise ni push, PR, merge, tag, release, settings ni déploiement.
+Ces actes restent soumis à leur feu vert explicite dans le plan ci-dessous.
 
 Version proposée : `v1.1.0-preview.1` source, prerelease sans nouvel APK.
-La licence choisie est appliquée dans un dernier commit signé, puis toutes les
-mentions « en décision » sont actualisées. Les droits tiers restent distincts.
+La finalisation locale de licence fait l’objet d’un commit signé distinct.
+Les droits tiers restent distincts et les textes canoniques tiers inchangés.
 
 ## Périmètre Git / droits
 
@@ -25,7 +28,7 @@ fichier, reset, clean, force-push ou réécriture d’histoire. Les deux vidéos
 suivies ne doivent jamais être ajoutées.
 
 Ce plan n’efface pas les anciennes copies déjà publiques dans Git. Les crédits
-TrustGrid/MIABE restent dans README/CREDITS et la notice proposée. Aucun `LICENSE`
+TrustGrid/MIABE restent dans README/CREDITS et le NOTICE racine. Aucun `LICENSE`
 ne s’applique implicitement aux œuvres tierces exclues.
 
 ## GitHub observé et settings proposés
@@ -48,8 +51,9 @@ du ruleset reste dans le feu vert final, avec export avant/après.
 
 ## Ordre exact après feu vert
 
-1. Appliquer la décision de licence, les mentions définitives et le manifeste
-   approuvé ; commit signé. Contrôler diff indexé, secrets, vidéos et HEAD.
+1. Vérifier LICENSE/NOTICE déjà finalisés, puis appliquer uniquement le manifeste
+   dont le retrait de l’index aura été explicitement autorisé ; commit signé
+   distinct. Contrôler diff indexé, secrets, copies locales, vidéos et HEAD.
 2. Push normal de la branche de préparation vers origin, sans pousser main
    directement. Le ruleset exige un acteur autorisé pour créer/mettre à jour
    la branche ; utiliser le bypass existant autorisé, pas désactiver les règles.

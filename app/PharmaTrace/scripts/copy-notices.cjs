@@ -7,4 +7,5 @@ fs.mkdirSync(dest,{recursive:true});
 const source=path.join(root,'docs/licenses');
 for(const file of fs.readdirSync(source).filter(name=>name.endsWith('.txt')))fs.copyFileSync(path.join(source,file),path.join(dest,file));
 fs.copyFileSync(path.join(root,'THIRD_PARTY_NOTICES.md'),path.join(dest,'THIRD_PARTY_NOTICES.txt'));
-console.log('Third-party notices copied into dist/legal; no application license chosen.');
+for(const file of ['LICENSE','NOTICE'])fs.copyFileSync(path.join(root,file),path.join(dest,file));
+console.log('Apache-2.0 LICENSE, project NOTICE and third-party notices copied into dist/legal.');

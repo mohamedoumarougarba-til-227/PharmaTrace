@@ -6,7 +6,7 @@ Fabricants, pharmacies et rôle de supervision DPH disposent d’interfaces mét
 
 [Application](https://pharmatraceapp.vercel.app/) · [Rechercher un lot](https://pharmatraceapp.vercel.app/verify) · [Vitrine existante](https://pharmatrace-eta.vercel.app/) · [Installer](docs/installation.md) · [Contribuer](CONTRIBUTING.md)
 
-> Release open source en préparation : **Apache-2.0 recommandée, décision du propriétaire en attente**. Aucune licence générale n’est encore accordée par ce dépôt. [Proposition et périmètre](docs/licensing.md). Les corrections éditoriales locales de ce sprint attendent leur déploiement ; la production validée est identifiée dans [Versions](docs/releases.md).
+> **Licence Apache-2.0** pour le code original et les créations originales dont les droits sont établis : [LICENSE](LICENSE), [NOTICE](NOTICE) et [périmètre](docs/licensing.md). Les éléments tiers et archives à droits incertains ne sont pas re-licenciés. La publication de la branche et le déploiement de ses corrections éditoriales restent en attente ; la production validée est identifiée dans [Versions](docs/releases.md).
 
 ## Fonctions
 
@@ -64,7 +64,7 @@ Le bootstrap local rejoue **huit migrations**, avec un prérequis historique ; l
 
 ## Contribution, sécurité et support
 
-[CONTRIBUTING](CONTRIBUTING.md) : issues reproductibles, PR ciblées, données fictives et tests. Les PR externes sont encore limitées aux collaborateurs côté GitHub, jusqu’au feu vert licence/documentation/CI. [Tâches préparées](docs/backlog.md).
+[CONTRIBUTING](CONTRIBUTING.md) : issues reproductibles, PR ciblées, données fictives et tests. Les PR externes sont encore limitées aux collaborateurs côté GitHub ; leur ouverture attend le feu vert de publication et la CI distante réelle. [Tâches préparées](docs/backlog.md).
 
 [SECURITY](SECURITY.md) fournit un canal privé. Ne publier ni session, ni donnée personnelle, ni preuve exploitable sur le MVP. Support bénévole, sans SLA, usage clinique ou réglementaire validé.
 

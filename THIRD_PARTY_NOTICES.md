@@ -1,6 +1,6 @@
 # Éléments tiers et attributions
 
-Le choix de licence du projet n’est pas encore appliqué. Ce document préserve les notices tierces et ne re-licencie pas leurs œuvres.
+Le code original et les créations originales de PharmaTrace dont les droits sont établis sont sous [Apache-2.0](LICENSE), avec les crédits du [NOTICE](NOTICE). Ce document préserve les notices tierces et ne re-licencie pas leurs œuvres. Les photographies, portraits, archives, documents d’organisateurs, marques et autres ressources à droits distincts ou incertains ne sont pas inclus par défaut dans cette concession ; voir le [périmètre](docs/licensing.md) et l’[inventaire](docs/assets-rights.md). Le manifeste des 46 chemins reste suivi et non appliqué jusqu’à une autorisation distincte.
 
 ## Dépendances applicatives
 
@@ -16,7 +16,7 @@ L’export ZIP historique contient un `ATTRIBUTIONS.md` mentionnant shadcn/ui (M
 
 ## Illustrations, polices et archives
 
-Les nouveaux SVG du sprint sont originaux, rendus en PNG sans image ni police tierce embarquée. La vitrine emploie les polices système, sans téléchargement Google Fonts. Les captures sont issues de l’application locale avec données fictives et simulation affichée.
+Les nouveaux SVG du sprint sont originaux, rendus en PNG sans image ni police tierce embarquée ; leurs contributions originales sont couvertes par Apache-2.0 et le copyright du NOTICE. La vitrine emploie les polices système, sans téléchargement Google Fonts. Les captures sont issues de l’application locale avec données fictives et simulation affichée ; les composants tiers visibles conservent leurs propres licences.
 
 Portraits : ni licence du photographe ni autorisation distincte d’usage d’image établies ; l’accord des contributions de code n’est pas assimilé à ces droits. Documents d’organisateurs MIABE : aucune permission de redistribution retrouvée. Les anciens fichiers restent intacts localement ; le [plan de publication](docs/release-plan.md) décrit leur retrait ciblé du prochain snapshot, sans effacer l’historique.
 
@@ -26,4 +26,4 @@ Portraits : ni licence du photographe ni autorisation distincte d’usage d’im
 
 Expo Camera charge jsQR 1.2.0 depuis cdn.jsdelivr.net sur web (Apache-2.0, projet cozmo/jsQR). Ce chargement statique est distinct de la base ; le mode démo ne promet donc pas une caméra entièrement hors ligne. Licence exacte du package conservée dans docs/licenses/jsQR-Apache-2.0.txt. Aucune image réelle de caméra n’a été testée dans ce sprint.
 
-Les notices des bibliothèques distribuées sont copiées dans dist/legal après chaque export web. La future version Android devra également accompagner ses binaires des notices ; aucun nouvel APK n’est produit ici.
+LICENSE, NOTICE et les notices des bibliothèques distribuées sont copiés dans dist/legal après chaque export web. La future version Android devra également accompagner ses binaires des notices ; aucun nouvel APK n’est produit ici.

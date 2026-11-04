@@ -1,16 +1,19 @@
 # Phase 2 — préparation finale de la release open source
 
-Checkpoint du 4 novembre 2026, Africa/Lagos. Préparation locale terminée,
-**publication non effectuée**. Phase 1 métier reste CLOSED ; aucun nouveau lot
+Checkpoint du 4 novembre 2026, Africa/Lagos, mis à jour après décision de licence.
+Préparation locale et licence finalisées, **publication non effectuée**. Phase 1 métier reste CLOSED ; aucun nouveau lot
 de hardening, migration, correction de stock ou mutation Supabase.
 
-## A. Licence recommandée et décision restante
+## A. Licence adoptée et appliquée localement
 
-**Apache-2.0 recommandée** pour le code original et la documentation active
-originale : réutilisation large, concession explicite de brevets limitée aux
-contributions et conservation des notices. [Comparaison MIT/Apache/GPL](licensing.md).
-Texte canonique et NOTICE prêts dans `docs/proposals/`, **aucun LICENSE racine
-appliqué**. Le choix appartient au propriétaire.
+**Apache-2.0 retenue par Mohamed Oumarou Garba le 4 novembre 2026** pour le code
+original et les créations originales dont les droits sont établis. Texte
+canonique non modifié installé dans [LICENSE](../LICENSE) ; copyright des
+contributeurs respectifs, crédits et périmètre dans [NOTICE](../NOTICE),
+[licensing.md](licensing.md) et THIRD_PARTY_NOTICES. Aucune restriction
+supplémentaire d’usage commercial, de modification ou de redistribution.
+Tiers, archives incertaines et marques ne sont pas re-licenciés implicitement.
+Le projet distinct Z-Score Niger conserve sa GPLv3.
 
 Consentement Raouf/Mahamadou **DONE, définitivement acquis** ; pas de décision
 à rouvrir. Les crédits des trois membres, TrustGrid et MIABE sont conservés.
@@ -107,6 +110,24 @@ P16 : [triage complet](dependency-triage.md), 52 entrées, dont deux critiques
 outillage (tar/shell-quote absents de l’entrée web). Décodage d’URL et nanoid
 inclus : conditions et priorités explicites, pas d’affirmation « aucun risque ».
 Lockfiles/dépendances/shims inchangés, aucun audit fix forcé.
+P16/P17 restent PARTIAL ; la finalisation de licence ne constitue pas un nouveau
+contrôle d’exploitabilité ni une validation native.
+
+Finalisation de licence : texte comparé à la source officielle, LICENSE identique
+octet pour octet à la copie canonique préparée ; contrôles notices/liens et copie
+LICENSE/NOTICE vers l’export existant. Pas de nouveau test métier ou SQL requis
+pour ce changement de licence et de documentation ; preuves précédentes conservées.
+Contrôles locaux de clôture : syntaxe et exécution du script de notices réussies,
+7 copies de textes conformes dans `dist/legal`, liens et motifs de secrets
+contrôlés par `npm run check:public`, `git diff --check` réussi. Les 46 chemins
+restent suivis avec empreintes conformes ; deux vidéos non suivies, tailles et
+empreintes inchangées. Textes tiers, inventaires, manifeste et lockfiles inchangés.
+SHA-256 LICENSE : `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`.
+La copie directe via PowerShell de la source officielle a échoué en résolution
+DNS ; le texte préparé a été comparé à la source officielle obtenue par l’outil
+web, sans changer le fichier canonique. Les premières commandes de notices
+avaient un chemin relatif doublé ; les mêmes contrôles ont ensuite réussi
+depuis la racine. Aucun de ces essais n’a modifié les fichiers préservés.
 
 ## F. GitHub : état conservé, paramètres à finaliser
 
@@ -156,8 +177,9 @@ Vidéos non suivies préservées :
 
 ## I. PR / merge / release / provenance
 
-[Plan exact](release-plan.md) et payloads prêts. Après décisions : licence et
-retrait ciblé approuvés dans un commit signé ; push normal de branche, Draft PR,
+[Plan exact](release-plan.md) et payloads prêts. Licence finalisée localement ;
+retrait ciblé des 46 chemins toujours soumis à une autorisation distincte avant
+son commit signé. Après autorisations : push normal de branche, Draft PR,
 CI réelle, revue/checks puis merge autorisé préservant les commits déployés.
 Aucune fusion automatique ni main directement poussée.
 
@@ -179,12 +201,13 @@ LinkedIn, Patreon, communautés et pitch court Niger/TrustGrid/MIABE. Crédit de
 trois membres, preuves techniques réelles, limites honnêtes ; aucune promesse
 médicale/réglementaire ou sollicitation artificielle d’étoiles. Rien publié.
 
-## K. Les deux seules décisions indispensables
+## K. Licence close ; gate suivant de publication distinct
 
-1. **Licence** : accepter Apache-2.0 proposée ou choisir explicitement une autre.
-2. **Publication** : feu vert distinct couvrant le plan préparé, notamment les
-   46 chemins conservés localement, push/PR/merge, CI réelle, settings proposés,
-   déploiements des textes/images, tag/prerelease et annotation de l’ancien APK.
+**Licence et consentement équipe : DONE**, aucune décision à rouvrir.
+La préparation contrôlée de Draft PR est le prochain gate : retrait des 46 chemins
+de l’index uniquement après autorisation distincte et vérification des copies.
+Push/PR/merge, CI distante, settings, déploiements, tag/release et communication
+restent non exécutés et soumis à leurs autorisations explicites.
 
 Pas d’autorisation d’équipe à redemander. Aucun nouveau chantier de hardening
 conditionnant cette préparation. Les contrôles distants après push sont des

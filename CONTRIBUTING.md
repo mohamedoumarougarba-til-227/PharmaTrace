@@ -2,7 +2,7 @@
 
 MVP expérimental maintenu bénévolement. Lire le [README](README.md), les [limites](docs/known-limitations.md) et l’[installation](docs/installation.md).
 
-La licence reste en décision : la proposition Apache-2.0 n’est pas une autorisation déjà accordée. Ne proposer que des contributions dont vous pouvez accorder les droits. Après adoption, les contributions acceptées suivront la licence du projet ; conserver les notices tierces et signaler leur origine. Pas de CLA supplémentaire prévu.
+Le code original et les créations originales dont les droits sont établis sont sous [Apache-2.0](LICENSE), avec les crédits du [NOTICE](NOTICE). Ne proposer que des contributions dont vous pouvez accorder les droits. Sauf indication explicite contraire, les contributions intentionnellement soumises pour inclusion suivent Apache-2.0, conformément à sa section 5 ; conserver les notices tierces et signaler leur origine. Les œuvres tierces ne sont pas re-licenciées. Pas de CLA supplémentaire prévu.
 
 1. Choisir une tâche bornée du [backlog](docs/backlog.md) ou décrire le problème avant un gros changement.
 2. Créer une branche depuis la version publique actuelle. Une PR cohérente par changement. Le hardening local n’est pas encore fusionné dans `main` : vérifier la base proposée lors de la publication.
@@ -14,4 +14,4 @@ Les migrations appliquées ne sont pas réécrites. Un changement DB nécessite 
 
 Ne commiter ni `.env`, secrets, sessions, exports DB, données terrain, APK local ou vidéos historiques non suivies. Captures réelles avec données fictives et mode explicite. Ne pas ajouter une dépendance ou refonte globale pour une petite correction.
 
-Issues pour bugs/améliorations non sensibles ; PR externes actuellement `collaborators_only`, ouverture préparée après licence et CI. Aucun délai garanti. Français ou anglais acceptés. Respecter les personnes et décrire les faits ; pas d’attaques personnelles ni données de patients. Sujet sensible : [SECURITY](SECURITY.md).
+Issues pour bugs/améliorations non sensibles ; PR externes actuellement `collaborators_only`, ouverture préparée après autorisation de publication et CI distante réelle. Aucun délai garanti. Français ou anglais acceptés. Respecter les personnes et décrire les faits ; pas d’attaques personnelles ni données de patients. Sujet sensible : [SECURITY](SECURITY.md).

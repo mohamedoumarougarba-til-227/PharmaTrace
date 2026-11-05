@@ -60,3 +60,51 @@ desktop.ini
 *.apk
 *.ipa
 build/
+
+# Retained local archives approved for source publication
+/landing/maquettes/fabricant-nouveau-lot.png
+/landing/maquettes/patient-scanner-resultat-authentique.png
+/landing/maquettes/pharmacie-reception.png
+/landing/medias/Abdoul Raouf HAROUNA MOUSSA.jpeg
+/landing/medias/Mahamadou GARBA ZAKOU.jpeg
+/landing/medias/Mohamed OUMAROU GARBA.jpg
+/ressources/maquettesFigma/PharmatraceTrustGrid.make
+/ressources/maquettesFigma/PharmatraceTrustGrid.zip
+/ressources/medias/Abdoul Raouf HAROUNA MOUSSA.jpeg
+/ressources/medias/Mahamadou GARBA ZAKOU.jpeg
+/ressources/medias/Mohamed OUMAROU GARBA.jpg
+/ressources/maquettesFigma/images/fabricant-compte.png
+/ressources/maquettesFigma/images/fabricant-nouveau-lot.png
+/ressources/maquettesFigma/images/fabricant-qr-genere.png
+/ressources/maquettesFigma/images/fabricant-transfert.png
+/ressources/maquettesFigma/images/patient-scanner-resultat-authentique.png
+/ressources/maquettesFigma/images/patient-scanner-resultat-suspect.png
+/ressources/maquettesFigma/images/pharmacie-compte.png
+/ressources/maquettesFigma/images/pharmacie-reception.png
+/ressources/maquettesFigma/images/pharmacie-stock.png
+/ressources/maquettesFigma/images/pharmacie-transferts.png
+/ressources/maquettesFigma/images/Valider/login-compte.png
+/ressources/maquettesFigma/images/Valider/patient-scanner.png
+/ressources/docs/PHASE_1_PRESELECTION/Etude Problematique Medicaments Contrefaits Niger PharmaTrace.pdf
+/ressources/docs/PHASE_1_PRESELECTION/Plan Traçabilite Architecture Blockchain PharmaTrace.pdf
+/ressources/docs/PHASE_1_PRESELECTION/video_site_vitrine.mp4
+/ressources/docs/PHASE_2_DEMIFINAL/notes_demonstration.pdf
+/ressources/docs/PHASE_3_FINALE/documentation_technique.pdf
+/ressources/docs/PHASE_3_FINALE/guide_utilisateur.pdf
+/ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026.pdf
+/ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0001.jpg
+/ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0002.jpg
+/ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0003.jpg
+/ressources/docs/Projet attribué/PROGRAMME-DU-MIABE-HACKATHON-2026.pdf
+/ressources/docs/Projet attribué/PROJET_N1_NIGER.md
+/ressources/docs/Projet attribué/PROJET_N1_NIGER.pdf
+/ressources/docs/Projet attribué/PROJET_N1_NIGER_Page_1.png
+/ressources/docs/Projet attribué/PROJET_N1_NIGER_Page_2.png
+/app/PharmaTrace/supabase/.temp/cli-latest
+/app/PharmaTrace/supabase/.temp/gotrue-version
+/app/PharmaTrace/supabase/.temp/pooler-url
+/app/PharmaTrace/supabase/.temp/postgres-version
+/app/PharmaTrace/supabase/.temp/project-ref
+/app/PharmaTrace/supabase/.temp/rest-version
+/app/PharmaTrace/supabase/.temp/storage-migration
+/app/PharmaTrace/supabase/.temp/storage-version

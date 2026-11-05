@@ -1,4 +1,4 @@
-# Plan final de publication — préparé, non exécuté
+# Plan final de publication — gate 3B local exécuté, publication en attente
 
 ## Décision de licence acquise ; publication non autorisée
 
@@ -6,11 +6,12 @@
 et aux créations originales dont les droits sont établis. LICENSE canonique,
 NOTICE et références actives finalisés. Accord équipe acquis, jamais rouvert.
 
-Le gate suivant nécessite une autorisation distincte pour préparer la Draft PR,
-notamment le retrait ciblé des 46 chemins de l’index après vérification. Leur
-classification est maintenue, mais **aucun retrait n’a été exécuté**. Le feu vert
-de licence n’autorise ni push, PR, merge, tag, release, settings ni déploiement.
-Ces actes restent soumis à leur feu vert explicite dans le plan ci-dessous.
+**Gate 3B autorisé et exécuté localement le 5 novembre 2026** : les 46 chemins
+du manifeste ont été sauvegardés, vérifiés puis retirés de l’index uniquement.
+Originaux, sauvegardes, empreintes et historique conservés. Le commit signé de
+ce gate ne comprend que ces retraits, exclusions et ajustements documentaires.
+**Gate 3C push/Draft PR en attente d’autorisation distincte.** Aucun push, PR,
+merge, tag, release, setting ou déploiement n’est autorisé par ce gate local.
 
 Version proposée : `v1.1.0-preview.1` source, prerelease sans nouvel APK.
 La finalisation locale de licence fait l’objet d’un commit signé distinct.
@@ -21,11 +22,11 @@ Les droits tiers restent distincts et les textes canoniques tiers inchangés.
 Inventaire complet `main..branche` à régénérer avant push ; ne pas limiter la
 revue au sprint documentaire. Contrôler secrets et contenus avant publication.
 Les originaux restent locaux. Le manifeste `release/retain-local-manifest.json`
-prépare le retrait ciblé de l’index des archives à droits incomplets et metadata
-CLI. Le script `release/retain-local.cjs` est en dry-run par défaut ; `--apply`
-ne sera utilisé qu’après feu vert. Il sauvegarde/vérifie, sans suppression de
-fichier, reset, clean, force-push ou réécriture d’histoire. Les deux vidéos non
-suivies ne doivent jamais être ajoutées.
+enregistre le retrait ciblé de l’index des archives à droits incomplets et metadata
+CLI. Le script `release/retain-local.cjs --apply` a été exécuté au gate 3B après
+sauvegarde et relecture des 46 copies, sans suppression de fichier, reset, clean,
+force-push ou réécriture d’histoire. Les deux vidéos non suivies ne doivent jamais
+être ajoutées. Les inventaires et justifications restent suivis.
 
 Ce plan n’efface pas les anciennes copies déjà publiques dans Git. Les crédits
 TrustGrid/MIABE restent dans README/CREDITS et le NOTICE racine. Aucun `LICENSE`
@@ -51,9 +52,11 @@ du ruleset reste dans le feu vert final, avec export avant/après.
 
 ## Ordre exact après feu vert
 
-1. Vérifier LICENSE/NOTICE déjà finalisés, puis appliquer uniquement le manifeste
-   dont le retrait de l’index aura été explicitement autorisé ; commit signé
-   distinct. Contrôler diff indexé, secrets, copies locales, vidéos et HEAD.
+1. **FAIT localement au gate 3B** : LICENSE/NOTICE conservés, sauvegardes et
+   retrait des seuls 46 chemins autorisés, exclusions et documentation à jour,
+   contrôles du diff/copies/vidéos puis commit signé distinct. Ne pas répéter
+   le retrait ni rouvrir les phases closes. Les étapes suivantes attendent un
+   nouveau feu vert.
 2. Push normal de la branche de préparation vers origin, sans pousser main
    directement. Le ruleset exige un acteur autorisé pour créer/mettre à jour
    la branche ; utiliser le bypass existant autorisé, pas désactiver les règles.

@@ -1,8 +1,9 @@
 # Inventaire complet des différences avec main
 
-Base locale et distante constatée : `f64f2c4cf5fd2d4e47816692d1350360f54196c5`.
-Préparation métier déjà installée + sprint local de publication ; aucun push/merge.
-Le retrait des 46 archives/métadonnées proposé dans le manifeste n’est pas appliqué.
+Base locale : `f64f2c4cf5fd2d4e47816692d1350360f54196c5` (main distant identique au contrôle accepté du gate 3A).
+Préparation métier déjà installée + préparation locale open source ; aucun push/merge.
+Actualisé au gate 3B du 5 novembre 2026 : les 46 archives/métadonnées du manifeste sont retirées du suivi local, avec originaux et sauvegardes vérifiés, sans effacement historique.
+Comparaison de main avec l’index préparé pour le commit signé, sans détection de renommage.
 
 ```text
 A	.github/ISSUE_TEMPLATE/bug.yml
@@ -15,6 +16,8 @@ A	.nvmrc
 A	CHANGELOG.md
 A	CONTRIBUTING.md
 A	CREDITS.md
+A	LICENSE
+A	NOTICE
 M	README.md
 A	SECURITY.md
 A	THIRD_PARTY_NOTICES.md
@@ -65,6 +68,14 @@ A	app/PharmaTrace/scripts/prepare-business-rehearsal.cjs
 A	app/PharmaTrace/scripts/prepare-fresh-install.cjs
 A	app/PharmaTrace/scripts/prepare-lot03-rehearsal.cjs
 A	app/PharmaTrace/scripts/prepare-lot03b2-rehearsal.cjs
+D	app/PharmaTrace/supabase/.temp/cli-latest
+D	app/PharmaTrace/supabase/.temp/gotrue-version
+D	app/PharmaTrace/supabase/.temp/pooler-url
+D	app/PharmaTrace/supabase/.temp/postgres-version
+D	app/PharmaTrace/supabase/.temp/project-ref
+D	app/PharmaTrace/supabase/.temp/rest-version
+D	app/PharmaTrace/supabase/.temp/storage-migration
+D	app/PharmaTrace/supabase/.temp/storage-version
 A	app/PharmaTrace/supabase/migrations/20261027153134_harden_business_role_provisioning.sql
 A	app/PharmaTrace/supabase/migrations/20261027205429_add_safe_verification_surfaces.sql
 A	app/PharmaTrace/supabase/migrations/20261028232100_restrict_legacy_public_access.sql
@@ -136,10 +147,48 @@ A	landing/images/fabricant-demo.png
 A	landing/images/pharmacie-demo.png
 A	landing/images/verification-demo.png
 M	landing/index.html
+D	landing/maquettes/fabricant-nouveau-lot.png
+D	landing/maquettes/patient-scanner-resultat-authentique.png
+D	landing/maquettes/pharmacie-reception.png
+D	landing/medias/Abdoul Raouf HAROUNA MOUSSA.jpeg
+D	landing/medias/Mahamadou GARBA ZAKOU.jpeg
+D	landing/medias/Mohamed OUMAROU GARBA.jpg
 A	ressources/README.md
+D	ressources/docs/PHASE_1_PRESELECTION/Etude Problematique Medicaments Contrefaits Niger PharmaTrace.pdf
+D	ressources/docs/PHASE_1_PRESELECTION/Plan Traçabilite Architecture Blockchain PharmaTrace.pdf
 A	ressources/docs/PHASE_1_PRESELECTION/README.md
+D	ressources/docs/PHASE_1_PRESELECTION/video_site_vitrine.mp4
 M	ressources/docs/PHASE_2_DEMIFINAL/README.md
+D	ressources/docs/PHASE_2_DEMIFINAL/notes_demonstration.pdf
 M	ressources/docs/PHASE_3_FINALE/README.md
+D	ressources/docs/PHASE_3_FINALE/documentation_technique.pdf
+D	ressources/docs/PHASE_3_FINALE/guide_utilisateur.pdf
+D	ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026.pdf
+D	ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0001.jpg
+D	ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0002.jpg
+D	ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0003.jpg
+D	ressources/docs/Projet attribué/PROGRAMME-DU-MIABE-HACKATHON-2026.pdf
+D	ressources/docs/Projet attribué/PROJET_N1_NIGER.md
+D	ressources/docs/Projet attribué/PROJET_N1_NIGER.pdf
+D	ressources/docs/Projet attribué/PROJET_N1_NIGER_Page_1.png
+D	ressources/docs/Projet attribué/PROJET_N1_NIGER_Page_2.png
+D	ressources/maquettesFigma/PharmatraceTrustGrid.make
+D	ressources/maquettesFigma/PharmatraceTrustGrid.zip
+D	ressources/maquettesFigma/images/Valider/login-compte.png
+D	ressources/maquettesFigma/images/Valider/patient-scanner.png
+D	ressources/maquettesFigma/images/fabricant-compte.png
+D	ressources/maquettesFigma/images/fabricant-nouveau-lot.png
+D	ressources/maquettesFigma/images/fabricant-qr-genere.png
+D	ressources/maquettesFigma/images/fabricant-transfert.png
+D	ressources/maquettesFigma/images/patient-scanner-resultat-authentique.png
+D	ressources/maquettesFigma/images/patient-scanner-resultat-suspect.png
+D	ressources/maquettesFigma/images/pharmacie-compte.png
+D	ressources/maquettesFigma/images/pharmacie-reception.png
+D	ressources/maquettesFigma/images/pharmacie-stock.png
+D	ressources/maquettesFigma/images/pharmacie-transferts.png
+D	ressources/medias/Abdoul Raouf HAROUNA MOUSSA.jpeg
+D	ressources/medias/Mahamadou GARBA ZAKOU.jpeg
+D	ressources/medias/Mohamed OUMAROU GARBA.jpg
 ```
 
-Les statistiques finales et les SHA signés sont relevés dans le retour de clôture.
+Les statistiques finales et le SHA signé sont relevés dans le retour de clôture.

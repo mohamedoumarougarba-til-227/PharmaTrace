@@ -1,6 +1,6 @@
 # Éléments tiers et attributions
 
-Le code original et les créations originales de PharmaTrace dont les droits sont établis sont sous [Apache-2.0](LICENSE), avec les crédits du [NOTICE](NOTICE). Ce document préserve les notices tierces et ne re-licencie pas leurs œuvres. Les photographies, portraits, archives, documents d’organisateurs, marques et autres ressources à droits distincts ou incertains ne sont pas inclus par défaut dans cette concession ; voir le [périmètre](docs/licensing.md) et l’[inventaire](docs/assets-rights.md). Le manifeste des 46 chemins reste suivi et non appliqué jusqu’à une autorisation distincte.
+Le code original et les créations originales de PharmaTrace dont les droits sont établis sont sous [Apache-2.0](LICENSE), avec les crédits du [NOTICE](NOTICE). Ce document préserve les notices tierces et ne re-licencie pas leurs œuvres. Les photographies, portraits, archives, documents d’organisateurs, marques et autres ressources à droits distincts ou incertains ne sont pas inclus par défaut dans cette concession ; voir le [périmètre](docs/licensing.md) et l’[inventaire](docs/assets-rights.md). Les 46 chemins du manifeste ont été retirés du suivi local au gate 3B le 5 novembre 2026, avec originaux et sauvegardes vérifiés ; le manifeste reste publié comme inventaire, sans push de la branche à ce stade.
 
 ## Dépendances applicatives
 
@@ -12,13 +12,13 @@ React / React Native, Expo / Expo Router / @expo/vector-icons, NativeWind / Tail
 
 L’export ZIP historique contient un `ATTRIBUTIONS.md` mentionnant shadcn/ui (MIT, copyright 2023 shadcn) et Unsplash. Le texte MIT est conservé dans [shadcn-MIT.txt](docs/licenses/shadcn-MIT.txt). Cette mention ne prouve pas la provenance exacte de chaque image embarquée. Aucun module shadcn/ui n’est importé par l’application Expo active.
 
-[Unsplash](https://unsplash.com/license) accorde sa propre licence, distincte de MIT/Apache. Attribution appréciée, pas systématiquement exigée par cette licence ; les droits des personnes, marques ou objets représentés peuvent rester nécessaires. Les photographes/sources exactes ne sont pas identifiés dans cet export ; ne pas inventer d’attributions. Les exports binaires et rendus incertains sont dans le manifeste de conservation locale proposé avant publication.
+[Unsplash](https://unsplash.com/license) accorde sa propre licence, distincte de MIT/Apache. Attribution appréciée, pas systématiquement exigée par cette licence ; les droits des personnes, marques ou objets représentés peuvent rester nécessaires. Les photographes/sources exactes ne sont pas identifiés dans cet export ; ne pas inventer d’attributions. Les exports binaires et rendus incertains du manifeste sont désormais conservés uniquement localement dans l’arbre courant.
 
 ## Illustrations, polices et archives
 
 Les nouveaux SVG du sprint sont originaux, rendus en PNG sans image ni police tierce embarquée ; leurs contributions originales sont couvertes par Apache-2.0 et le copyright du NOTICE. La vitrine emploie les polices système, sans téléchargement Google Fonts. Les captures sont issues de l’application locale avec données fictives et simulation affichée ; les composants tiers visibles conservent leurs propres licences.
 
-Portraits : ni licence du photographe ni autorisation distincte d’usage d’image établies ; l’accord des contributions de code n’est pas assimilé à ces droits. Documents d’organisateurs MIABE : aucune permission de redistribution retrouvée. Les anciens fichiers restent intacts localement ; le [plan de publication](docs/release-plan.md) décrit leur retrait ciblé du prochain snapshot, sans effacer l’historique.
+Portraits : ni licence du photographe ni autorisation distincte d’usage d’image établies ; l’accord des contributions de code n’est pas assimilé à ces droits. Documents d’organisateurs MIABE : aucune permission de redistribution retrouvée. Les anciens fichiers du manifeste restent intacts localement et sauvegardés ; le [plan de publication](docs/release-plan.md) constate leur retrait ciblé du suivi, sans effacer l’historique.
 
 [Inventaire fichier par fichier](docs/assets-rights.md) et manifeste complet de provenance : `docs/assets-inventory.json`.
 

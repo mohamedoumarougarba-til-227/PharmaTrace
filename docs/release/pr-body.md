@@ -12,6 +12,6 @@ Client Expo, migrations/fixtures SQL, tests, documentation, CI et vitrine exista
 
 ## Risques et publication
 
-Migrations déjà installées : ne pas les réappliquer sur MVP. Anciens bundles à recharger, écritures brutes fermées. Trois stocks historiques bloqués, pas réparés. Dépendances triées sans upgrade forcé. Apache-2.0 appliquée localement aux contributions originales aux droits établis ; licences tierces conservées. Retrait ciblé des 46 chemins incertains à autoriser et vérifier avant push/PR : ne pas présenter ce retrait comme déjà fait. Les nouveaux textes/images attendent leur déploiement distinct et traçable.
+Migrations déjà installées : ne pas les réappliquer sur MVP. Anciens bundles à recharger, écritures brutes fermées. Trois stocks historiques bloqués, pas réparés. Dépendances triées sans upgrade forcé. Apache-2.0 appliquée localement aux contributions originales aux droits établis ; licences tierces conservées. Les 46 archives/médias et métadonnées CLI du manifeste ont été retirés du suivi local au gate 3B ; originaux et sauvegardes aux empreintes vérifiées restent locaux, historique conservé. Push/PR encore soumis au gate 3C. Les nouveaux textes/images attendent leur déploiement distinct et traçable.
 
 PR à créer en Draft, aucune fusion automatique.

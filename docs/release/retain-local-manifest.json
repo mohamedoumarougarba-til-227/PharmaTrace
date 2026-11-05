@@ -1,5 +1,8 @@
 {
-  "apply_status": "NOT APPLIED; part of final publication approval",
+  "apply_status": "APPLIQUÉ LOCALEMENT — gate 3B ; aucun push ni PR",
+  "applied_on": "2026-11-05",
+  "source_head": "fe83926301ed537cf1e74175d8992c1d114eac49",
+  "backup_directory": "A exclure de github/PHASE2_OPEN_SOURCE_20261103/retained-local",
   "files": [
     {
       "path": "landing/maquettes/fabricant-nouveau-lot.png",

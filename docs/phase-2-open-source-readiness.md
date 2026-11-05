@@ -1,6 +1,6 @@
 # Phase 2 — préparation finale de la release open source
 
-Checkpoint du 4 novembre 2026, Africa/Lagos, mis à jour après décision de licence.
+Checkpoint du 4 novembre 2026, Africa/Lagos, actualisé le 5 novembre au gate 3B.
 Préparation locale et licence finalisées, **publication non effectuée**. Phase 1 métier reste CLOSED ; aucun nouveau lot
 de hardening, migration, correction de stock ou mutation Supabase.
 
@@ -32,10 +32,11 @@ du code distinct des droits de photographe, de personnes et d’œuvres incorpor
 - Font Awesome / Expo vector-icons et jsQR web : licences propres documentées,
   textes conservés ; le build accompagne les fichiers de notices dans `dist/legal`.
 - [Manifeste de conservation locale](release/retain-local-manifest.json) :
-  **46 chemins suivis**, archives/médias et huit métadonnées CLI personnelles.
-  Dry-run vérifié ; **retrait de l’index non exécuté**. Sous le feu vert final,
-  sauvegarde et retrait ciblé du suivi, sans suppression physique ou réécriture
-  d’historique. Anciennes copies Git déjà publiques non prétendument effacées.
+  **46 chemins retirés du suivi local au gate 3B**, archives/médias et huit
+  métadonnées CLI personnelles. Les 46 sauvegardes ont été relues et vérifiées
+  avant retrait, les originaux et copies contrôlés après ; aucun fichier supprimé
+  physiquement, aucun historique réécrit. Anciennes copies Git déjà publiques
+  non prétendument effacées. Aucun push ni PR effectué.
 
 [THIRD_PARTY_NOTICES](../THIRD_PARTY_NOTICES.md), [CREDITS](../CREDITS.md).
 Les deux vidéos non suivies restent intactes et ne font pas partie du retrait
@@ -117,7 +118,7 @@ Finalisation de licence : texte comparé à la source officielle, LICENSE identi
 octet pour octet à la copie canonique préparée ; contrôles notices/liens et copie
 LICENSE/NOTICE vers l’export existant. Pas de nouveau test métier ou SQL requis
 pour ce changement de licence et de documentation ; preuves précédentes conservées.
-Contrôles locaux de clôture : syntaxe et exécution du script de notices réussies,
+Contrôles locaux de clôture de licence du 4 novembre : syntaxe et exécution du script de notices réussies,
 7 copies de textes conformes dans `dist/legal`, liens et motifs de secrets
 contrôlés par `npm run check:public`, `git diff --check` réussi. Les 46 chemins
 restent suivis avec empreintes conformes ; deux vidéos non suivies, tailles et
@@ -128,6 +129,19 @@ DNS ; le texte préparé a été comparé à la source officielle obtenue par l�
 web, sans changer le fichier canonique. Les premières commandes de notices
 avaient un chemin relatif doublé ; les mêmes contrôles ont ensuite réussi
 depuis la racine. Aucun de ces essais n’a modifié les fichiers préservés.
+
+Gate 3B du 5 novembre : sauvegarde de **46 fichiers, 29 491 625 octets**, sous
+`A exclure de github/PHASE2_OPEN_SOURCE_20261103/retained-local/` (ignoré),
+relecture SHA-256 des 46 originaux et 46 copies avant retrait de l’index.
+Après retrait, mêmes empreintes et fichiers locaux présents ; les 178 autres
+chemins suivis, dont sources/tests/scripts/migrations/licences, sont conservés.
+Exclusions exactes ajoutées ; inventaire initial et empreintes inchangés.
+Contrôles publics réussis : **178 chemins suivis, 90 liens locaux** ; aucun lien
+nécessaire absent de l’arbre publié, aucun appel aux ressources retirées dans
+les 68 fichiers actifs contrôlés. Syntaxe du script, diff et signature du commit
+contrôlés au gate ; aucun test métier/SQL ni déploiement
+recommencé. Vidéos non suivies intactes. Le SHA signé final est relevé dans le
+retour de clôture ; aucun nouveau registre créé.
 
 ## F. GitHub : état conservé, paramètres à finaliser
 
@@ -178,8 +192,8 @@ Vidéos non suivies préservées :
 ## I. PR / merge / release / provenance
 
 [Plan exact](release-plan.md) et payloads prêts. Licence finalisée localement ;
-retrait ciblé des 46 chemins toujours soumis à une autorisation distincte avant
-son commit signé. Après autorisations : push normal de branche, Draft PR,
+retrait ciblé des 46 chemins exécuté au gate 3B après autorisation, avec copies
+locales vérifiées et commit signé distinct. Après autorisation du gate 3C : push normal de branche, Draft PR,
 CI réelle, revue/checks puis merge autorisé préservant les commits déployés.
 Aucune fusion automatique ni main directement poussée.
 
@@ -201,11 +215,12 @@ LinkedIn, Patreon, communautés et pitch court Niger/TrustGrid/MIABE. Crédit de
 trois membres, preuves techniques réelles, limites honnêtes ; aucune promesse
 médicale/réglementaire ou sollicitation artificielle d’étoiles. Rien publié.
 
-## K. Licence close ; gate suivant de publication distinct
+## K. Licence et retrait local clos ; gate 3C distinct
 
 **Licence et consentement équipe : DONE**, aucune décision à rouvrir.
-La préparation contrôlée de Draft PR est le prochain gate : retrait des 46 chemins
-de l’index uniquement après autorisation distincte et vérification des copies.
+**Gate 3B : retrait local des 46 chemins effectué, originaux et sauvegardes
+préservés, un commit signé.** Le prochain gate est le push contrôlé de la branche
+et la Draft PR, puis la vérification de la CI distante réelle et du preview.
 Push/PR/merge, CI distante, settings, déploiements, tag/release et communication
 restent non exécutés et soumis à leurs autorisations explicites.
 

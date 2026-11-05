@@ -6,7 +6,7 @@ Fabricants, pharmacies et rôle de supervision DPH disposent d’interfaces mét
 
 [Application](https://pharmatraceapp.vercel.app/) · [Rechercher un lot](https://pharmatraceapp.vercel.app/verify) · [Vitrine existante](https://pharmatrace-eta.vercel.app/) · [Installer](docs/installation.md) · [Contribuer](CONTRIBUTING.md)
 
-> **Licence Apache-2.0** pour le code original et les créations originales dont les droits sont établis : [LICENSE](LICENSE), [NOTICE](NOTICE) et [périmètre](docs/licensing.md). Les éléments tiers et archives à droits incertains ne sont pas re-licenciés. La publication de la branche et le déploiement de ses corrections éditoriales restent en attente ; la production validée est identifiée dans [Versions](docs/releases.md).
+> **Préversion publiée le 5 novembre 2026 : [v1.1.0-preview.1](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/releases/tag/v1.1.0-preview.1)**, issue du merge signé `9a18cf85aa7ff396e8fd65eceed918a5e2aed249`. Application et vitrine en production : [Versions](docs/releases.md). **Licence Apache-2.0** pour le code original et les créations originales dont les droits sont établis : [LICENSE](LICENSE), [NOTICE](NOTICE) et [périmètre](docs/licensing.md). Les éléments tiers et archives à droits incertains ne sont pas re-licenciés.
 
 ## Fonctions
 
@@ -49,7 +49,7 @@ npm run check:public
 npm run build:web
 ```
 
-La CI préparée exécute ces contrôles sans credentials ni base distante. Les tests SQL nécessitent une base isolée ; ils ne sont pas exécutés par GitHub Actions. [Validation](docs/testing.md).
+La CI publique exécute ces contrôles sans credentials ni base distante : [exécution réussie sur le commit de publication](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/actions/runs/42102309187). Les tests SQL nécessitent une base isolée ; ils ne sont pas exécutés par GitHub Actions. [Validation](docs/testing.md).
 
 ## Structure et limites
 
@@ -64,7 +64,7 @@ Le bootstrap local rejoue **huit migrations**, avec un prérequis historique ; l
 
 ## Contribution, sécurité et support
 
-[CONTRIBUTING](CONTRIBUTING.md) : issues reproductibles, PR ciblées, données fictives et tests. Les PR externes sont encore limitées aux collaborateurs côté GitHub ; leur ouverture attend le feu vert de publication et la CI distante réelle. [Tâches préparées](docs/backlog.md).
+[CONTRIBUTING](CONTRIBUTING.md) : issues reproductibles, PR ciblées, données fictives et tests. Les contributions externes sont ouvertes ; `main` reste protégé par les rulesets et la CI. [Quatre issues publiques et backlog](docs/backlog.md).
 
 [SECURITY](SECURITY.md) fournit un canal privé. Ne publier ni session, ni donnée personnelle, ni preuve exploitable sur le MVP. Support bénévole, sans SLA, usage clinique ou réglementaire validé.
 

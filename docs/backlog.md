@@ -16,12 +16,11 @@ P06/P07/P08/P09 sont clos au gate métier validé. Pas de nouveau lot de hardeni
 | P27 | Flux de récupération de mot de passe complet ou retrait de l’affordance héritée. |
 | Dette technique | Typage et petites extractions P30 au fil des corrections, sans refonte globale. |
 
-## Trois premières tâches proposées
+## Quatre issues publiques ouvertes — 5 novembre 2026
 
-Corps d’issues prêts dans `docs/release/issues/`, à créer seulement après feu vert :
+- [nº 2 — labels accessibles du scanner](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/2), `good first issue` : périmètre UI, aucune RLS/RPC.
+- [nº 3 — installation Linux / PowerShell](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/3), `good first issue` : clone public, Node 22, données fictives, aucune DB du propriétaire.
+- [nº 4 — clavier et focus de la vitrine](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/4), `good first issue` : menu mobile existant, aucune nouvelle landing.
+- [nº 5 — triage P16/P17](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/5), suivi distinct des dépendances, sans label de première tâche et sans minimiser les risques.
 
-1. Labels accessibles des boutons icônes du scanner ; périmètre UI, aucune RLS/RPC.
-2. Vérifier le parcours d’installation Node 22 sous Linux et PowerShell ; données fictives, aucune DB du propriétaire.
-3. Navigation clavier et focus du menu mobile de la vitrine existante ; pas de nouvelle landing.
-
-Labels envisagés : `good first issue`, `help wanted`, `documentation` ou `accessibility` selon la tâche. Aucun signalement sensible n’est transformé en première tâche.
+Les corps préparatoires restent dans `docs/release/issues/` pour traçabilité ; ne pas recréer ces issues en double. Aucun signalement sensible n’est transformé en première tâche. Voir [CONTRIBUTING](../CONTRIBUTING.md) et [SECURITY](../SECURITY.md).

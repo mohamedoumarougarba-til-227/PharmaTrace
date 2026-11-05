@@ -1,6 +1,6 @@
 # Signaler une vulnérabilité
 
-Contact privé : [mohamedoumarougarba2568@gmail.com](mailto:mohamedoumarougarba2568@gmail.com), adresse publique d’auteur du dépôt. Objet : `PharmaTrace security report`. Le canal privé GitHub pourra compléter cette adresse après activation ; ne pas supposer qu’il est déjà disponible.
+Canal privé GitHub activé : [signaler une vulnérabilité](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/security/advisories/new). Contact alternatif : [mohamedoumarougarba2568@gmail.com](mailto:mohamedoumarougarba2568@gmail.com), adresse publique d’auteur du dépôt. Objet : `PharmaTrace security report`. Ne pas utiliser une issue publique pour les détails exploitables.
 
 Décrire version/URL, impact et reproduction minimale fictive. Ne joindre ni secret, ni session, ni donnée patient ou export de production. Ne pas publier les détails exploitables dans une issue. Aucun test intrusif, scan de charge ou écriture sur le MVP sans autorisation explicite : utiliser votre environnement isolé.
 

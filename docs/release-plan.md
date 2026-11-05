@@ -1,4 +1,26 @@
-# Plan final de publication — gate 3B local exécuté, publication en attente
+# Publication achevée et plan historique
+
+## Publication effective — 5 novembre 2026
+
+Les gates 3D à 3I ont été exécutés : PR nº 1 fusionnée avec bypass administrateur
+existant explicitement autorisé pour cette seule fusion ; main de publication signé `9a18cf85aa7ff396e8fd65eceed918a5e2aed249`,
+client et vitrine de production validés, tag signé et préversion source publiée,
+métadonnées GitHub, PR externes, signalements privés et quatre issues configurés.
+Voir le [rapport de clôture](phase-2-open-source-readiness.md) et la
+[release réelle](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/releases/tag/v1.1.0-preview.1).
+Ruleset historique conservé ; ruleset supplémentaire main 26647983 ajouté.
+Aperçu social prêt, upload non effectué à cause du navigateur d’automatisation.
+La suite de ce fichier garde le plan et les décisions datés antérieurs ; ses
+mentions « en attente » ne décrivent plus la publication distante actuelle.
+Le tag publié reste fixé au merge de publication ; les corrections documentaires
+ultérieures suivent une PR distincte et ne déplacent pas ce tag.
+
+---
+
+## Archive du plan — checkpoint gate 3B, 5 novembre 2026
+
+Les instructions ci-dessous sont conservées pour traçabilité et ne sont plus
+un ordre d’exécution. Les paramètres observés décrivent le relevé antérieur.
 
 ## Décision de licence acquise ; publication non autorisée
 

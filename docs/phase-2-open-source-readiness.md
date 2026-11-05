@@ -1,5 +1,47 @@
 # Phase 2 — préparation finale de la release open source
 
+## Clôture de publication — 5 novembre 2026
+
+**PUBLISHED.** Le code de la préversion et son tag ciblent `9a18cf85aa7ff396e8fd65eceed918a5e2aed249`.
+Les sections A–K plus bas conservent les checkpoints antérieurs datés.
+
+| Gate | Résultat et preuve |
+| --- | --- |
+| 3D — fusion | [PR nº 1](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/pull/1) MERGED par merge commit `9a18cf85…`, signature GitHub valide, parents `f64f2c4…` et `b30faf1…`. Les 11 commits signés sont ancêtres ; arbre identique au HEAD approuvé. Bypass administrateur existant utilisé uniquement pour cette fusion explicitement autorisée ; ruleset 17278864 conservé. |
+| 3E — application | [Application publique](https://pharmatraceapp.vercel.app/), `dpl_9A3fGoycXNgEU9HByDxsMcQBArPH`, READY, source Git main `9a18cf85…`. [CI main](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/actions/runs/42102309187) SUCCESS ; 95 tests, TypeScript, export et contrôles publics. Sept textes légaux identiques au commit, HTML/JS/CSS en HTTP 200. |
+| 3F — vitrine | [Vitrine publique](https://pharmatrace-eta.vercel.app/), `dpl_3WFDryY7GjdN6xY3TVh3znup1Bp1`, production READY. Fichiers suivis du merge seuls copiés en staging ; HTML/images/licence servis identiques à Git, rendu local de ces mêmes octets validé en 1440/390, promotion du même artefact puis validation navigateur du domaine public. |
+| 3G — release | [v1.1.0-preview.1](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/releases/tag/v1.1.0-preview.1), prerelease source réelle. Tag signé `37e04700cae7f133bdff43a4fea91343ca6fbf80`, vérifié par GitHub, cible `9a18cf85…`. Aucun APK joint. Ancienne release annotée comme archive ; asset 442961538, 113 882 052 octets, digest GitHub `87f229b9380f42fb8bc7e5f8f896e0943797cb247ff7076bd46f1aa771f0a00a` inchangés. |
+| 3H — GitHub | Description française, homepage et 11 topics configurés ; PR externes `all`, signalements privés actifs, secret scanning et push protection activés. Nouveau ruleset 26647983 : PR/conversations résolues et check strict `app-checks`, sans retrait du ruleset historique. Workflow par défaut lecture seule, aucune approbation de PR par Actions ; Git Fork Protection Vercel maintenue. |
+| 3H — contributions | [Issues 2](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/2), [3](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/3), [4](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/4) : trois good first issues ; [5](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/5) : dépendances P16/P17, sans ce label. Clone public sans identifiants au SHA exact et contrôle public 178 chemins/90 liens réussis. |
+| 3I — visibilité | Textes français/développeurs/LinkedIn/communautés actualisés dans [communication.md](communication.md), captures fictives conservées. Aucun post, Patreon, dépense ou modification de Z-Score. Aperçu social original 1200×630 contrôlé visuellement mais non chargé : outil navigateur indisponible (échecs avant ouverture des réglages). |
+
+Vérifications navigateur de production : route connexion, recherche publique
+réelle `FAB-2026-049` absente, panne RPC injectée côté client donnant indisponible,
+correspondance démo connue honnête, navigation pharmacie/fabricant/DPH en démo,
+aucune erreur JavaScript relevée. Seule la RPC publique stable en lecture a été
+autorisée dans les contrôles réels ; aucun compte métier réel utilisé. Deux
+attentes de harness ont expiré (sélecteur générique puis chargement asynchrone) ;
+contrôles repris sur le champ exact et après chargement, sans modifier l’application.
+Tentatives et résultats conservés dans les preuves ignorées.
+
+Aucune régression grave démontrée, aucun rollback exécuté. Références de retour :
+application `dpl_E3SKbgi9zgtKFKLoDUafgbMEZp4h`, vitrine
+`dpl_BrmvqJRY2Gp7kx4auXHNMF2N9qW6`, conservées. Aucun schéma, stock, compte
+ou historique Supabase modifié ; aucune migration réappliquée. Les 46 originaux
+et sauvegardes restent locaux avec empreintes inchangées ; les deux vidéos
+historiques restent intactes et non suivies ; branche de préparation conservée.
+
+Le rapport local signé `a0e9d7eff777ec2c639cdad65c7ab7d3ef6978b3` a été relu
+fichier par fichier ; ses éléments utiles sont repris dans une correction
+documentaire distincte depuis main, sans reprendre les six fichiers en bloc.
+Le tag de la préversion reste historique ; ces documents ne le modifient pas.
+P16/P17 restent PARTIAL ; Android/caméra, comptes réels par rôle, trois stocks,
+deep-link, advisors et démo complète restent des limites/backlog, pas des garanties.
+
+## Checkpoint historique — 4 novembre / gate 3B du 5 novembre 2026
+
+Les sections A–K ci-dessous décrivent cet état antérieur, pas l’état publié.
+
 Checkpoint du 4 novembre 2026, Africa/Lagos, actualisé le 5 novembre au gate 3B.
 Préparation locale et licence finalisées, **publication non effectuée**. Phase 1 métier reste CLOSED ; aucun nouveau lot
 de hardening, migration, correction de stock ou mutation Supabase.

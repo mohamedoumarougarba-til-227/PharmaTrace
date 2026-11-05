@@ -1,40 +1,46 @@
-# Textes préparés — ne pas publier automatiquement
+# Publications prêtes — diffusion manuelle uniquement
 
-Apache-2.0 est retenue pour le code et les créations originales aux droits établis, avec licences tierces distinctes. Renseigner la version effectivement publiée ; utiliser les textes après release, sans présenter un brouillon comme déjà publié.
+Préversion publiée le 5 novembre 2026. Ces textes sont prêts à copier, mais ne sont pas envoyés automatiquement. Aucun Patreon, dépense ou sollicitation artificielle d’étoiles. Français principal ; PharmaTrace et Z-Score Niger restent deux projets distincts.
 
-## Résumé français
+## LinkedIn — PharmaTrace
 
-PharmaTrace est un MVP expérimental de gestion et traçabilité de lots de médicaments, développé au Niger par TrustGrid dans le contexte du MIABE Hackathon. Il relie des interfaces fabricant, pharmacie et supervision à une recherche publique minimale. Le travail récent a renforcé rôles, accès et transactions de stock, avec tests de concurrence réels. Une correspondance au registre ne certifie pas une boîte physique. Sources, installation, limites et contribution sont documentées.
+Depuis le Niger, avec l’équipe TrustGrid, nous publions PharmaTrace : un MVP expérimental de gestion et traçabilité de lots de médicaments, né dans le contexte du MIABE Hackathon 2026.
 
-## English
+La préversion source v1.1.0-preview.1 est disponible sous Apache-2.0. Elle réunit interfaces fabricant, pharmacie, supervision et recherche publique. Le travail publié comprend des rôles provisionnés, des réponses publiques minimales, des transferts et stocks transactionnels, des tests et une installation documentée.
 
-PharmaTrace is an experimental medicine-batch management and traceability MVP built in Niger by TrustGrid in the context of the MIABE Hackathon. It includes manufacturer, pharmacy, supervision and public lookup interfaces. Recent work strengthened role authority, public data minimization and atomic stock workflows, with real PostgreSQL concurrency checks. A registry match does not prove the physical authenticity of a medicine pack. The source release documents setup, limitations and contribution paths.
+Nous documentons aussi les limites : une correspondance au registre n’authentifie pas physiquement une boîte ; un QR peut être copié. Aucune blockchain opérationnelle ni certification médicale ou réglementaire n’est revendiquée. Dépendances P16/P17, Android/caméra, deep-link et conditions d’utilisation réelle restent des travaux ouverts.
 
-## GitHub About
+Crédits historiques : Mohamed Oumarou Garba, Mahamadou Garba Zakou et Abdoul Raouf Harouna Moussa — TrustGrid, MIABE 2026. Les retours reproductibles et contributions ciblées sont bienvenus.
 
-MVP expérimental de gestion et traçabilité de lots de médicaments, développé au Niger par TrustGrid dans le contexte du MIABE Hackathon.
+[Sources et documentation](https://github.com/mohamedoumarougarba-til-227/PharmaTrace) · [Préversion](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/releases/tag/v1.1.0-preview.1) · [Application](https://pharmatraceapp.vercel.app/) · [Vitrine](https://pharmatrace-eta.vercel.app/)
 
-## LinkedIn
+## Message court — développeurs et communautés
 
-Avec l’équipe TrustGrid, nous avons développé PharmaTrace au Niger dans le contexte du MIABE Hackathon : un MVP expérimental de gestion et traçabilité de lots de médicaments.
+Bonjour ! PharmaTrace est un MVP expérimental open source développé au Niger par TrustGrid, dans le contexte du MIABE Hackathon 2026 : Expo/React Native, Supabase/PostgreSQL, interfaces multirôles et gestion transactionnelle des lots/stocks. La préversion v1.1.0-preview.1 est publiée sous Apache-2.0. La CI exécute 95 tests Node, TypeScript et export web ; les preuves SQL sont distinctes et Android/caméra n’a pas été validé physiquement. Nous cherchons des retours sur l’installation et l’accessibilité. Une correspondance au registre ne certifie pas une boîte. [Découvrir et contribuer](https://github.com/mohamedoumarougarba-til-227/PharmaTrace).
 
-L’ouverture des sources s’appuie sur un travail concret : rôles provisionnés, réponse publique minimale, transferts et stocks transactionnels, tests de régression et concurrence PostgreSQL démontrée. Nous avons aussi clarifié les limites : ni blockchain, ni certification d’authenticité physique, ni garantie contre la copie d’un QR.
+## Quatre issues — contributions recherchées
 
-Merci à Mahamadou Garba Zakou et Abdoul Raouf Harouna Moussa pour leurs contributions historiques. Le dépôt présente installation, crédits, licence retenue et premières tâches ciblées. Les retours techniques reproductibles et contributions documentaires sont les bienvenus.
+Trois premières tâches bornées, avec données fictives et sans accès à la production :
 
-Sources : https://github.com/mohamedoumarougarba-til-227/PharmaTrace
-Application : https://pharmatraceapp.vercel.app/
+1. [nº 2 : rendre les boutons du scanner accessibles](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/2).
+2. [nº 3 : vérifier l’installation depuis un clone public, sous Linux et PowerShell](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/3).
+3. [nº 4 : améliorer clavier et focus du menu mobile de la vitrine](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/4).
 
-## Patreon
+Le [triage P16/P17 — nº 5](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/issues/5) recherche plutôt une contribution expérimentée : risques de dépendances, compatibilité des mises à jour et shims web/native, sans mise à niveau forcée. Ce travail reste PARTIAL et n’est pas une première tâche anodine.
 
-Je partage le développement de PharmaTrace, un projet expérimental né au Niger avec TrustGrid dans le cadre du MIABE Hackathon. Les sources ouvertes permettent d’étudier interfaces multirôles, contrôles d’accès et transactions de stock. Le soutien éventuel finance du temps de documentation, de tests sur appareils et de maintenance ; il n’achète pas une validation médicale, un service de santé ou une promesse de disponibilité. Les progrès et limites seront publiés avec leurs preuves, sans engagement de contrepartie non défini.
+Lire [CONTRIBUTING](../CONTRIBUTING.md), proposer une petite PR avec tests et limites. Pour une vulnérabilité, utiliser le [canal privé](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/security/advisories/new).
 
-## Communautés open source
+## Présentation croisée — PharmaTrace et Z-Score Niger
 
-Bonjour, nous partageons PharmaTrace, un MVP expérimental de traçabilité de lots développé au Niger par TrustGrid (contexte MIABE Hackathon). Expo/React Native, Supabase/PostgreSQL, accès multirôles et transactions testées. Le README explicite les limites, dont l’absence d’authentification physique du produit. Nous cherchons surtout des retours sur l’installation et l’accessibilité, avec quelques tâches bornées. Dépôt et guide contributeurs : https://github.com/mohamedoumarougarba-til-227/PharmaTrace
+Deux projets open source développés depuis le Niger, avec des périmètres et licences distincts :
 
-## Pitch court
+- **PharmaTrace**, par TrustGrid dans le contexte du MIABE Hackathon 2026 : MVP expérimental de gestion et traçabilité de lots, [v1.1.0-preview.1 sous Apache-2.0](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/releases/tag/v1.1.0-preview.1). Le registre ne prouve pas l’authenticité physique d’un médicament.
+- **Z-Score Niger**, outil de calcul des indicateurs anthropométriques, [v5.8.2 sous GPLv3](https://github.com/mohamedoumarougarba-til-227/nutritional-zscore-calculator/releases/tag/v5.8.2). Consulter son propre README et ses limites : un calcul ne remplace pas l’évaluation d’un professionnel et ne constitue pas un diagnostic.
 
-Depuis le Niger, TrustGrid explore la gestion partagée de lots de médicaments avec PharmaTrace. Un MVP multirôle, des accès et stocks contrôlés, des tests publiables et des limites explicites : une base d’apprentissage et de contribution, sans promesse médicale non démontrée.
+L’objectif commun de ce partage est de rendre le travail technique lisible, reproductible et ouvert aux contributions. Aucune recommandation institutionnelle, adoption chiffrée ou validation clinique n’est revendiquée. Crédits PharmaTrace : Mohamed Oumarou Garba, Mahamadou Garba Zakou, Abdoul Raouf Harouna Moussa ; TrustGrid / MIABE 2026. Le dépôt Z-Score n’est pas modifié par cette publication.
 
-Partage possible après lecture des règles de chaque communauté : réseau MIABE/communautés de développeurs au Niger, espaces Expo/React Native, Supabase et rencontres open source locales. Aucun post automatique ni sollicitation artificielle d’étoiles. Aucune appartenance ou recommandation communautaire présumée.
+## Diffusion simple
+
+Commencer par une annonce LinkedIn, puis un message adapté aux règles d’une communauté locale ou technique pertinente (Expo/React Native, Supabase, open source). Partager une tâche précise et répondre aux retours ; aucune affiliation à ces communautés n’est présumée. Ne publier aucun secret ni donnée terrain.
+
+Les [captures existantes](screenshots.md) montrent l’interface avec des données fictives, sans validation physique implicite. L’[aperçu social](images/social-preview.png), 1200 × 630, reste disponible pour téléversement manuel dans les paramètres GitHub ; ne pas annoncer qu’il est installé.

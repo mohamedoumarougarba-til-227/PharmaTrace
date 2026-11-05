@@ -12,11 +12,12 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { supabase } from "../../lib/supabase";
+import { getBusinessAccess } from "../../lib/businessRole";
 import { FAIcon } from '../../constants/icons';
+import { verifyMedication, journalVerificationScan, type VerificationSource } from '../../lib/verification';
+import VerificationNotice from '../../components/VerificationNotice';
 
-type VerifyResult =
+type VerifyResult = { source?: VerificationSource } & (
   | { status: "idle" }
   | { status: "loading" }
   | {
@@ -26,20 +27,22 @@ type VerifyResult =
         fabricant: string;
         expiration: string;
         statut: string;
-        etape: string;
       };
     }
-  | { status: "suspect" }
+  | { status: "not_found" | "unavailable" | "invalid_input" }
   | {
-      status: "expire";
+      status: "expire" | "archive";
       data: { nom: string; fabricant: string; expiration: string };
-    };
+    }
+);
 
 export default function VerifyScreen() {
   const [input, setInput] = useState("");
   const [result, setResult] = useState<VerifyResult>({ status: "idle" });
   const [cameraActive, setCameraActive] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
+  const verificationRequest = useRef(0);
+  const [journalFailed, setJournalFailed] = useState(false);
   const scannedRef = useRef(false); // évite les doubles scans
   const [userRole, setUserRole] = useState<string | null>(null);
 
@@ -49,21 +52,8 @@ export default function VerifyScreen() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const isDemo = await AsyncStorage.getItem('pt_demo_mode') === 'true';
-          if (isDemo) {
-            const role = await AsyncStorage.getItem('pt_demo_role');
-            setUserRole(role);
-          } else {
-            const { data: profile } = await supabase
-              .from('utilisateurs')
-              .select('role')
-              .eq('id', session.user.id)
-              .maybeSingle();
-            setUserRole(profile?.role ?? null);
-          }
-        }
+        const access = await getBusinessAccess();
+        setUserRole(access.status === 'AUTHORIZED' ? access.role : null);
       } catch (err) {
         console.error(err);
       }
@@ -73,154 +63,56 @@ export default function VerifyScreen() {
 
   // ─── Vérification (manuelle ou QR) ───────────────────────────────────────
   const handleVerify = async (hash?: string) => {
-    let toVerify = (hash ?? input).trim();
-    if (!toVerify) return;
-
-    // Si c'est une URL, on extrait le paramètre 'hash' ou le dernier segment du path
-    if (toVerify.startsWith("http://") || toVerify.startsWith("https://")) {
-      try {
-        // Remplacement simple de RegExp ou URL parser
-        const match = toVerify.match(/[?&]hash=([^&]+)/);
-        if (match && match[1]) {
-          toVerify = match[1];
-        } else {
-          const parts = toVerify.split("/");
-          const lastPart = parts[parts.length - 1];
-          if (lastPart) {
-            toVerify = lastPart;
-          }
-        }
-      } catch (e) {
-        // fallback
-      }
-    }
-
+    const request = ++verificationRequest.current;
     scannedRef.current = true;
     setCameraActive(false);
+    setJournalFailed(false);
     setResult({ status: "loading" });
 
-    // Déterminer le type de scanneur
-    let typeScanneur = "patient";
-    let scanneurId = null;
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
-      if (user) {
-        scanneurId = user.id;
-        const isDemo = await AsyncStorage.getItem('pt_demo_mode') === 'true';
-        let role = null;
-        if (isDemo) {
-          role = await AsyncStorage.getItem('pt_demo_role');
-        } else {
-          const { data: profile } = await supabase
-            .from('utilisateurs')
-            .select('role')
-            .eq('id', user.id)
-            .maybeSingle();
-          role = profile?.role;
-        }
-
-        if (role === 'pharmacie') {
-          typeScanneur = 'pharmacien';
-        } else if (role === 'agent_dph') {
-          typeScanneur = 'agent_dph';
-        } else if (role === 'fabricant') {
-          typeScanneur = 'fabricant';
-        }
-      }
-    } catch (err) {
-      console.error(err);
+    const lookup = await verifyMedication(hash ?? input);
+    if (request !== verificationRequest.current) return;
+    if (lookup.status === 'INVALID_INPUT') {
+      setResult({ status: 'invalid_input' });
+      return;
     }
-
-    try {
-      // Requête Supabase — cherche le lot par numéro ou hash
-      const { data: lot, error } = await supabase
-        .from("lots_medicaments")
-        .select(
-          `
-          id,
-          nom_medicament,
-          date_expiration,
-          statut_actuel,
-          fabricant_id,
-          utilisateurs!lots_medicaments_fabricant_id_fkey(nom_entite, ville)
-        `,
-        )
-        .or(`numero_lot.eq.${toVerify},hash_sha256.eq.${toVerify}`)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (!lot) {
-        // Non trouvé → suspect + enregistre le scan
-        await supabase.from("historique_scans").insert({
-          hash_scanne: toVerify,
-          type_scanneur: typeScanneur,
-          scanneur_id: scanneurId,
-          resultat: "non_trouve",
-          pays_scan: "Niger",
-        });
-        setResult({ status: "suspect" });
-        return;
-      }
-
-      // Vérifie l'expiration
+    if (lookup.status === 'UNAVAILABLE') {
+      setResult({ status: 'unavailable', source: lookup.source });
+      return;
+    }
+    if (lookup.status === 'NOT_FOUND') {
+      setResult({ status: 'not_found', source: lookup.source });
+    } else {
+      const lot = lookup.lot;
       const expDate = new Date(lot.date_expiration);
-      const isExpired = expDate < new Date();
-
-      // Enregistre le scan
-      await supabase.from("historique_scans").insert({
-        hash_scanne: toVerify,
-        lot_id: lot.id,
-        type_scanneur: typeScanneur,
-        scanneur_id: scanneurId,
-        resultat: isExpired ? "expire" : "authentique",
-        pays_scan: "Niger",
-      });
-
-      if (isExpired) {
+      if (lot.statut_actuel === 'archive' || expDate < new Date()) {
         setResult({
-          status: "expire",
+          status: lot.statut_actuel === 'archive' ? 'archive' : 'expire', source: lookup.source,
           data: {
             nom: lot.nom_medicament,
-            fabricant: (lot as any).utilisateurs?.nom_entite ?? "Inconnu",
-            expiration: expDate.toLocaleDateString("fr-FR"),
-          },
-        });
-        return;
-      }
-
-      setResult({
-        status: "authentique",
-        data: {
-          nom: lot.nom_medicament,
-          fabricant: (lot as any).utilisateurs?.nom_entite ?? "Inconnu",
-          expiration: expDate.toLocaleDateString("fr-FR"),
-          statut: lot.statut_actuel.replace(/_/g, " "),
-          etape: (lot as any).utilisateurs?.ville ?? "Niger",
-        },
-      });
-    } catch (err) {
-      // Fallback simulation si Supabase non dispo
-      await new Promise((r) => setTimeout(r, 800));
-      if (toVerify.toUpperCase().startsWith("FAB-")) {
-        setResult({
-          status: "authentique",
-          data: {
-            nom: "Amoxicilline 500mg",
-            fabricant: "Laboratoire Niger Pharma",
-            expiration: "15/01/2028",
-            statut: "En pharmacie",
-            etape: "Pharmacie Centrale de Niamey",
+            fabricant: lot.utilisateurs?.nom_entite ?? 'Inconnu',
+            expiration: expDate.toLocaleDateString('fr-FR'),
           },
         });
       } else {
-        setResult({ status: "suspect" });
+        setResult({
+          status: 'authentique', source: lookup.source,
+          data: {
+            nom: lot.nom_medicament,
+            fabricant: lot.utilisateurs?.nom_entite ?? 'Inconnu',
+            expiration: expDate.toLocaleDateString('fr-FR'),
+            statut: lot.statut_actuel.replace(/_/g, ' '),
+          },
+        });
       }
     }
+    // The result is already visible; failure of this secondary effect cannot replace it.
+    const journal = await journalVerificationScan(lookup, 'public');
+    if (request === verificationRequest.current) setJournalFailed(journal === 'FAILED');
   };
 
   const reset = () => {
+    verificationRequest.current++;
+    setJournalFailed(false);
     setResult({ status: "idle" });
     setInput("");
     scannedRef.current = false;
@@ -248,7 +140,30 @@ export default function VerifyScreen() {
     handleVerify(data);
   };
 
-  // ─── Résultat AUTHENTIQUE ────────────────────────────────────────────────
+  if (result.status === 'unavailable' || result.status === 'invalid_input' || result.status === 'not_found') {
+    const title = result.status === 'unavailable' ? 'Vérification indisponible'
+      : result.status === 'invalid_input' ? 'Code invalide' : 'Lot non trouvé';
+    const message = result.status === 'unavailable'
+      ? 'La recherche n’a pas pu aboutir. Réessayez plus tard ; aucune conclusion sur le lot ne peut être établie.'
+      : result.status === 'invalid_input'
+        ? 'Saisissez un numéro de lot ou un code QR valide (100 caractères maximum pour le code).'
+        : 'Aucun lot correspondant à ce code n’a été trouvé dans la source consultée.';
+    return (
+      <View style={{ flex: 1, backgroundColor: '#F7F9FC', padding: 24, justifyContent: 'center' }}>
+        <StatusBar style="dark" />
+        <View style={{ width: '100%', maxWidth: 540, alignSelf: 'center' }}>
+          <VerificationNotice source={result.source} journalFailed={journalFailed} />
+          <Text accessibilityRole="header" style={{ color: '#1A3A5C', fontWeight: '800', fontSize: 24 }}>{title}</Text>
+          <Text style={{ color: '#333', marginTop: 16, lineHeight: 24 }}>{message}</Text>
+          <TouchableOpacity onPress={reset} style={{ backgroundColor: '#1A3A5C', borderRadius: 12, padding: 16, marginTop: 24 }}>
+            <Text style={{ color: 'white', textAlign: 'center', fontWeight: '700' }}>Revenir à la vérification</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // ─── Résultat : correspondance au registre ────────────────────────────────────────────────
   if (result.status === "authentique") {
     return (
       <View style={{ flex: 1, backgroundColor: "#27AE60" }}>
@@ -258,6 +173,7 @@ export default function VerifyScreen() {
           style={{ paddingHorizontal: 20, paddingTop: 64, paddingBottom: 40 }}
         >
           <View className="w-full max-w-[540px] flex-1 flex flex-col justify-start">
+            <VerificationNotice source={result.source} journalFailed={journalFailed} />
             <View
               style={{ alignItems: "center", marginTop: 16, marginBottom: 24 }}
             >
@@ -283,7 +199,7 @@ export default function VerifyScreen() {
                 letterSpacing: 4,
               }}
             >
-              AUTHENTIQUE
+              LOT TROUVÉ
             </Text>
             <Text
               style={{
@@ -293,7 +209,7 @@ export default function VerifyScreen() {
                 marginTop: 8,
               }}
             >
-              Médicament vérifié avec succès
+              Correspondance trouvée dans le registre
             </Text>
 
             <View
@@ -351,7 +267,6 @@ export default function VerifyScreen() {
                   ["Fabricant", result.data.fabricant],
                   ["Expiration", result.data.expiration],
                   ["Statut", result.data.statut],
-                  ["Dernière étape", result.data.etape],
                 ] as [string, string][]
               ).map(([label, value]) => (
                 <View
@@ -415,7 +330,7 @@ export default function VerifyScreen() {
   }
 
   // ─── Résultat EXPIRÉ ─────────────────────────────────────────────────────
-  if (result.status === "expire") {
+  if (result.status === "expire" || result.status === "archive") {
     return (
       <View style={{ flex: 1, backgroundColor: "#E67E22" }}>
         <StatusBar style="light" />
@@ -424,6 +339,7 @@ export default function VerifyScreen() {
           style={{ paddingHorizontal: 20, paddingTop: 64, paddingBottom: 40 }}
         >
           <View className="w-full max-w-[540px] flex-1 flex flex-col justify-start">
+            <VerificationNotice source={result.source} journalFailed={journalFailed} />
             <View
               style={{ alignItems: "center", marginTop: 16, marginBottom: 24 }}
             >
@@ -449,7 +365,7 @@ export default function VerifyScreen() {
                 letterSpacing: 2,
               }}
             >
-              EXPIRÉ
+              {result.status === 'archive' ? 'Lot archivé' : 'EXPIRÉ'}
             </Text>
             <Text
               style={{
@@ -460,7 +376,7 @@ export default function VerifyScreen() {
                 fontWeight: "600",
               }}
             >
-              Ce médicament a dépassé sa date d'expiration
+              {result.status === 'archive' ? 'La correspondance existe, mais le lot est archivé.' : "Ce médicament a dépassé sa date d'expiration"}
             </Text>
             <View
               style={{
@@ -491,7 +407,7 @@ export default function VerifyScreen() {
                   marginTop: 4,
                 }}
               >
-                Expiré le : {result.data.expiration}
+                {result.status === 'archive' ? 'Expiration : ' : 'Expiré le : '}{result.data.expiration}
               </Text>
               <View
                 style={{
@@ -505,7 +421,7 @@ export default function VerifyScreen() {
                 <Text
                   style={{ color: "#E67E22", fontWeight: "900", fontSize: 15 }}
                 >
-                  NE PAS CONSOMMER
+                  {result.status === 'archive' ? 'STATUT ARCHIVÉ' : 'NE PAS CONSOMMER'}
                 </Text>
                 <Text
                   style={{
@@ -515,167 +431,10 @@ export default function VerifyScreen() {
                     textAlign: "center",
                   }}
                 >
-                  Retournez ce médicament à la pharmacie
+                  {result.status === 'archive' ? 'Demandez conseil à un pharmacien.' : 'Retournez ce médicament à la pharmacie'}
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={reset}
-              style={{
-                marginTop: 24,
-                height: 56,
-                backgroundColor: "rgba(255,255,255,0.2)",
-                borderWidth: 2,
-                borderColor: "rgba(255,255,255,0.4)",
-                borderRadius: 12,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text style={{ color: "white", fontWeight: "700", fontSize: 15 }}>
-                Vérifier un autre médicament
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </View>
-    );
-  }
-
-  // ─── Résultat SUSPECT ────────────────────────────────────────────────────
-  if (result.status === "suspect") {
-    return (
-      <View style={{ flex: 1, backgroundColor: "#C0392B" }}>
-        <StatusBar style="light" />
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1, alignItems: "center" }}
-          style={{ paddingHorizontal: 20, paddingTop: 64, paddingBottom: 40 }}
-        >
-          <View className="w-full max-w-[540px] flex-1 flex flex-col justify-start">
-            <View
-              style={{ alignItems: "center", marginTop: 16, marginBottom: 24 }}
-            >
-              <View
-                style={{
-                  width: 96,
-                  height: 96,
-                  backgroundColor: "white",
-                  borderRadius: 48,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <FAIcon name="xmark" size={48} color="#C0392B" family="FontAwesome6" />
-              </View>
-            </View>
-            <Text
-              style={{
-                color: "white",
-                fontWeight: "900",
-                fontSize: 28,
-                textAlign: "center",
-                letterSpacing: 4,
-              }}
-            >
-              NON TROUVÉ
-            </Text>
-            <Text
-              style={{
-                color: "white",
-                fontWeight: "900",
-                fontSize: 18,
-                textAlign: "center",
-                marginTop: 4,
-              }}
-            >
-              MÉDICAMENT SUSPECT
-            </Text>
-
-            <View
-              style={{
-                backgroundColor: "white",
-                borderRadius: 16,
-                padding: 24,
-                marginTop: 24,
-              }}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                <FAIcon name="triangle-exclamation" size={13} color="#C0392B" family="FontAwesome6" />
-                <Text
-                  style={{
-                    color: "#C0392B",
-                    fontWeight: "700",
-                    fontSize: 13,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Médicament non enregistré
-                </Text>
-              </View>
-              <Text style={{ color: "#1A1A1A", fontSize: 15, lineHeight: 24 }}>
-                Ce médicament n'est pas enregistré dans le système officiel de
-                traçabilité PharmaTrace.
-              </Text>
-              <View
-                style={{
-                  backgroundColor: "#FFF5F5",
-                  borderRadius: 10,
-                  padding: 16,
-                  marginTop: 16,
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{ color: "#C0392B", fontWeight: "900", fontSize: 16 }}
-                >
-                  NE LE CONSOMMEZ PAS
-                </Text>
-                <Text
-                  style={{
-                    color: "rgba(192,57,43,0.8)",
-                    fontSize: 12,
-                    marginTop: 4,
-                    textAlign: "center",
-                  }}
-                >
-                  Ne l'achetez pas. Retournez-le immédiatement.
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: "#1A3A5C",
-                  borderRadius: 10,
-                  padding: 16,
-                  marginTop: 12,
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 11 }}>
-                  Urgence sanitaire Niger
-                </Text>
-                <Text
-                  style={{
-                    color: "white",
-                    fontWeight: "900",
-                    fontSize: 56,
-                    lineHeight: 64,
-                    marginTop: 4,
-                  }}
-                >
-                  15
-                </Text>
-                <Text
-                  style={{
-                    color: "rgba(255,255,255,0.5)",
-                    fontSize: 11,
-                    marginTop: 4,
-                  }}
-                >
-                  Appelez pour signaler
-                </Text>
-              </View>
-            </View>
-
             <TouchableOpacity
               onPress={reset}
               style={{

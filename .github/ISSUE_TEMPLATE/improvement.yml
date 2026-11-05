@@ -1,0 +1,16 @@
+name: Amélioration bornée
+description: Une amélioration compatible avec le statut MVP
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Besoin concret et utilisateur concerné
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Proposition et critères d’acceptation
+      description: Préférer une tâche ciblée ; pas de nouvelle landing, blockchain ou refonte globale.
+    validations:
+      required: true

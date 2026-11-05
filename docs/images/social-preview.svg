@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#F5F8FC"/>
+  <rect width="22" height="630" fill="#F4A340"/>
+  <rect x="70" y="64" width="1060" height="502" rx="28" fill="#1A3A5C"/>
+  <g font-family="Arial, sans-serif" fill="#FFF">
+    <text x="126" y="176" font-size="34" fill="#F4A340">TRUSTGRID · NIGER · MIABE HACKATHON</text>
+    <text x="122" y="292" font-size="82" font-weight="700">PharmaTrace</text>
+    <text x="126" y="366" font-size="34">Gestion et traçabilité de lots de médicaments</text>
+    <text x="126" y="430" font-size="29" fill="#C9D9E8">MVP expérimental · interfaces multirôles</text>
+    <text x="126" y="502" font-size="23" fill="#C9D9E8">Une correspondance au registre ne certifie pas une boîte physique.</text>
+  </g>
+</svg>

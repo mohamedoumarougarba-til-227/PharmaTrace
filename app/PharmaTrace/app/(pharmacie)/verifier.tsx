@@ -2,18 +2,20 @@ import { useState, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, useWindowDimensions } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useLocalSearchParams, router } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
+import { decideTransfer, workflowError } from '../../lib/businessWorkflows';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
+import VerificationNotice from '../../components/VerificationNotice';
+import { verifyMedication, journalVerificationScan, findPendingVerificationTransfer, type VerificationSource } from '../../lib/verification';
 
-type VerifyResult =
+type VerifyResult = { source?: VerificationSource } & (
   | { status: 'idle' }
   | { status: 'loading' }
   | {
       status: 'authentique';
+      identifier: string;
       data: {
-        id: string;
         nom: string;
         num: string;
         dosage: string;
@@ -23,15 +25,18 @@ type VerifyResult =
       };
       pendingTransfer?: {
         id: string;
+        lotId: string;
         qte: number;
         expediteur: string;
       } | null;
     }
-  | { status: 'suspect'; query: string }
+  | { status: 'not_found'; query: string }
+  | { status: 'unavailable' | 'invalid_input' }
   | {
-      status: 'expire';
+      status: 'expire' | 'archive';
       data: { nom: string; num: string; dosage: string; fabricant: string; expiration: string };
-    };
+    }
+);
 
 export default function PharmacyScannerScreen() {
   const { width } = useWindowDimensions();
@@ -43,6 +48,9 @@ export default function PharmacyScannerScreen() {
   const [result, setResult] = useState<VerifyResult>({ status: 'idle' });
   const [cameraActive, setCameraActive] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
+  const verificationRequest = useRef(0);
+  const [journalFailed, setJournalFailed] = useState(false);
+  const [transferLookupFailed, setTransferLookupFailed] = useState(false);
   const scannedRef = useRef(false);
   const [recepting, setRecepting] = useState(false);
   const [infoModal, setInfoModal] = useState<{
@@ -78,165 +86,96 @@ export default function PharmacyScannerScreen() {
   };
 
   const handleVerify = async (hashOrNum?: string) => {
-    let toVerify = (hashOrNum ?? input).trim();
-    if (!toVerify) return;
-
-    // Extraction du hash si c'est une URL
-    if (toVerify.startsWith('http://') || toVerify.startsWith('https://')) {
-      try {
-        const match = toVerify.match(/[?&]hash=([^&]+)/);
-        if (match && match[1]) {
-          toVerify = match[1];
-        } else {
-          const parts = toVerify.split('/');
-          const lastPart = parts[parts.length - 1];
-          if (lastPart) toVerify = lastPart;
-        }
-      } catch (e) {}
-    }
-
+    const request = ++verificationRequest.current;
     scannedRef.current = true;
     setCameraActive(false);
+    setJournalFailed(false);
+    setTransferLookupFailed(false);
     setResult({ status: 'loading' });
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-
-      // 1. Chercher le lot
-      const { data: lot, error } = await supabase
-        .from('lots_medicaments')
-        .select(`
-          id,
-          numero_lot,
-          nom_medicament,
-          dosage,
-          date_expiration,
-          statut_actuel,
-          fabricant_id,
-          hash_sha256,
-          utilisateurs!lots_medicaments_fabricant_id_fkey(nom_entite)
-        `)
-        .or(`numero_lot.eq.${toVerify},hash_sha256.eq.${toVerify}`)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      // Enregistrer le scan
-      await supabase.from('historique_scans').insert({
-        hash_scanne: toVerify,
-        lot_id: lot?.id ?? null,
-        type_scanneur: 'pharmacien',
-        scanneur_id: userId ?? null,
-        resultat: lot ? (new Date(lot.date_expiration) < new Date() ? 'expire' : 'authentique') : 'non_trouve',
-        pays_scan: 'Niger',
-      });
-
-      // Si on attendait un lot précis pour réception
-      if (expectedLotId && lot && lot.id !== expectedLotId) {
-        setInfoModal({
-          title: 'Erreur de lot',
-          message: `Le lot scanné (${lot.nom_medicament} N° ${lot.numero_lot}) ne correspond pas au lot attendu pour cette réception (${expectedLotNom} N° ${expectedLotNum}).\n\nVeuillez scanner le bon code QR.`,
-          color: '#C0392B',
-          icon: 'triangle-exclamation',
-        });
-        setResult({ status: 'idle' });
-        return;
-      }
-
-      if (!lot) {
-        setResult({ status: 'suspect', query: toVerify });
-        return;
-      }
-
-      const expDate = new Date(lot.date_expiration);
-      const isExpired = expDate < new Date();
-
-      if (isExpired) {
-        setResult({
-          status: 'expire',
-          data: {
-            nom: lot.nom_medicament,
-            num: lot.numero_lot,
-            dosage: lot.dosage ?? '—',
-            fabricant: (lot as any).utilisateurs?.nom_entite ?? 'Laboratoire Niger Pharma',
-            expiration: expDate.toLocaleDateString('fr-FR'),
-          },
-        });
-        return;
-      }
-
-      // 2. Chercher s'il y a un transfert en attente pour cette pharmacie
-      let pendingTransfer = null;
-      const targetTransferId = transfertId || null;
-
-      if (userId) {
-        let query = supabase
-          .from('transferts')
-          .select('id, quantite_transferee, statut, expediteur_id(nom_entite)')
-          .eq('lot_id', lot.id)
-          .eq('destinataire_id', userId)
-          .eq('statut', 'en_attente');
-
-        if (targetTransferId) {
-          query = query.eq('id', targetTransferId);
-        }
-
-        const { data: transfer } = await query.maybeSingle();
-
-        if (transfer) {
-          pendingTransfer = {
-            id: transfer.id,
-            qte: transfer.quantite_transferee,
-            expediteur: (transfer as any).expediteur_id?.nom_entite ?? 'Fabricant',
-          };
-        }
-      }
-
-      setResult({
-        status: 'authentique',
-        data: {
-          id: lot.id,
-          nom: lot.nom_medicament,
-          num: lot.numero_lot,
-          dosage: lot.dosage ?? '—',
-          fabricant: (lot as any).utilisateurs?.nom_entite ?? 'Laboratoire Niger Pharma',
-          expiration: expDate.toLocaleDateString('fr-FR'),
-          statut: lot.statut_actuel.replace(/_/g, ' '),
-        },
-        pendingTransfer,
-      });
-    } catch (e) {
-      console.error(e);
-      setResult({ status: 'suspect', query: toVerify });
+    const lookup = await verifyMedication(hashOrNum ?? input);
+    if (request !== verificationRequest.current) return;
+    if (lookup.status === 'INVALID_INPUT') {
+      setResult({ status: 'invalid_input' });
+      return;
     }
+    if (lookup.status === 'UNAVAILABLE') {
+      setResult({ status: 'unavailable', source: lookup.source });
+      return;
+    }
+
+    const logScan = async () => {
+      const journal = await journalVerificationScan(lookup, 'pharmacie');
+      if (request === verificationRequest.current) setJournalFailed(journal === 'FAILED');
+    };
+    if (lookup.status === 'NOT_FOUND') {
+      setResult({ status: 'not_found', query: lookup.identifier, source: lookup.source });
+      await logScan();
+      return;
+    }
+
+    const lot = lookup.lot;
+    if ((expectedLotNum && lot.numero_lot !== expectedLotNum)
+      || (lookup.source === 'demo' && expectedLotId && lot.id !== expectedLotId)) {
+      setInfoModal({
+        title: 'Erreur de lot',
+        message: `Le lot scanné (${lot.nom_medicament} N° ${lot.numero_lot}) ne correspond pas au lot attendu pour cette réception (${expectedLotNom} N° ${expectedLotNum}).\n\nVeuillez scanner le bon code QR.`,
+        color: '#C0392B', icon: 'triangle-exclamation',
+      });
+      setResult({ status: 'idle', source: lookup.source });
+      await logScan();
+      return;
+    }
+
+    const expDate = new Date(lot.date_expiration);
+    if (lot.statut_actuel === 'archive' || lot.date_expiration < new Date().toISOString().slice(0, 10)) {
+      setResult({
+        status: lot.statut_actuel === 'archive' ? 'archive' : 'expire', source: lookup.source,
+        data: {
+          nom: lot.nom_medicament, num: lot.numero_lot, dosage: lot.dosage ?? '—',
+          fabricant: lot.utilisateurs?.nom_entite ?? 'Inconnu',
+          expiration: expDate.toLocaleDateString('fr-FR'),
+        },
+      });
+      await logScan();
+      return;
+    }
+
+    const found: Extract<VerifyResult, { status: 'authentique' }> = {
+      status: 'authentique', source: lookup.source, identifier: lookup.identifier,
+      data: {
+        nom: lot.nom_medicament, num: lot.numero_lot, dosage: lot.dosage ?? '—',
+        fabricant: lot.utilisateurs?.nom_entite ?? 'Inconnu',
+        expiration: expDate.toLocaleDateString('fr-FR'),
+        statut: lot.statut_actuel.replace(/_/g, ' '),
+      },
+      pendingTransfer: null,
+    };
+    setResult(found);
+    // Neither journaling nor transfer enrichment may overwrite the established lot result.
+    const loadPendingTransfer = async () => {
+      try {
+        const targetTransferId = typeof transfertId === 'string' ? transfertId : transfertId?.[0];
+        const pendingTransfer = await findPendingVerificationTransfer(lookup, targetTransferId);
+        if (expectedLotId && pendingTransfer && pendingTransfer.lotId !== expectedLotId) {
+          throw new Error('Transfer does not match the expected business lot');
+        }
+        if (request === verificationRequest.current) setResult({ ...found, pendingTransfer });
+      } catch {
+        if (request === verificationRequest.current) setTransferLookupFailed(true);
+      }
+    };
+    await Promise.all([logScan(), loadPendingTransfer()]);
   };
 
-  const handleConfirmReception = async (transfertId: string, lotId: string) => {
+  const handleConfirmReception = async (transfertId: string) => {
     try {
       setRecepting(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Mettre à jour le transfert
-      const { error: tError } = await supabase
-        .from('transferts')
-        .update({
-          statut: 'receptionne',
-          date_reception: new Date().toISOString(),
-          notes_destinataire: 'Réception confirmée par scan QR',
-        })
-        .eq('id', transfertId);
-
-      if (tError) throw tError;
-
-      // Mettre à jour le statut du lot
-      const { error: lError } = await supabase
-        .from('lots_medicaments')
-        .update({ statut_actuel: 'en_pharmacie' })
-        .eq('id', lotId);
-
-      if (lError) throw lError;
+      if (result.status !== 'authentique') throw new Error('A matching verification is required');
+      await decideTransfer(transfertId, 'receptionne', result.identifier);
 
       setInfoModal({
         title: 'Succès',
@@ -251,7 +190,7 @@ export default function PharmacyScannerScreen() {
       console.error(e);
       setInfoModal({
         title: 'Erreur',
-        message: 'Impossible de confirmer la réception.',
+        message: workflowError(e),
         color: '#C0392B',
         icon: 'triangle-exclamation',
       });
@@ -266,6 +205,9 @@ export default function PharmacyScannerScreen() {
   };
 
   const reset = () => {
+    verificationRequest.current++;
+    setJournalFailed(false);
+    setTransferLookupFailed(false);
     setResult({ status: 'idle' });
     setInput('');
     scannedRef.current = false;
@@ -274,6 +216,10 @@ export default function PharmacyScannerScreen() {
   return (
     <ScrollView className="flex-1 bg-bg" keyboardShouldPersistTaps="handled">
       <View style={isDesktop ? { maxWidth: 840, width: '100%', alignSelf: 'center', padding: 24 } : { padding: 20 }}>
+        <VerificationNotice source={result.source} journalFailed={journalFailed} />
+        {transferLookupFailed && (
+          <Text accessibilityRole="alert" className="text-navy bg-orange-50 p-3 rounded-xl mb-4">Lot trouvé. La recherche du transfert est indisponible.</Text>
+        )}
         {/* Bannière Mode Réception si actif */}
         {expectedLotId && result.status === 'idle' && (
           <View className="bg-pharma-orange/10 border-l-4 border-pharma-orange p-3 rounded-r-xl mb-4">
@@ -314,7 +260,7 @@ export default function PharmacyScannerScreen() {
                   <FAIcon name="camera" size={48} color="#27AE60" family="FontAwesome6" />
                   <Text className="text-navy font-bold text-base mt-4">Activer la caméra</Text>
                   <Text className="text-muted text-xs mt-2 text-center">
-                    Scannez le code QR sur la boîte pour authentifier ou réceptionner le lot
+                    Scannez un identifiant pour rechercher ou réceptionner un lot
                   </Text>
                 </TouchableOpacity>
               )}
@@ -354,7 +300,7 @@ export default function PharmacyScannerScreen() {
           </View>
         )}
 
-        {/* Résultat : Authentique */}
+        {/* Résultat : correspondance au registre */}
         {result.status === 'authentique' && (
           <View style={isDesktop ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : undefined}>
             <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
@@ -363,7 +309,7 @@ export default function PharmacyScannerScreen() {
                   <FAIcon name="check" size={14} color="#fff" family="FontAwesome6" />
                 </View>
                 <View>
-                  <Text className="text-pharma-green font-black text-sm uppercase tracking-wider">Médicament Authentique</Text>
+                  <Text className="text-pharma-green font-black text-sm uppercase tracking-wider">Lot trouvé dans le registre</Text>
                   <Text className="text-muted text-[10px] mt-0.5">Enregistré sur PharmaTrace</Text>
                 </View>
               </View>
@@ -387,7 +333,7 @@ export default function PharmacyScannerScreen() {
                     Ce lot vous a été expédié par {result.pendingTransfer.expediteur} (Quantité: {result.pendingTransfer.qte} unités).
                   </Text>
                   <TouchableOpacity
-                    onPress={() => handleConfirmReception(result.pendingTransfer!.id, result.data.id)}
+                    onPress={() => handleConfirmReception(result.pendingTransfer!.id)}
                     disabled={recepting}
                     className="w-full h-11 bg-pharma-green rounded-xl items-center justify-center flex-row gap-2"
                   >
@@ -411,7 +357,7 @@ export default function PharmacyScannerScreen() {
         )}
 
         {/* Résultat : Expire */}
-        {result.status === 'expire' && (
+        {(result.status === 'expire' || result.status === 'archive') && (
           <View style={isDesktop ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : undefined}>
             <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
               <View className="flex-row items-center gap-3 mb-4 bg-orange-50 p-3 rounded-xl">
@@ -419,8 +365,8 @@ export default function PharmacyScannerScreen() {
                   <FAIcon name="triangle-exclamation" size={14} color="#fff" family="FontAwesome6" />
                 </View>
                 <View>
-                  <Text className="text-pharma-orange font-black text-sm uppercase tracking-wider">Lot Expiré</Text>
-                  <Text className="text-muted text-[10px] mt-0.5">Ce produit a dépassé sa date limite</Text>
+                  <Text className="text-pharma-orange font-black text-sm uppercase tracking-wider">{result.status === 'archive' ? 'Lot archivé' : 'Lot Expiré'}</Text>
+                  <Text className="text-muted text-[10px] mt-0.5">{result.status === 'archive' ? 'La correspondance existe, mais le lot est archivé.' : 'Ce produit a dépassé sa date limite'}</Text>
                 </View>
               </View>
 
@@ -429,11 +375,11 @@ export default function PharmacyScannerScreen() {
               <ResultRow label="Numéro de lot" value={result.data.num} />
               <ResultRow label="Dosage" value={result.data.dosage} />
               <ResultRow label="Fabricant" value={result.data.fabricant} />
-              <ResultRow label="Expiré le" value={result.data.expiration} />
+              <ResultRow label={result.status === 'archive' ? 'Expiration' : 'Expiré le'} value={result.data.expiration} />
 
               <View className="bg-red-50 p-4 rounded-xl border border-red-100 mt-4 items-center">
-                <Text className="text-pharma-red font-bold text-sm">INTERDICTION DE VENTE</Text>
-                <Text className="text-muted text-xs mt-1 text-center">Ce lot doit être retiré du stock et retourné pour destruction.</Text>
+                <Text className="text-pharma-red font-bold text-sm">{result.status === 'archive' ? 'STATUT ARCHIVÉ' : 'INTERDICTION DE VENTE'}</Text>
+                <Text className="text-muted text-xs mt-1 text-center">{result.status === 'archive' ? 'Vérifiez la situation du lot avant toute réception.' : 'Ce lot doit être retiré du stock et retourné pour destruction.'}</Text>
               </View>
 
               <TouchableOpacity onPress={reset} className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center">
@@ -443,30 +389,22 @@ export default function PharmacyScannerScreen() {
           </View>
         )}
 
-        {/* Résultat : Suspect / Non trouvé */}
-        {result.status === 'suspect' && (
+        {(result.status === 'not_found' || result.status === 'unavailable' || result.status === 'invalid_input') && (
           <View style={isDesktop ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : undefined}>
             <View className="bg-white rounded-2xl border border-blue-light p-5 shadow-sm">
-              <View className="flex-row items-center gap-3 mb-4 bg-red-50 p-3 rounded-xl">
-                <View className="w-8 h-8 rounded-full bg-pharma-red items-center justify-center">
-                  <FAIcon name="xmark" size={14} color="#fff" family="FontAwesome6" />
-                </View>
-                <View>
-                  <Text className="text-pharma-red font-black text-sm uppercase tracking-wider">Lot Suspect / Non Enregistré</Text>
-                  <Text className="text-muted text-[10px] mt-0.5">Aucune trace de ce lot dans le registre</Text>
-                </View>
-              </View>
-
-              <Text className="text-navy font-bold text-sm mb-3">Recherche effectuée pour :</Text>
-              <Text className="text-pharma-red font-mono bg-bg border border-blue-light rounded-xl p-3 text-center mb-4">{result.query}</Text>
-
-              <View className="bg-red-50 p-4 rounded-xl border border-red-100 items-center">
-                <Text className="text-pharma-red font-bold text-sm">ALERTE CONTREFAÇON</Text>
-                <Text className="text-muted text-xs mt-1 text-center">Ce code ou numéro de lot est inconnu. Ne distribuez pas ce produit.</Text>
-              </View>
-
+              <Text accessibilityRole="header" className="text-navy font-black text-lg mb-4">
+                {result.status === 'unavailable' ? 'Vérification indisponible' : result.status === 'invalid_input' ? 'Code invalide' : 'Lot non trouvé'}
+              </Text>
+              <Text className="text-muted text-sm">
+                {result.status === 'unavailable'
+                  ? 'La recherche n’a pas pu aboutir. Réessayez plus tard ; aucune conclusion sur le lot ne peut être établie.'
+                  : result.status === 'invalid_input'
+                    ? 'Saisissez un numéro de lot ou un code QR valide (100 caractères maximum pour le code).'
+                    : 'Aucun lot correspondant à ce code n’a été trouvé dans la source consultée.'}
+              </Text>
+              {result.status === 'not_found' && <Text className="text-navy font-mono mt-4">{result.query}</Text>}
               <TouchableOpacity onPress={reset} className="mt-6 w-full h-12 bg-navy rounded-xl items-center justify-center">
-                <Text className="text-white font-bold text-sm">Scanner un autre médicament</Text>
+                <Text className="text-white font-bold text-sm">Revenir à la vérification</Text>
               </TouchableOpacity>
             </View>
           </View>

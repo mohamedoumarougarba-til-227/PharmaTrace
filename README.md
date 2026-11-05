@@ -1,122 +1,79 @@
-# 💊 PharmaTrace — Traçabilité des médicaments au Niger
+# PharmaTrace
 
-**Équipe TrustGrid · MIABE Hackathon 2026 · Code N-01 MBH / D03**
+**MVP expérimental de gestion et traçabilité de lots de médicaments**, développé au Niger par **TrustGrid**, dans le contexte du **MIABE Hackathon 2026**.
 
-> *"Un médicament enregistré ne peut pas être falsifié. Un médicament scanné ne peut pas mentir."*
+Fabricants, pharmacies et rôle de supervision DPH disposent d’interfaces métier. Le public recherche un lot par identifiant. Une correspondance décrit le registre ; elle ne garantit pas l’authenticité physique d’une boîte. Un QR peut être copié. Le MVP n’implémente pas de blockchain ni de certification officielle.
 
----
+[Application](https://pharmatraceapp.vercel.app/) · [Rechercher un lot](https://pharmatraceapp.vercel.app/verify) · [Vitrine existante](https://pharmatrace-eta.vercel.app/) · [Installer](docs/installation.md) · [Contribuer](CONTRIBUTING.md)
 
-## 🎯 Le problème
+> **Licence Apache-2.0** pour le code original et les créations originales dont les droits sont établis : [LICENSE](LICENSE), [NOTICE](NOTICE) et [périmètre](docs/licensing.md). Les éléments tiers et archives à droits incertains ne sont pas re-licenciés. La publication de la branche et le déploiement de ses corrections éditoriales restent en attente ; la production validée est identifiée dans [Versions](docs/releases.md).
 
-30 à 60 % des médicaments en Afrique subsaharienne sont contrefaits (OMS).  
-Au Niger : moins de 10 % sont traçables, 500 000 décès/an, 2 tonnes saisies par la DPN en 2022.
+## Fonctions
 
-## ✅ La solution
+| Interface | Fonctions |
+| --- | --- |
+| Fabricant | Enregistrer des lots, générer des QR, traiter des demandes, transférer et annuler sous conditions. |
+| Pharmacie | Demander, recevoir, consulter le stock et rechercher un lot. |
+| Supervision DPH | Consulter les données du registre ; aucun partenariat institutionnel revendiqué. |
+| Public | Correspondance minimale, absence, entrée invalide ou service indisponible. |
 
-Système de traçabilité par **QR code + hash SHA-256 immuable**.  
-Scan en 3 secondes → verdict **AUTHENTIQUE ✅** ou **SUSPECT ❌**.
+Les rôles réels sont provisionnés par un opérateur. Stock, transferts et demandes associées passent par des transactions PostgreSQL/RPC. Une erreur de journalisation ne transforme pas le résultat établi d’une recherche.
 
----
+## Essayer
 
-## 📁 Structure du projet
+Les boutons **Démo** de la connexion ouvrent des données fictives en mémoire. Ils ne reproduisent ni la persistance, ni les règles RLS, ni tous les workflows ; les écritures métier y sont désactivées. Code fictif connu : `FAB-2026-049`, **après activation de la démo**. Ce code ne garantit aucun résultat en mode réel. Ne saisir aucune donnée patient ou opération réelle sur ce MVP public.
 
-```
-PharmaTrace/
-├── app/PharmaTrace/          ← Application mobile Expo (React Native SDK 54)
-│   ├── app/                  ← Écrans (expo-router v6)
-│   │   ├── (public)/verify   ← Scan QR patient (sans login)
-│   │   ├── (auth)/login      ← Connexion
-│   │   ├── (fabricant)/      ← Dashboard fabricant
-│   │   ├── (pharmacie)/      ← Dashboard pharmacie
-│   │   └── (agent-dph)/      ← Dashboard Agent DPH
-│   ├── lib/supabase.ts       ← Client Supabase + types
-│   └── .env.example          ← Variables à configurer
-├── landing/                  ← Landing page HTML (déployée sur Vercel)
-└── ressources/               ← Docs, maquettes Figma, médias
-```
+![Recherche publique locale, données simulées](docs/images/verification-demo.png)
 
----
+[Autres captures réelles de l’interface locale en simulation](docs/screenshots.md), sans validation terrain implicite.
 
-## 👥 4 utilisateurs
+## Installer
 
-| Utilisateur | Accès | Rôle |
-|---|---|---|
-| **Fabricant** | Login | Créer lots, générer QR, initier transferts |
-| **Pharmacie** | Login | Réceptionner lots, gérer stock, vérifier |
-| **Agent DPH** | Login | Surveillance nationale, alertes, stats |
-| **Patient** | Public | Scan QR → verdict immédiat |
+Node.js 22 LTS et npm. Versions applicatives verrouillées dans le lockfile.
 
----
-
-## 🛠️ Stack technique
-
-| Couche | Technologie |
-|---|---|
-| App mobile + web | Expo SDK 54 · React Native 0.81 · React 19 |
-| Navigation | Expo Router v6 |
-| UI / Styles | NativeWind v4 (TailwindCSS) |
-| Backend / BDD | Supabase (PostgreSQL + Auth + RLS) |
-| Sécurité | Hash SHA-256 immuable par lot |
-| Landing page | HTML/CSS/JS vanilla → Vercel |
-
----
-
-## 🚀 Installation
-
-### Prérequis
-- Node.js 18+
-- Expo Go (SDK 54) sur Android/iOS
-
-### 1. Cloner le repo
-```bash
+```sh
 git clone https://github.com/mohamedoumarougarba-til-227/PharmaTrace.git
-cd PharmaTrace
-```
-
-### 2. Configurer l'environnement
-```bash
-cd app/PharmaTrace
+cd PharmaTrace/app/PharmaTrace
+npm ci
 cp .env.example .env
-# Éditez .env avec vos clés Supabase
+# PowerShell : Copy-Item .env.example .env
+npm run web
 ```
 
-### 3. Installer les dépendances
-```bash
-npm install
+Pour visiter la démo locale, conserver les valeurs fictives de `.env.example` et choisir un rôle Démo. Pour le mode réel : **votre propre Supabase isolé**, [bootstrap documenté](docs/database.md), clé publique uniquement. Ne jamais connecter une copie de développement au Supabase MVP du propriétaire. Aucun secret/service_role dans `EXPO_PUBLIC_*`.
+
+```sh
+npm test
+npx tsc --noEmit
+npm run check:public
+npm run build:web
 ```
 
-### 4. Lancer l'app
-```bash
-npx expo start --clear
-```
-- Appuyez sur **`w`** → version web
-- Scannez le QR avec **Expo Go** → Android/iOS
+La CI préparée exécute ces contrôles sans credentials ni base distante. Les tests SQL nécessitent une base isolée ; ils ne sont pas exécutés par GitHub Actions. [Validation](docs/testing.md).
 
----
+## Structure et limites
 
-## 🗄️ Base de données
+- `app/PharmaTrace/` : Expo SDK 54, React Native 0.81, React 19, Expo Router, NativeWind, Supabase Auth/PostgreSQL/RLS/RPC.
+- `landing/` : vitrine HTML/CSS/JS existante.
+- `docs/` : documentation actuelle et checkpoints datés.
+- `ressources/` : archives MIABE, médias et design, avec droits distincts.
 
-Schéma SQL complet dans `app/PharmaTrace/supabase/migrations/`.
+[Architecture](docs/architecture.md) · [Limites](docs/known-limitations.md) · [Backlog](docs/backlog.md) · [Dépendances](docs/dependency-triage.md) · [Archives MIABE](docs/historical-material.md) · [Droits tiers](THIRD_PARTY_NOTICES.md)
 
-Tables : `utilisateurs` · `lots_medicaments` · `transferts` · `historique_scans` · `alertes`
+Le bootstrap local rejoue **huit migrations**, avec un prérequis historique ; le MVP distant possède **sept versions**. Ne pas appliquer aveuglément `supabase db push` sur une base existante. Trois lots historiques à stock incohérent restent intacts et bloqués. Deep-link QR automatique, validation physique Android/caméra et démo métier complète restent au backlog.
 
----
+## Contribution, sécurité et support
 
-## 👤 Équipe TrustGrid
+[CONTRIBUTING](CONTRIBUTING.md) : issues reproductibles, PR ciblées, données fictives et tests. Les PR externes sont encore limitées aux collaborateurs côté GitHub ; leur ouverture attend le feu vert de publication et la CI distante réelle. [Tâches préparées](docs/backlog.md).
 
-| Nom | Rôle |
-|---|---|
-| **Mohamed Oumarou Garba** | Chef d'équipe · Product Owner · UI/UX |
-| **Mahamadou Garba Zakou** | Lead Backend · Supabase · SHA-256 |
-| **Abdoul Raouf Harouna Moussa** | Lead Frontend · React Native · QR Scanner |
+[SECURITY](SECURITY.md) fournit un canal privé. Ne publier ni session, ni donnée personnelle, ni preuve exploitable sur le MVP. Support bénévole, sans SLA, usage clinique ou réglementaire validé.
 
----
+## TrustGrid — Niger
 
-## 📋 ODD visés
+| Membre historique | Contribution historique |
+| --- | --- |
+| Mohamed Oumarou Garba | Coordination, produit, UI/UX, QA et présentation. |
+| Mahamadou Garba Zakou | Backend, Supabase et identifiants SHA-256. |
+| Abdoul Raouf Harouna Moussa | Frontend, React Native et QR. |
 
-**ODD 3** — Bonne santé et bien-être  
-**ODD 16** — Institutions efficaces, responsables et transparentes
-
----
-
-*© 2026 Équipe TrustGrid — Niger. MIABE Hackathon.*
+L’accord de l’équipe pour l’ouverture est acquis. Crédits TrustGrid et MIABE conservés ; droits tiers distincts. [Crédits](CREDITS.md) · [Changelog](CHANGELOG.md) · [Versions / ancien APK](docs/releases.md)

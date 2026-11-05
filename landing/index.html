@@ -9,13 +9,7 @@
         </title>
         <meta
             name="description"
-            content="PharmaTrace rend chaque médicament vérifiable en 3 secondes grâce à la blockchain. Équipe TrustGrid — MIABE Hackathon 2026 · Niger."
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-            rel="stylesheet"
+            content="PharmaTrace : MVP expérimental de gestion et traçabilité de lots de médicaments, développé au Niger par TrustGrid dans le contexte du MIABE Hackathon."
         />
 
         <style>
@@ -60,7 +54,7 @@
             }
 
             body {
-                font-family: "Inter", sans-serif;
+                font-family: system-ui, sans-serif;
                 background: var(--white);
                 color: var(--text);
                 line-height: 1.6;
@@ -1650,7 +1644,7 @@
                                 stroke-linejoin="round"
                             />
                         </svg>
-                        Vérifier un médicament
+                        Rechercher un lot
                     </a>
 
                     <!-- Hamburger (mobile) -->
@@ -1673,7 +1667,7 @@
                 <a href="#how" class="nav-link-mob">Comment ça marche</a>
                 <a href="#team" class="nav-link-mob">Équipe</a>
                 <a href="https://pharmatraceapp.vercel.app/verify" class="btn-primary"
-                    >Vérifier un médicament →</a
+                    >Rechercher un lot →</a
                 >
             </div>
         </nav>
@@ -1685,16 +1679,15 @@
             <div class="hero-inner">
                 <!-- Content -->
                 <div class="hero-content">
-                    <div class="hero-badge">Urgence Sanitaire — Niger</div>
+                    <div class="hero-badge">MVP expérimental — Niger</div>
                     <div class="hero-stat-giant" id="hero-stat-giant">
-                        30–60%
+                        MVP
                     </div>
                     <h1 class="hero-title">
-                        Des médicaments contrefaits tuent chaque jour au Niger.
+                        Gestion et traçabilité des lots de médicaments.
                     </h1>
                     <p class="hero-subtitle">
-                        PharmaTrace rend chaque médicament vérifiable en 3
-                        secondes grâce à la blockchain.
+                        Développé au Niger par TrustGrid dans le contexte du MIABE Hackathon, PharmaTrace propose des interfaces multirôles autour d’un registre expérimental.
                     </p>
 
                     <div class="hero-buttons">
@@ -1702,56 +1695,12 @@
                             Découvrir la solution ↓
                         </a>
                         <a href="#how" class="btn-outline-white">
-                            Voir la démo →
+                            Voir le fonctionnement →
                         </a>
                     </div>
 
                     <!-- Stats Counter Inline (Option A) -->
-                    <div class="hero-stats-left">
-                        <div class="hero-stat-left-item">
-                            <div class="stat-left-number">
-                                <span
-                                    class="counter"
-                                    data-target="500000"
-                                    data-suffix="k"
-                                    data-divisor="1000"
-                                    >0</span
-                                >+
-                            </div>
-                            <div class="stat-left-label">
-                                Décès par an (faux méd.)
-                            </div>
-                        </div>
-                        <div class="hero-stat-left-item">
-                            <div class="stat-left-number">
-                                &lt;<span
-                                    class="counter"
-                                    data-target="10"
-                                    data-suffix="%"
-                                    >0</span
-                                >
-                            </div>
-                            <div class="stat-left-label">
-                                Traçables au Niger
-                            </div>
-                        </div>
-                        <div class="hero-stat-left-item">
-                            <div class="stat-left-number">
-                                <span
-                                    class="counter"
-                                    data-target="200"
-                                    data-suffix=" Mds $"
-                                    >0</span
-                                >
-                            </div>
-                            <div class="stat-left-label">
-                                Marché mondial
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Phone illustration (desktop only) -->
+                    <div class="hero-stats-left"><div class="hero-stat-left-item"><div class="stat-left-number">4</div><div class="stat-left-label">Interfaces</div></div><div class="hero-stat-left-item"><div class="stat-left-number">3</div><div class="stat-left-label">Rôles métier</div></div><div class="hero-stat-left-item"><div class="stat-left-number">MVP</div><div class="stat-left-label">Expérimental</div></div></div></div><!-- Phone illustration (desktop only) -->
                 <div class="hero-visual">
                     <div class="phone-mockup">
                         <div class="phone-body">
@@ -2085,10 +2034,10 @@
                                             />
                                         </svg>
                                     </div>
-                                    <span>AUTHENTIQUE</span>
+                                    <span>LOT TROUVÉ</span>
                                 </div>
                                 <div class="phone-label">
-                                    PharmaTrace · Résultat en 3s
+                                    PharmaTrace · Illustration du registre
                                 </div>
                             </div>
                         </div>
@@ -2100,70 +2049,11 @@
         <!-- ================================================================
      SECTION 3 — LE PROBLÈME
 ================================================================ -->
-        <section id="problem">
-            <div class="container">
-                <div class="reveal">
-                    <span class="section-label">La réalité au Niger</span>
-                    <h2 class="section-title">
-                        Le problème que PharmaTrace résout
-                    </h2>
-                </div>
-
-                <!-- Stat cards grid -->
-                <div class="problem-grid">
-                    <div class="stat-card stat-card-red reveal reveal-delay-1">
-                        <div class="stat-card-title">Danger Vital</div>
-                        <div class="stat-card-desc">
-                            Des comprimés faits de craie ou de substances toxiques remplacent les antibiotiques et antipaludiques vitaux.
-                        </div>
-                        <div class="stat-card-source">Impact Sanitaire</div>
-                    </div>
-                    <div
-                        class="stat-card stat-card-orange reveal reveal-delay-2"
-                    >
-                        <div class="stat-card-title">Marché Noir Criminel</div>
-                        <div class="stat-card-desc">
-                            Le commerce de la contrefaçon médicale est extrêmement lucratif et cible en priorité les populations vulnérables.
-                        </div>
-                        <div class="stat-card-source">Interpol 2023</div>
-                    </div>
-                    <div class="stat-card stat-card-blue reveal reveal-delay-3">
-                        <div class="stat-card-title">Frontières &amp; Circuits</div>
-                        <div class="stat-card-desc">
-                            Les faux médicaments transitent par les frontières terrestres et inondent les marchés de brousse et de rue.
-                        </div>
-                        <div class="stat-card-source">Canaux d'Infiltration</div>
-                    </div>
-                    <div class="stat-card stat-card-dark reveal reveal-delay-4">
-                        <div class="stat-card-title">Zéro Traçabilité</div>
-                        <div class="stat-card-desc">
-                            Sans outil d'authentification cryptographique, il est impossible de prouver la provenance réelle d'une boîte.
-                        </div>
-                        <div class="stat-card-source">Défaillance Logistique</div>
-                    </div>
-                </div>
-
-                <!-- Context paragraph -->
-                <div class="problem-text reveal">
-                    En 2022, la Direction de la Pharmacie Nigérienne a saisi
-                    plus de
-                    <strong>2 tonnes de médicaments contrefaits</strong> sur le
-                    territoire national. Ces chiffres ne représentent qu'une
-                    infime partie du volume réel. Les circuits illicites
-                    traversent les marchés de brousse, les frontières poreuses
-                    et infiltrent même les pharmacies officielles.
-                </div>
-
-                <div class="problem-highlight reveal">
-                    <span style="font-size: 18px">⚠️</span>
-                    <span
-                        >Moins de
-                        <strong>10% des médicaments au Niger</strong> peuvent
-                        être tracés jusqu'à leur fabricant d'origine.</span
-                    >
-                </div>
-            </div>
-        </section>
+        <section id="problem"><div class="container"><span class="section-label">Le besoin</span><h2 class="section-title">Suivre les informations d’un lot</h2><div class="problem-grid">
+<div class="stat-card stat-card-blue reveal"><div class="stat-card-title">Enregistrement</div><div class="stat-card-desc">Décrire un lot, ses quantités et ses dates dans un registre partagé.</div></div>
+<div class="stat-card stat-card-orange reveal"><div class="stat-card-title">Circulation</div><div class="stat-card-desc">Suivre les demandes et transferts entre comptes métier provisionnés.</div></div>
+<div class="stat-card stat-card-dark reveal"><div class="stat-card-title">Consultation</div><div class="stat-card-desc">Rechercher une correspondance par identifiant, avec une réponse publique minimale.</div></div>
+</div><p class="problem-text">Le MVP explore ces usages. Il ne fournit pas de contrôle physique du produit, d’agrément réglementaire ni de preuve de provenance d’une boîte. Aucune statistique sanitaire nationale n’est revendiquée ici.</p></div></section>
 
         <!-- ================================================================
      SECTION 4 — LA SOLUTION
@@ -2173,11 +2063,10 @@
                 <div class="reveal">
                     <span class="section-label">La solution</span>
                     <h2 class="section-title">
-                        PharmaTrace — La traçabilité au service de la vie
+                        PharmaTrace — Un MVP de traçabilité des lots
                     </h2>
                     <p class="solution-subtitle-italic">
-                        "Un médicament enregistré ne peut pas être falsifié.<br />
-                        Un médicament scanné ne peut pas mentir."
+                        "Un lot trouvé est une correspondance dans un registre expérimental."
                     </p>
                 </div>
 
@@ -2241,8 +2130,8 @@
                         <div class="solution-card-number">01</div>
                         <div class="solution-card-title">Enregistrement</div>
                         <div class="solution-card-desc">
-                            Le fabricant agréé enregistre chaque lot. Le système
-                            génère instantanément un hash SHA-256 unique et un
+                            Le fabricant enregistré enregistre chaque lot. Le système
+                            génère instantanément un identifiant technique SHA-256 et un
                             QR code à imprimer sur l'emballage.
                         </div>
                     </div>
@@ -2287,7 +2176,7 @@
                         <div class="solution-card-desc">
                             Chaque transfert de lot est confirmé par scan à la
                             réception. L'historique complet est tracé de façon
-                            immuable et consultable à tout moment.
+                            consultable selon les droits et la disponibilité du service.
                         </div>
                     </div>
 
@@ -2353,9 +2242,9 @@
                         <div class="solution-card-title">Vérification</div>
                         <div class="solution-card-desc">
                             Pharmacien ou patient scanne le QR code avec
-                            n'importe quel smartphone. Résultat en 3 secondes :
-                            <strong>AUTHENTIQUE ✓</strong> ou
-                            <strong>SUSPECT ✗</strong>.
+                            un navigateur compatible. Le résultat distingue :
+                            <strong>LOT TROUVÉ ✓</strong> ou
+                            <strong>ABSENT / INDISPONIBLE</strong>.
                         </div>
                     </div>
                 </div>
@@ -2443,7 +2332,7 @@
                             génère automatiquement un hash SHA-256 unique et un
                             QR code à apposer sur l'emballage.
                         </div>
-                        <span class="step-tag">🔐 Hash immuable</span>
+                        <span class="step-tag">🔐 Empreinte SHA-256</span>
                     </div>
 
                     <!-- Step 2 -->
@@ -2506,7 +2395,7 @@
                         <div class="step-desc">
                             Chaque transfert est initié par le fabricant et
                             confirmé par scan à la réception. L'historique est
-                            tracé en temps réel sur la chaîne immuable.
+                            enregistré dans PostgreSQL avec les contrôles du MVP.
                         </div>
                         <span class="step-tag">📦 Transfert confirmé</span>
                     </div>
@@ -2586,19 +2475,18 @@
                             />
                         </svg>
                         <div class="step-title">
-                            Scan → verdict en 3 secondes
+                            Recherche → état du registre
                         </div>
                         <div class="step-desc">
-                            Pharmacien ou patient scanne le QR code. Résultat
-                            immédiat :
+                            Pharmacien ou patient scanne le QR code. Résultat du registre :
                             <strong style="color: var(--green)"
-                                >AUTHENTIQUE</strong
+                                >LOT TROUVÉ</strong
                             >
                             (vert) ou
                             <strong style="color: var(--red)">SUSPECT</strong>
                             (rouge). Aucune application à installer.
                         </div>
-                        <span class="step-tag">📱 Android &amp; iOS</span>
+                        <span class="step-tag">📱 Web · mobile à valider</span>
                     </div>
                 </div>
 
@@ -2606,7 +2494,7 @@
                 <div class="flow-diagram reveal">
                     <div class="flow-item">🏭 <span>Fabricant</span></div>
                     <div class="flow-arrow">→</div>
-                    <div class="flow-item">📦 <span>Distributeur</span></div>
+                    <div class="flow-item">📦 <span>Lot enregistré</span></div>
                     <div class="flow-arrow">→</div>
                     <div class="flow-item">💊 <span>Pharmacie</span></div>
                     <div class="flow-arrow">→</div>
@@ -2614,7 +2502,7 @@
                 </div>
 
                 <p class="flow-note reveal">
-                    Compatible avec n'importe quel smartphone Android ou iOS.
+                    Version web disponible ; compatibilité caméra et validation physique à confirmer selon appareil.
                 </p>
             </div>
         </section>
@@ -2622,106 +2510,12 @@
         <!-- ================================================================
      SECTION 6 — POURQUOI LA BLOCKCHAIN
 ================================================================ -->
-        <section id="blockchain">
-            <div class="container">
-                <div class="reveal">
-                    <span class="blockchain-label">Technologie</span>
-                    <h2 class="blockchain-title">
-                        Pourquoi la blockchain et pas une simple base de données
-                        ?
-                    </h2>
-                </div>
-
-                <div class="blockchain-inner">
-                    <!-- Left column -->
-                    <div class="reveal">
-                        <p class="blockchain-text">
-                            Une base de données classique peut être modifiée par
-                            un administrateur mal intentionné, un pirate ou sous
-                            contrainte. Un faussaire suffisamment sophistiqué
-                            peut y injecter de faux enregistrements, créer de
-                            faux QR codes et faire valider de faux médicaments.
-                        </p>
-                        <p class="blockchain-text">
-                            PharmaTrace repose sur un registre
-                            <strong style="color: white"
-                                >blockchain-lite</strong
-                            >
-                            : chaque enregistrement est scellé par un hash
-                            SHA-256 qui dépend du contenu exact des données.
-                            Toute modification rend instantanément le hash
-                            invalide. Le registre est une chaîne de blocs liés,
-                            où altérer un enregistrement passé invalide tous les
-                            suivants.
-                        </p>
-                        <div class="blockchain-quote">
-                            "Un faux QR code ne peut pas retourner un résultat
-                            valide — car notre registre ne peut pas être
-                            falsifié après écriture."
-                        </div>
-                    </div>
-
-                    <!-- Right column — comparison table -->
-                    <div class="reveal reveal-delay-2">
-                        <div class="compare-table">
-                            <div class="compare-header">
-                                <div class="compare-header-cell">
-                                    Base de données classique
-                                </div>
-                                <div class="compare-header-cell">
-                                    PharmaTrace (Blockchain-lite)
-                                </div>
-                            </div>
-                            <div class="compare-row">
-                                <div class="compare-cell">
-                                    ❌ Modifiable par un admin
-                                </div>
-                                <div class="compare-cell">
-                                    ✅ Immuable après écriture
-                                </div>
-                            </div>
-                            <div class="compare-row">
-                                <div class="compare-cell">
-                                    ❌ Hash falsifiable
-                                </div>
-                                <div class="compare-cell">
-                                    ✅ SHA-256 vérifiable par tous
-                                </div>
-                            </div>
-                            <div class="compare-row">
-                                <div class="compare-cell">
-                                    ❌ Confiance dans une institution
-                                </div>
-                                <div class="compare-cell">
-                                    ✅ Confiance dans le code
-                                </div>
-                            </div>
-                            <div class="compare-row">
-                                <div class="compare-cell">
-                                    ❌ Piratage sans trace
-                                </div>
-                                <div class="compare-cell">
-                                    ✅ Fraude détectable immédiatement
-                                </div>
-                            </div>
-                            <div class="compare-row">
-                                <div class="compare-cell">
-                                    ❌ QR copiable frauduleusement
-                                </div>
-                                <div class="compare-cell">
-                                    ✅ Faux QR = zéro résultat
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <section id="blockchain"><div class="container"><span class="blockchain-label">Architecture actuelle</span><h2 class="blockchain-title">Un registre PostgreSQL, des interfaces multirôles</h2><div class="blockchain-inner"><div><p class="blockchain-text">L’application Expo utilise Supabase Auth et PostgreSQL. Les règles d’accès et les RPC contraignent les rôles, transferts, demandes et variations de stock.</p><p class="blockchain-text">SHA-256 sert d’identifiant technique. Le MVP n’implémente pas de blockchain, de signature du fabricant ou d’authentification physique du médicament.</p></div><div><p class="blockchain-text">Un QR peut être copié. Un lot trouvé signifie qu’une correspondance existe dans le registre. Une panne technique est affichée comme indisponibilité.</p><p class="blockchain-text">Les garanties dépendent du code, de la configuration et de l’opérateur de la base. Les anciens documents MIABE décrivent des intentions historiques.</p></div></div></div></section>
 
         <!-- ================================================================
      SECTION 7 — APERÇU DES INTERFACES
 ================================================================ -->
-        <section id="interfaces">
+        <section id="interfaces"><p style="text-align:center;padding:16px;color:#1A3A5C">Captures de l’application locale — données fictives, mode démonstration. Les parcours réels et leurs limites sont documentés dans le dépôt.</p>
             <div class="container">
                 <div
                     class="reveal"
@@ -2752,8 +2546,8 @@
                         </div>
                         <div class="mockup-body mockup-body-img">
                             <img
-                                src="maquettes/fabricant-nouveau-lot.png"
-                                alt="Interface Fabricant — Enregistrement d'un nouveau lot"
+                                src="images/fabricant-demo.png"
+                                alt="Interface fabricant — lots fictifs"
                                 class="mockup-screenshot"
                                 loading="lazy"
                             />
@@ -2769,12 +2563,12 @@
                                 >Interface Pharmacie</span
                             >
                             <span class="mockup-badge"
-                                >Réception &amp; Stock</span
+                                >Stock fictif</span
                             >
                         </div>
                         <div class="mockup-body mockup-body-img">
                             <img
-                                src="maquettes/pharmacie-reception.png"
+                                src="images/pharmacie-demo.png"
                                 alt="Interface Pharmacie — Réception et stock"
                                 class="mockup-screenshot"
                                 loading="lazy"
@@ -2791,13 +2585,13 @@
                                 >Patient — Vérification</span
                             >
                             <span class="mockup-badge"
-                                >Scan QR · 3 secondes</span
+                                >Recherche par identifiant</span
                             >
                         </div>
                         <div class="mockup-body mockup-body-img">
                             <img
-                                src="maquettes/patient-scanner-resultat-authentique.png"
-                                alt="Patient — Résultat de scan : AUTHENTIQUE"
+                                src="images/verification-demo.png"
+                                alt="Vérification publique — données fictives de démonstration"
                                 class="mockup-screenshot"
                                 loading="lazy"
                             />
@@ -2806,7 +2600,7 @@
                 </div>
 
                 <p class="interfaces-note reveal">
-                    Maquettes haute fidélité — Figma · Équipe TrustGrid 2026
+                    Captures locales — données simulées · TrustGrid
                 </p>
             </div>
         </section>
@@ -2830,7 +2624,7 @@
                         vitale.
                     </p>
                     <div class="team-badge">
-                        🇳🇪 MIABE Hackathon 2026 · Ambassadeur Niger
+                        🇳🇪 MIABE Hackathon 2026 · Équipe du Niger
                     </div>
                 </div>
 
@@ -2838,12 +2632,7 @@
                     <!-- Mohamed -->
                     <div class="team-card team-card-1 reveal reveal-delay-1">
                         <div class="team-photo-wrap">
-                            <img
-                                src="medias/Mohamed OUMAROU GARBA.jpg"
-                                alt="Mohamed Oumarou Garba"
-                                class="team-photo team-photo-border-navy"
-                                loading="lazy"
-                            />
+                            <div class="team-photo" role="img" aria-label="Initiales MOG" style="display:grid;place-items:center;background:#E6EEF8;color:#1A3A5C;font:bold 26px system-ui">MOG</div>
                         </div>
                         <div class="team-name">Mohamed Oumarou Garba</div>
                         <div class="team-role">
@@ -2851,8 +2640,7 @@
                         </div>
                         <div class="team-desc">
                             Technicien informatique autodidacte, orienté
-                            cybersécurité et automatisation. Ambassadeur
-                            officiel MIABE Niger. Coordination, maquettes Figma,
+                            cybersécurité et automatisation. Participation au MIABE Hackathon. Coordination, maquettes Figma,
                             QA et présentation.
                         </div>
                         <div class="team-tags">
@@ -2866,16 +2654,11 @@
                     <!-- Mahamadou -->
                     <div class="team-card team-card-2 reveal reveal-delay-2">
                         <div class="team-photo-wrap">
-                            <img
-                                src="medias/Mahamadou GARBA ZAKOU.jpeg"
-                                alt="Mahamadou Garba Zakou"
-                                class="team-photo team-photo-border-green"
-                                loading="lazy"
-                            />
+                            <div class="team-photo" role="img" aria-label="Initiales MGZ" style="display:grid;place-items:center;background:#E6EEF8;color:#1A3A5C;font:bold 26px system-ui">MGZ</div>
                         </div>
                         <div class="team-name">Mahamadou Garba Zakou</div>
                         <div class="team-role">
-                            Lead Backend · Base de données · Blockchain
+                            Lead Backend · Base de données · Supabase
                         </div>
                         <div class="team-desc">
                             Développeur backend expérimenté : Spring Boot
@@ -2894,12 +2677,7 @@
                     <!-- Abdoul Raouf -->
                     <div class="team-card team-card-3 reveal reveal-delay-3">
                         <div class="team-photo-wrap">
-                            <img
-                                src="medias/Abdoul Raouf HAROUNA MOUSSA.jpeg"
-                                alt="Abdoul Raouf Harouna Moussa"
-                                class="team-photo team-photo-border-purple"
-                                loading="lazy"
-                            />
+                            <div class="team-photo" role="img" aria-label="Initiales ARH" style="display:grid;place-items:center;background:#E6EEF8;color:#1A3A5C;font:bold 26px system-ui">ARH</div>
                         </div>
                         <div class="team-name">Abdoul Raouf Harouna Moussa</div>
                         <div class="team-role">
@@ -3030,7 +2808,7 @@
                         efficaces
                     </p>
                     <p class="footer-copy">
-                        © 2026 Équipe TrustGrid — Niger. Tous droits réservés.
+                        © 2026 Contributeurs PharmaTrace / TrustGrid — Niger. MVP expérimental · créations originales sous Apache-2.0, droits tiers distincts.
                     </p>
                 </div>
             </div>

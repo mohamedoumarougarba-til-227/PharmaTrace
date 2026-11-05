@@ -1,0 +1,24 @@
+name: Bug reproductible
+description: Un problème non sensible du MVP
+body:
+  - type: markdown
+    attributes:
+      value: "Vulnérabilité ? Utiliser SECURITY.md. Ni secret ni donnée patient ; ne pas tester sur le MVP du propriétaire."
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction minimale avec données fictives
+      description: Version/commit, navigateur ou téléphone, mode démo ou base personnelle isolée, étapes.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Attendu et obtenu
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Preuve sans données sensibles
+      description: Message exact, logs expurgés ou capture fictive ; distinguer test automatisé et téléphone physique.

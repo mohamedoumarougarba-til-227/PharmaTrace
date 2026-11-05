@@ -1,0 +1,238 @@
+{
+  "apply_status": "APPLIQUÉ LOCALEMENT — gate 3B ; aucun push ni PR",
+  "applied_on": "2026-11-05",
+  "source_head": "fe83926301ed537cf1e74175d8992c1d114eac49",
+  "backup_directory": "A exclure de github/PHASE2_OPEN_SOURCE_20261103/retained-local",
+  "files": [
+    {
+      "path": "landing/maquettes/fabricant-nouveau-lot.png",
+      "sha256": "9365666a74b2e0f0506e30e2c5c2aeb7f3caa0c81be29e7ca8ec4ba7586440b8",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "landing/maquettes/patient-scanner-resultat-authentique.png",
+      "sha256": "7f7c780fa3f681fe14118ca722b7b184ab569897a89b409f83f37eb11dac92ce",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "landing/maquettes/pharmacie-reception.png",
+      "sha256": "3791cd22429810f27a3fa6e4196a819c4549f147159430f8961e6bd93a81d685",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "landing/medias/Abdoul Raouf HAROUNA MOUSSA.jpeg",
+      "sha256": "7320d520cf83d796f6bce718f792de1f5a8335080a0f5d8495864279f27f50a4",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "landing/medias/Mahamadou GARBA ZAKOU.jpeg",
+      "sha256": "c5ee87b64a44d6253d3da2d2a913100f2f84d8974f4ea3d942e3a402507d2349",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "landing/medias/Mohamed OUMAROU GARBA.jpg",
+      "sha256": "a9b3648c250319ee584ba3432d3f81168a8e2d474ae1f3410afd782de7d7eaf8",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/PharmatraceTrustGrid.make",
+      "sha256": "bc948b6d741f62d5b1600eeb0979a706f97a72dcf941b015a00297022aac69ba",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/PharmatraceTrustGrid.zip",
+      "sha256": "4f23067afb68cd06dcb51f9b71653e26562d67dc148ab3ced5e2918263278b5e",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/medias/Abdoul Raouf HAROUNA MOUSSA.jpeg",
+      "sha256": "7320d520cf83d796f6bce718f792de1f5a8335080a0f5d8495864279f27f50a4",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/medias/Mahamadou GARBA ZAKOU.jpeg",
+      "sha256": "c5ee87b64a44d6253d3da2d2a913100f2f84d8974f4ea3d942e3a402507d2349",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/medias/Mohamed OUMAROU GARBA.jpg",
+      "sha256": "a9b3648c250319ee584ba3432d3f81168a8e2d474ae1f3410afd782de7d7eaf8",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/fabricant-compte.png",
+      "sha256": "9ef137799a2e9637b26135fe49469d5c95ad89480dcfcdda5e567d850d75e394",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/fabricant-nouveau-lot.png",
+      "sha256": "9365666a74b2e0f0506e30e2c5c2aeb7f3caa0c81be29e7ca8ec4ba7586440b8",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/fabricant-qr-genere.png",
+      "sha256": "97a5f2ca8cef00e5a7a47f67dbf2975eae119eb826a9abcbb0e1d3c4baad32ae",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/fabricant-transfert.png",
+      "sha256": "617d8df9ac5c7e590552cacfa071feb637247c2d8dae9a6b13b339629567a460",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/patient-scanner-resultat-authentique.png",
+      "sha256": "7f7c780fa3f681fe14118ca722b7b184ab569897a89b409f83f37eb11dac92ce",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/patient-scanner-resultat-suspect.png",
+      "sha256": "afee032dd1bf1516c7abb2eef4e41ae6c8c5c6eeddd7cca3977aafc43cb2ed78",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/pharmacie-compte.png",
+      "sha256": "3d562dae65299f1bd55991db271379cfef39cb1f474dcc99429fb0cf21f96a36",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/pharmacie-reception.png",
+      "sha256": "3791cd22429810f27a3fa6e4196a819c4549f147159430f8961e6bd93a81d685",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/pharmacie-stock.png",
+      "sha256": "f92bf5573767bd8a940da07adf2671329c47e4acddda1806bd55595908b2207a",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/pharmacie-transferts.png",
+      "sha256": "c0e379d63b9e3517474e9859e2be97ee1889fef4ba5c09b62d9adf344361f5b1",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/Valider/login-compte.png",
+      "sha256": "15a8b0df87ba32bc79dd337026135bc3bca66c963a6bda0e019c59ce0dfe8bad",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/maquettesFigma/images/Valider/patient-scanner.png",
+      "sha256": "00fc7214aa18fab94d77acf5a187fd796865308b42cec261fe0965c2de214d03",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/PHASE_1_PRESELECTION/Etude Problematique Medicaments Contrefaits Niger PharmaTrace.pdf",
+      "sha256": "f36f67e42ce9cb5145ab3dd42335b90c3018107d10abe84bfcf0d67a5615f548",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/PHASE_1_PRESELECTION/Plan Traçabilite Architecture Blockchain PharmaTrace.pdf",
+      "sha256": "655b8886c4282d31e1966900e608905d736756c66dcad507d1400d1540765b6a",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/PHASE_1_PRESELECTION/video_site_vitrine.mp4",
+      "sha256": "abc818944fdd0bcbbe48243ec61b6d6e75b68f9180de690b89e5a94405ca88de",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/PHASE_2_DEMIFINAL/notes_demonstration.pdf",
+      "sha256": "d6134d9049af3d22a06c3f49adf8533661e0792de04f2dcd89542436d6f27eb9",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/PHASE_3_FINALE/documentation_technique.pdf",
+      "sha256": "ed366258cac3415ccb7b35bf0ce17401d7dd1a940d04a4cda51dbd8f51addb00",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/PHASE_3_FINALE/guide_utilisateur.pdf",
+      "sha256": "fad94cd4f92e24d6eb12c531d6325c576f90d4aa79c04f9c6eb4e8c129596aaa",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026.pdf",
+      "sha256": "7cb8de0a9e80ab0284b7571747e01b16c6980582b36eadbe47d9a48768b07d54",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0001.jpg",
+      "sha256": "0c82f48f5b739f7f9b3f806334c36ee5428ee402f674d5027cfd549763147921",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0002.jpg",
+      "sha256": "c89cc78348db85489b16c6f561039396c3061999c501b412e03f18a4f699aaa1",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0003.jpg",
+      "sha256": "d545b32b518f3b5cfbfdbd8e93894c5bffa822442389a800e15f665176055a9c",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/Projet attribué/PROGRAMME-DU-MIABE-HACKATHON-2026.pdf",
+      "sha256": "3478e79de0affca4baf76390567ff3bf91b1aab2ce0087ae76ae79828f4b0202",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/Projet attribué/PROJET_N1_NIGER.md",
+      "sha256": "7cb983a91f03e2badecf5c383af3e03f56b1f96545a35130cc8b72b317d61e22",
+      "reason": "document organisateur sans permission de redistribution retrouvée"
+    },
+    {
+      "path": "ressources/docs/Projet attribué/PROJET_N1_NIGER.pdf",
+      "sha256": "6da2fd68b1e9235a65af36683a91309d066edfa31318727eb4c66597a9da221c",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/Projet attribué/PROJET_N1_NIGER_Page_1.png",
+      "sha256": "8d924348ed9c6aecd450334a2f50386ddb4823ec9a5fd2c79a0f5084eb2819bf",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "ressources/docs/Projet attribué/PROJET_N1_NIGER_Page_2.png",
+      "sha256": "b95765917d49429ec7784bbad29760ac932cdaf8fe02322c3e526af90862ef96",
+      "reason": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+    },
+    {
+      "path": "app/PharmaTrace/supabase/.temp/cli-latest",
+      "sha256": "76c0c965c832ffdad1216d0f09f4af7d0bca5c13b20a1f8886707305fe101bea",
+      "reason": "liaison CLI personnelle, metadata de développement ; pas un secret confirmé"
+    },
+    {
+      "path": "app/PharmaTrace/supabase/.temp/gotrue-version",
+      "sha256": "f9235c988affe044f077396f6e67a4a58dd38f26f7b48f88d6b8e3368e86ae1e",
+      "reason": "liaison CLI personnelle, metadata de développement ; pas un secret confirmé"
+    },
+    {
+      "path": "app/PharmaTrace/supabase/.temp/pooler-url",
+      "sha256": "ee6aafc62979fed661306e4b5f14da70e62d5f92c6fc5d5b2656f62bd73340f9",
+      "reason": "liaison CLI personnelle, metadata de développement ; pas un secret confirmé"
+    },
+    {
+      "path": "app/PharmaTrace/supabase/.temp/postgres-version",
+      "sha256": "48b870c25ba15b81b32740299980bd00e9aa867577a77649478ae809755b145b",
+      "reason": "liaison CLI personnelle, metadata de développement ; pas un secret confirmé"
+    },
+    {
+      "path": "app/PharmaTrace/supabase/.temp/project-ref",
+      "sha256": "514bec8d7074389b7ef14f9d191e64e9a3eb3feef32151ea3aab14fffa231232",
+      "reason": "liaison CLI personnelle, metadata de développement ; pas un secret confirmé"
+    },
+    {
+      "path": "app/PharmaTrace/supabase/.temp/rest-version",
+      "sha256": "b25de4a023eef82d4780a9f7816c5685ca35437308a9d457585eece9945485dc",
+      "reason": "liaison CLI personnelle, metadata de développement ; pas un secret confirmé"
+    },
+    {
+      "path": "app/PharmaTrace/supabase/.temp/storage-migration",
+      "sha256": "5eefa09f2bf47edfbd65e0307f2ebf6eec935a663b45e36cbd9395c3f10695d0",
+      "reason": "liaison CLI personnelle, metadata de développement ; pas un secret confirmé"
+    },
+    {
+      "path": "app/PharmaTrace/supabase/.temp/storage-version",
+      "sha256": "06138cc3adc0d378f67a12aea3f56b6282d43dbde877bed281f0943b7520528d",
+      "reason": "liaison CLI personnelle, metadata de développement ; pas un secret confirmé"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+# Documents actuels et archives historiques
+
+La documentation active est le README, CONTRIBUTING, SECURITY et les guides installation/architecture/database/testing. Les rapports `lot-*` et `phase-1-*` conservent des constats datés : leur état « candidate / non appliquée » décrit leur checkpoint, pas le déploiement présent. Le rapport final de phase 1 fait foi pour la livraison métier.
+
+`ressources/docs/PHASE_1_PRESELECTION`, `PHASE_2_DEMIFINAL`, `PHASE_3_FINALE`, scripts de vidéo et maquettes documentent le MIABE Hackathon. Ils peuvent contenir des intentions blockchain, statistiques non étayées, anciens libellés ou objectifs non implémentés. Ils ne décrivent pas les garanties de la version actuelle. Les PDFs et vidéos ne sont pas réécrits pour simuler une conformité historique.
+
+Les deux vidéos non suivies de demi-finale/finale restent présentes et inchangées localement. Au gate 3B du 5 novembre 2026, les 46 chemins du [manifeste](release/retain-local-manifest.json), dont les archives à droits tiers incomplets, ont été retirés du suivi local après sauvegarde vérifiée, sans suppression physique ni réécriture Git. Une nouvelle copie des sources ne contiendra plus ces fichiers dans son arbre courant ; inventaires, empreintes et index historiques restent suivis, et les anciennes versions Git ne sont pas effacées. Les textes propres à l’équipe restent attribués à TrustGrid/MIABE ; aucun partenariat officiel n’est déduit du contexte du concours.

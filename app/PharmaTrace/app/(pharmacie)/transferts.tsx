@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { supabase } from '../../lib/supabase';
+import { decideTransfer, workflowError } from '../../lib/businessWorkflows';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -11,7 +12,7 @@ type TransfertRow = {
   id: string;
   quantite_transferee: number;
   date_initiation: string;
-  statut: 'en_attente' | 'receptionne' | 'refuse' | 'archive';
+  statut: 'en_attente' | 'receptionne' | 'refuse' | 'archive' | 'annule';
   expediteur_id: { nom_entite: string } | null;
   lot_id: {
     id: string;
@@ -61,12 +62,7 @@ export default function TransfertsEntrantsScreen() {
 
   const onRefresh = async () => { setRefreshing(true); await loadTransferts(); };
 
-  const updateTransferAndLot = async (
-    transfertId: string,
-    lotId: string | null,
-    statut: 'receptionne' | 'refuse',
-    quantite?: number,
-  ) => {
+  const updateTransferAndLot = async (transfertId: string, statut: 'refuse') => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -79,60 +75,14 @@ export default function TransfertsEntrantsScreen() {
         return;
       }
 
-      const updatePayload =
-        statut === 'receptionne'
-          ? { statut, date_reception: new Date().toISOString(), notes_destinataire: 'Réception confirmée depuis l\'application' }
-          : { statut, date_reception: new Date().toISOString(), notes_destinataire: 'Lot refusé depuis l\'application' };
-
-      const { error: transferError } = await supabase
-        .from('transferts')
-        .update(updatePayload)
-        .eq('id', transfertId)
-        .eq('destinataire_id', session.user.id);
-
-      if (transferError) throw transferError;
-
-      if (lotId) {
-        if (statut === 'refuse' && quantite) {
-          // Récupérer la quantité actuelle du lot pour lui restituer les unités refusées
-          const { data: lotData } = await supabase
-            .from('lots_medicaments')
-            .select('quantite_actuelle')
-            .eq('id', lotId)
-            .single();
-
-          const currentQty = lotData?.quantite_actuelle ?? 0;
-
-          const { error: lotError } = await supabase
-            .from('lots_medicaments')
-            .update({
-              statut_actuel: 'en_stock_fabricant',
-              quantite_actuelle: currentQty + quantite,
-            })
-            .eq('id', lotId);
-
-          if (lotError) throw lotError;
-        } else {
-          const lotUpdate =
-            statut === 'receptionne'
-              ? { statut_actuel: 'en_pharmacie' }
-              : { statut_actuel: 'en_stock_fabricant' };
-
-          const { error: lotError } = await supabase
-            .from('lots_medicaments')
-            .update(lotUpdate)
-            .eq('id', lotId);
-
-          if (lotError) throw lotError;
-        }
-      }
+      await decideTransfer(transfertId, statut);
 
       await loadTransferts();
     } catch (e) {
       console.error(e);
       setSuccessModal({
         title: 'Erreur',
-        message: 'La mise à jour du transfert a échoué.',
+        message: workflowError(e),
         color: '#C0392B',
         icon: 'triangle-exclamation',
       });
@@ -230,7 +180,7 @@ export default function TransfertsEntrantsScreen() {
         icon="triangle-exclamation"
         onConfirm={async () => {
           if (confirmRefusTarget) {
-            await updateTransferAndLot(confirmRefusTarget.id, confirmRefusTarget.lot_id?.id ?? null, 'refuse', confirmRefusTarget.quantite_transferee);
+            await updateTransferAndLot(confirmRefusTarget.id, 'refuse');
             setConfirmRefusTarget(null);
             setSuccessModal({
               title: 'Lot refusé',

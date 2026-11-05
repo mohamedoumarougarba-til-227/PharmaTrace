@@ -22,7 +22,7 @@ export default function AgentLotsScreen() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('lots_avec_fabricant')
+        .from('business_lots')
         .select(`
           id, 
           numero_lot, 

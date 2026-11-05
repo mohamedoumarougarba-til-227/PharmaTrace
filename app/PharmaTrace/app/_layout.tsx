@@ -1,11 +1,13 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "../global.css";
+import DemoBanner from "../components/DemoBanner";
 
 export default function RootLayout() {
   return (
     <>
       <StatusBar style="light" />
+      <DemoBanner />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(public)/verify" />

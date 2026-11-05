@@ -193,7 +193,7 @@ export default function StockScreen() {
                   
                   {selectedLot.hash && (
                     <View className="bg-bg p-3 rounded-lg border border-blue-light mt-2">
-                      <Text className="text-[10px] text-muted font-bold uppercase tracking-wider mb-1">Signature SHA-256</Text>
+                      <Text className="text-[10px] text-muted font-bold uppercase tracking-wider mb-1">Empreinte SHA-256</Text>
                       <Text className="text-[10px] font-mono text-navy select-all" style={{ flexWrap: 'wrap' }}>{selectedLot.hash}</Text>
                     </View>
                   )}

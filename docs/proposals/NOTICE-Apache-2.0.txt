@@ -1,0 +1,11 @@
+PharmaTrace
+Copyright 2026 TrustGrid contributors.
+
+Developed in Niger in the context of MIABE Hackathon 2026.
+Historical contributors: Mohamed Oumarou Garba; Mahamadou Garba Zakou;
+Abdoul Raouf Harouna Moussa.
+
+These credits do not imply official institutional endorsement.
+Third-party components retain their own licenses; see THIRD_PARTY_NOTICES.md.
+Historical media and assets with separate or uncertain rights are outside the
+proposed code license; see docs/assets-rights.md.

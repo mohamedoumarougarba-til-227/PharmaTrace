@@ -1,0 +1,542 @@
+[
+  {
+    "path": "app/PharmaTrace/assets/images/adaptive-icon.png",
+    "bytes": 785429,
+    "sha256": "843baf50d84223042dfebe4d8c3ae79477a177171b328a7e6041fc05c62dad0e",
+    "current_sha256": "e5824e52b05c6d5f4287cd357000adf05ba419541f0a5f204e2f9febf859ae78",
+    "status": "Remplacé par SVG original du projet",
+    "action": "original conservé localement, nouveau PNG original",
+    "rights": "ancienne provenance incertaine ; nouvelle création du projet"
+  },
+  {
+    "path": "app/PharmaTrace/assets/images/favicon.png",
+    "bytes": 48785,
+    "sha256": "232faab2df1d2f339aa73f8f8e44a9e4bb9ccf5027e823d83c63e31d2d44a936",
+    "current_sha256": "707ff603e6c4260140e0226249348b87c830a46e713e9d03dc6f8c796bfeb7a4",
+    "status": "Remplacé par SVG original du projet",
+    "action": "original conservé localement, nouveau PNG original",
+    "rights": "ancienne provenance incertaine ; nouvelle création du projet"
+  },
+  {
+    "path": "app/PharmaTrace/assets/images/icon.png",
+    "bytes": 785429,
+    "sha256": "843baf50d84223042dfebe4d8c3ae79477a177171b328a7e6041fc05c62dad0e",
+    "current_sha256": "e5824e52b05c6d5f4287cd357000adf05ba419541f0a5f204e2f9febf859ae78",
+    "status": "Remplacé par SVG original du projet",
+    "action": "original conservé localement, nouveau PNG original",
+    "rights": "ancienne provenance incertaine ; nouvelle création du projet"
+  },
+  {
+    "path": "app/PharmaTrace/assets/images/medicament.png",
+    "bytes": 5679683,
+    "sha256": "bcc208210e5699892dab8f3e99b216d51ccf2114a1dc8261660f2b877b0c7683",
+    "current_sha256": "10683ea9dd0aee718b23d655e99c8e34c80eabc9be9a9457c3bc5ec6e972bd80",
+    "status": "Remplacé par SVG original du projet",
+    "action": "original conservé localement, nouveau PNG original",
+    "rights": "ancienne provenance incertaine ; nouvelle création du projet"
+  },
+  {
+    "path": "app/PharmaTrace/assets/images/splash-screen.png",
+    "bytes": 785429,
+    "sha256": "843baf50d84223042dfebe4d8c3ae79477a177171b328a7e6041fc05c62dad0e",
+    "current_sha256": "e5824e52b05c6d5f4287cd357000adf05ba419541f0a5f204e2f9febf859ae78",
+    "status": "Remplacé par SVG original du projet",
+    "action": "original conservé localement, nouveau PNG original",
+    "rights": "ancienne provenance incertaine ; nouvelle création du projet"
+  },
+  {
+    "path": "landing/maquettes/fabricant-nouveau-lot.png",
+    "bytes": 37624,
+    "sha256": "9365666a74b2e0f0506e30e2c5c2aeb7f3caa0c81be29e7ca8ec4ba7586440b8",
+    "current_sha256": "9365666a74b2e0f0506e30e2c5c2aeb7f3caa0c81be29e7ca8ec4ba7586440b8",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "landing/maquettes/patient-scanner-resultat-authentique.png",
+    "bytes": 66648,
+    "sha256": "7f7c780fa3f681fe14118ca722b7b184ab569897a89b409f83f37eb11dac92ce",
+    "current_sha256": "7f7c780fa3f681fe14118ca722b7b184ab569897a89b409f83f37eb11dac92ce",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "landing/maquettes/pharmacie-reception.png",
+    "bytes": 56154,
+    "sha256": "3791cd22429810f27a3fa6e4196a819c4549f147159430f8961e6bd93a81d685",
+    "current_sha256": "3791cd22429810f27a3fa6e4196a819c4549f147159430f8961e6bd93a81d685",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "landing/medias/Abdoul Raouf HAROUNA MOUSSA.jpeg",
+    "bytes": 34540,
+    "sha256": "7320d520cf83d796f6bce718f792de1f5a8335080a0f5d8495864279f27f50a4",
+    "current_sha256": "7320d520cf83d796f6bce718f792de1f5a8335080a0f5d8495864279f27f50a4",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "landing/medias/Mahamadou GARBA ZAKOU.jpeg",
+    "bytes": 145384,
+    "sha256": "c5ee87b64a44d6253d3da2d2a913100f2f84d8974f4ea3d942e3a402507d2349",
+    "current_sha256": "c5ee87b64a44d6253d3da2d2a913100f2f84d8974f4ea3d942e3a402507d2349",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "landing/medias/Mohamed OUMAROU GARBA.jpg",
+    "bytes": 666115,
+    "sha256": "a9b3648c250319ee584ba3432d3f81168a8e2d474ae1f3410afd782de7d7eaf8",
+    "current_sha256": "a9b3648c250319ee584ba3432d3f81168a8e2d474ae1f3410afd782de7d7eaf8",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/builds/PharmaTrace_v1.0.0.apk",
+    "bytes": 113884504,
+    "sha256": "38ea04472673406cff018347d5e4db5d588f8ea669f9a50ac687d2f9c022ae89",
+    "current_sha256": "38ea04472673406cff018347d5e4db5d588f8ea669f9a50ac687d2f9c022ae89",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/scripts_videos.md",
+    "bytes": 8716,
+    "sha256": "329bf2c92a99bb57affd00bf33388c7db1be019d9d483365dadda9465584d309",
+    "current_sha256": "329bf2c92a99bb57affd00bf33388c7db1be019d9d483365dadda9465584d309",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/maquettesFigma/figma.txt",
+    "bytes": 91,
+    "sha256": "c9221aa530e326e50084b1f8c5c0b123c0e547099816416def0d018acb4d81d5",
+    "current_sha256": "c9221aa530e326e50084b1f8c5c0b123c0e547099816416def0d018acb4d81d5",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/maquettesFigma/PharmatraceTrustGrid.make",
+    "bytes": 307222,
+    "sha256": "bc948b6d741f62d5b1600eeb0979a706f97a72dcf941b015a00297022aac69ba",
+    "current_sha256": "bc948b6d741f62d5b1600eeb0979a706f97a72dcf941b015a00297022aac69ba",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/PharmatraceTrustGrid.zip",
+    "bytes": 264291,
+    "sha256": "4f23067afb68cd06dcb51f9b71653e26562d67dc148ab3ced5e2918263278b5e",
+    "current_sha256": "4f23067afb68cd06dcb51f9b71653e26562d67dc148ab3ced5e2918263278b5e",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/medias/Abdoul Raouf HAROUNA MOUSSA.jpeg",
+    "bytes": 34540,
+    "sha256": "7320d520cf83d796f6bce718f792de1f5a8335080a0f5d8495864279f27f50a4",
+    "current_sha256": "7320d520cf83d796f6bce718f792de1f5a8335080a0f5d8495864279f27f50a4",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/medias/Mahamadou GARBA ZAKOU.jpeg",
+    "bytes": 145384,
+    "sha256": "c5ee87b64a44d6253d3da2d2a913100f2f84d8974f4ea3d942e3a402507d2349",
+    "current_sha256": "c5ee87b64a44d6253d3da2d2a913100f2f84d8974f4ea3d942e3a402507d2349",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/medias/Mohamed OUMAROU GARBA.jpg",
+    "bytes": 666115,
+    "sha256": "a9b3648c250319ee584ba3432d3f81168a8e2d474ae1f3410afd782de7d7eaf8",
+    "current_sha256": "a9b3648c250319ee584ba3432d3f81168a8e2d474ae1f3410afd782de7d7eaf8",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/fabricant-compte.png",
+    "bytes": 40951,
+    "sha256": "9ef137799a2e9637b26135fe49469d5c95ad89480dcfcdda5e567d850d75e394",
+    "current_sha256": "9ef137799a2e9637b26135fe49469d5c95ad89480dcfcdda5e567d850d75e394",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/fabricant-nouveau-lot.png",
+    "bytes": 37624,
+    "sha256": "9365666a74b2e0f0506e30e2c5c2aeb7f3caa0c81be29e7ca8ec4ba7586440b8",
+    "current_sha256": "9365666a74b2e0f0506e30e2c5c2aeb7f3caa0c81be29e7ca8ec4ba7586440b8",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/fabricant-qr-genere.png",
+    "bytes": 56938,
+    "sha256": "97a5f2ca8cef00e5a7a47f67dbf2975eae119eb826a9abcbb0e1d3c4baad32ae",
+    "current_sha256": "97a5f2ca8cef00e5a7a47f67dbf2975eae119eb826a9abcbb0e1d3c4baad32ae",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/fabricant-transfert.png",
+    "bytes": 65917,
+    "sha256": "617d8df9ac5c7e590552cacfa071feb637247c2d8dae9a6b13b339629567a460",
+    "current_sha256": "617d8df9ac5c7e590552cacfa071feb637247c2d8dae9a6b13b339629567a460",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/patient-scanner-resultat-authentique.png",
+    "bytes": 66648,
+    "sha256": "7f7c780fa3f681fe14118ca722b7b184ab569897a89b409f83f37eb11dac92ce",
+    "current_sha256": "7f7c780fa3f681fe14118ca722b7b184ab569897a89b409f83f37eb11dac92ce",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/patient-scanner-resultat-suspect.png",
+    "bytes": 60206,
+    "sha256": "afee032dd1bf1516c7abb2eef4e41ae6c8c5c6eeddd7cca3977aafc43cb2ed78",
+    "current_sha256": "afee032dd1bf1516c7abb2eef4e41ae6c8c5c6eeddd7cca3977aafc43cb2ed78",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/pharmacie-compte.png",
+    "bytes": 43923,
+    "sha256": "3d562dae65299f1bd55991db271379cfef39cb1f474dcc99429fb0cf21f96a36",
+    "current_sha256": "3d562dae65299f1bd55991db271379cfef39cb1f474dcc99429fb0cf21f96a36",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/pharmacie-reception.png",
+    "bytes": 56154,
+    "sha256": "3791cd22429810f27a3fa6e4196a819c4549f147159430f8961e6bd93a81d685",
+    "current_sha256": "3791cd22429810f27a3fa6e4196a819c4549f147159430f8961e6bd93a81d685",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/pharmacie-stock.png",
+    "bytes": 74371,
+    "sha256": "f92bf5573767bd8a940da07adf2671329c47e4acddda1806bd55595908b2207a",
+    "current_sha256": "f92bf5573767bd8a940da07adf2671329c47e4acddda1806bd55595908b2207a",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/pharmacie-transferts.png",
+    "bytes": 72257,
+    "sha256": "c0e379d63b9e3517474e9859e2be97ee1889fef4ba5c09b62d9adf344361f5b1",
+    "current_sha256": "c0e379d63b9e3517474e9859e2be97ee1889fef4ba5c09b62d9adf344361f5b1",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/Valider/login-compte.png",
+    "bytes": 56592,
+    "sha256": "15a8b0df87ba32bc79dd337026135bc3bca66c963a6bda0e019c59ce0dfe8bad",
+    "current_sha256": "15a8b0df87ba32bc79dd337026135bc3bca66c963a6bda0e019c59ce0dfe8bad",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/maquettesFigma/images/Valider/patient-scanner.png",
+    "bytes": 40354,
+    "sha256": "00fc7214aa18fab94d77acf5a187fd796865308b42cec261fe0965c2de214d03",
+    "current_sha256": "00fc7214aa18fab94d77acf5a187fd796865308b42cec261fe0965c2de214d03",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/PHASE_1_PRESELECTION/Etude Problematique Medicaments Contrefaits Niger PharmaTrace.pdf",
+    "bytes": 48343,
+    "sha256": "f36f67e42ce9cb5145ab3dd42335b90c3018107d10abe84bfcf0d67a5615f548",
+    "current_sha256": "f36f67e42ce9cb5145ab3dd42335b90c3018107d10abe84bfcf0d67a5615f548",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/PHASE_1_PRESELECTION/lien_maquettes_figma.txt",
+    "bytes": 1439,
+    "sha256": "a7db1835c296cb3143acef0398b86bca047d2ecdfd526496f0e4ac6c9dfb27cc",
+    "current_sha256": "a7db1835c296cb3143acef0398b86bca047d2ecdfd526496f0e4ac6c9dfb27cc",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_1_PRESELECTION/lien_site_vitrine.txt",
+    "bytes": 36,
+    "sha256": "f84527c8c3837a454f966c693d25020a50cfea22900c2e92af64751f068fb3d3",
+    "current_sha256": "f84527c8c3837a454f966c693d25020a50cfea22900c2e92af64751f068fb3d3",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_1_PRESELECTION/manquant.md",
+    "bytes": 717,
+    "sha256": "2a4df8258cbd777b7035dac02206053532f8e4de62811192321c1d9495e968ea",
+    "current_sha256": "2a4df8258cbd777b7035dac02206053532f8e4de62811192321c1d9495e968ea",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_1_PRESELECTION/Plan Traçabilite Architecture Blockchain PharmaTrace.pdf",
+    "bytes": 160825,
+    "sha256": "655b8886c4282d31e1966900e608905d736756c66dcad507d1400d1540765b6a",
+    "current_sha256": "655b8886c4282d31e1966900e608905d736756c66dcad507d1400d1540765b6a",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/PHASE_1_PRESELECTION/video_site_vitrine.mp4",
+    "bytes": 17437827,
+    "sha256": "abc818944fdd0bcbbe48243ec61b6d6e75b68f9180de690b89e5a94405ca88de",
+    "current_sha256": "abc818944fdd0bcbbe48243ec61b6d6e75b68f9180de690b89e5a94405ca88de",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/PHASE_2_DEMIFINAL/demo_prototype_phase 2.mp4",
+    "bytes": 44245834,
+    "sha256": "434cce24536b683735ad335e9f774259b91dd7a7619c55043792ce3b60bb288d",
+    "current_sha256": "434cce24536b683735ad335e9f774259b91dd7a7619c55043792ce3b60bb288d",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/PHASE_2_DEMIFINAL/lien_code.txt",
+    "bytes": 96,
+    "sha256": "bcc9c141655e714fc79699425379ee31ceb19a93d35c9220fa0900feaa215038",
+    "current_sha256": "bcc9c141655e714fc79699425379ee31ceb19a93d35c9220fa0900feaa215038",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_2_DEMIFINAL/lien_demo.txt",
+    "bytes": 166,
+    "sha256": "dbc36d92264868a7a83c1b6092a88560bca3be23d9bec41ca7fc10a2ba9b1c60",
+    "current_sha256": "dbc36d92264868a7a83c1b6092a88560bca3be23d9bec41ca7fc10a2ba9b1c60",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_2_DEMIFINAL/lien_prototype.txt",
+    "bytes": 671,
+    "sha256": "e56b3c35dfa15ccbdb6623a71428926ff96d75d8cea97f52a2e2a4d9a1423a95",
+    "current_sha256": "e56b3c35dfa15ccbdb6623a71428926ff96d75d8cea97f52a2e2a4d9a1423a95",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_2_DEMIFINAL/manquant.md",
+    "bytes": 882,
+    "sha256": "3ba3c8f6e9356e68e7308009d5e09375477ad53cb9aabcfeba3654ed6de20e0a",
+    "current_sha256": "3ba3c8f6e9356e68e7308009d5e09375477ad53cb9aabcfeba3654ed6de20e0a",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_2_DEMIFINAL/notes_demonstration.pdf",
+    "bytes": 356978,
+    "sha256": "d6134d9049af3d22a06c3f49adf8533661e0792de04f2dcd89542436d6f27eb9",
+    "current_sha256": "d6134d9049af3d22a06c3f49adf8533661e0792de04f2dcd89542436d6f27eb9",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/PHASE_2_DEMIFINAL/README.md",
+    "bytes": 1308,
+    "sha256": "d1abbedb24c9ccba3462989ea3466cc8c6b8d5be14f4f6f0d0ac8c7c293c215e",
+    "current_sha256": "b6d9ea556d2cf97893f35e77721f3192f171af1cb567592ac0c28eb76d535c4b",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_3_FINALE/demo_Pitch_MVP_Phase 3.mp4",
+    "bytes": 39607226,
+    "sha256": "63bc7f07038000203286c569f52022cf076f72c883537f4bc4b8bde7f24c1d83",
+    "current_sha256": "63bc7f07038000203286c569f52022cf076f72c883537f4bc4b8bde7f24c1d83",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/PHASE_3_FINALE/documentation_technique.pdf",
+    "bytes": 406560,
+    "sha256": "ed366258cac3415ccb7b35bf0ce17401d7dd1a940d04a4cda51dbd8f51addb00",
+    "current_sha256": "ed366258cac3415ccb7b35bf0ce17401d7dd1a940d04a4cda51dbd8f51addb00",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/PHASE_3_FINALE/guide_utilisateur.pdf",
+    "bytes": 203346,
+    "sha256": "fad94cd4f92e24d6eb12c531d6325c576f90d4aa79c04f9c6eb4e8c129596aaa",
+    "current_sha256": "fad94cd4f92e24d6eb12c531d6325c576f90d4aa79c04f9c6eb4e8c129596aaa",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/PHASE_3_FINALE/lien_mvp.txt",
+    "bytes": 798,
+    "sha256": "117d5e4719fb5e0bf1eac70facc02a91ed853f41ae249c0d3da94afd56896096",
+    "current_sha256": "117d5e4719fb5e0bf1eac70facc02a91ed853f41ae249c0d3da94afd56896096",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_3_FINALE/lien_pitch.txt",
+    "bytes": 146,
+    "sha256": "af39f47ff70349bb5183483b3a0abd7e4b2c611ad48617bc40530b7c01cd5d8a",
+    "current_sha256": "af39f47ff70349bb5183483b3a0abd7e4b2c611ad48617bc40530b7c01cd5d8a",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_3_FINALE/manquant.md",
+    "bytes": 970,
+    "sha256": "4a797c133d56234de4b8150c4d5b3fda6ff980fad41188bdbef306813fe58d5c",
+    "current_sha256": "4a797c133d56234de4b8150c4d5b3fda6ff980fad41188bdbef306813fe58d5c",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/PHASE_3_FINALE/README.md",
+    "bytes": 1073,
+    "sha256": "4f70b5cd75e39c00a6a575b0399ff611545754eb08e4487c9651f429f97f9053",
+    "current_sha256": "4e3ca9ea2998d220408b5d967a38b9703097b604f75e55d32363e2b3829d52f3",
+    "status": "Texte / lien historique",
+    "action": "conserver avec contexte historique",
+    "rights": "crédits équipe ; lien ne concède aucun droit du site référencé"
+  },
+  {
+    "path": "ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026.pdf",
+    "bytes": 278530,
+    "sha256": "7cb8de0a9e80ab0284b7571747e01b16c6980582b36eadbe47d9a48768b07d54",
+    "current_sha256": "7cb8de0a9e80ab0284b7571747e01b16c6980582b36eadbe47d9a48768b07d54",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0001.jpg",
+    "bytes": 841061,
+    "sha256": "0c82f48f5b739f7f9b3f806334c36ee5428ee402f674d5027cfd549763147921",
+    "current_sha256": "0c82f48f5b739f7f9b3f806334c36ee5428ee402f674d5027cfd549763147921",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0002.jpg",
+    "bytes": 621839,
+    "sha256": "c89cc78348db85489b16c6f561039396c3061999c501b412e03f18a4f699aaa1",
+    "current_sha256": "c89cc78348db85489b16c6f561039396c3061999c501b412e03f18a4f699aaa1",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/Projet attribué/CONSIGNES LIVRABLES ET PRESENTATION MBH2026_page-0003.jpg",
+    "bytes": 783390,
+    "sha256": "d545b32b518f3b5cfbfdbd8e93894c5bffa822442389a800e15f665176055a9c",
+    "current_sha256": "d545b32b518f3b5cfbfdbd8e93894c5bffa822442389a800e15f665176055a9c",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/Projet attribué/PROGRAMME-DU-MIABE-HACKATHON-2026.pdf",
+    "bytes": 4859032,
+    "sha256": "3478e79de0affca4baf76390567ff3bf91b1aab2ce0087ae76ae79828f4b0202",
+    "current_sha256": "3478e79de0affca4baf76390567ff3bf91b1aab2ce0087ae76ae79828f4b0202",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/Projet attribué/PROJET_N1_NIGER.md",
+    "bytes": 4357,
+    "sha256": "7cb983a91f03e2badecf5c383af3e03f56b1f96545a35130cc8b72b317d61e22",
+    "current_sha256": "7cb983a91f03e2badecf5c383af3e03f56b1f96545a35130cc8b72b317d61e22",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/Projet attribué/PROJET_N1_NIGER.pdf",
+    "bytes": 243091,
+    "sha256": "6da2fd68b1e9235a65af36683a91309d066edfa31318727eb4c66597a9da221c",
+    "current_sha256": "6da2fd68b1e9235a65af36683a91309d066edfa31318727eb4c66597a9da221c",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/Projet attribué/PROJET_N1_NIGER_Page_1.png",
+    "bytes": 95894,
+    "sha256": "8d924348ed9c6aecd450334a2f50386ddb4823ec9a5fd2c79a0f5084eb2819bf",
+    "current_sha256": "8d924348ed9c6aecd450334a2f50386ddb4823ec9a5fd2c79a0f5084eb2819bf",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  },
+  {
+    "path": "ressources/docs/Projet attribué/PROJET_N1_NIGER_Page_2.png",
+    "bytes": 54413,
+    "sha256": "b95765917d49429ec7784bbad29760ac932cdaf8fe02322c3e526af90862ef96",
+    "current_sha256": "b95765917d49429ec7784bbad29760ac932cdaf8fe02322c3e526af90862ef96",
+    "status": "Archive ou média à droits séparés",
+    "action": "conservation locale proposée avant publication",
+    "rights": "provenance des images/photographe ou droits incorporés non établis exhaustivement"
+  }
+]

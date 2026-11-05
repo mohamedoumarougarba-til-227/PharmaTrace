@@ -1,3 +1,5 @@
+> **ARCHIVE MIABE — objectifs et présentation historiques.** Ce texte ne décrit pas les garanties actuelles du MVP. Les mentions d’authenticité, de décentralisation ou de surveillance nationale sont des intentions historiques ; consulter la documentation active à la racine. Aucun partenariat officiel n’est déduit de ces livrables.
+
 # Phase 3 — Finale : MVP Intégré & Surveillance Nationale
 
 Ce dossier est réservé aux livrables de la **Phase 3 (Finale)** du MIABE Hackathon 2026.

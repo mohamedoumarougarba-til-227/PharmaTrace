@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
+    "test": "node --test tests/*.test.cjs",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build:web": "expo export --platform web",
-    "build:android": "eas build --platform android"
+    "build:web": "expo export --platform web --clear",
+    "build:android": "eas build --platform android",
+    "check:public": "node scripts/check-public.cjs",
+    "check:export": "node scripts/check-export.cjs",
+    "postbuild:web": "node scripts/copy-notices.cjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

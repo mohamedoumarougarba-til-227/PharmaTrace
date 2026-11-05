@@ -300,7 +300,7 @@ export default function NouveauLotScreen() {
 
         <View style={isDesktop ? { flexDirection: 'row', gap: 16 } : undefined}>
           <View style={isDesktop ? { flex: 1 } : undefined}>
-            <Field label="Numéro de lot officiel *" placeholder="Ex : FAB-2026-049"
+            <Field label="Numéro de lot *" placeholder="Ex : FAB-2026-049"
               value={form.numero_lot} onChange={update('numero_lot')} autoCapitalize="characters" />
           </View>
           <View style={isDesktop ? { flex: 1 } : undefined}>
@@ -325,7 +325,7 @@ export default function NouveauLotScreen() {
           <View className="flex-row items-start gap-2">
             <FAIcon name="triangle-exclamation" size={12} color="#E67E22" family="FontAwesome6" />
             <Text className="text-pharma-orange text-xs leading-relaxed flex-1">
-              Une fois enregistré, le numéro de lot, la date de fabrication et l'empreinte SHA-256 ne pourront plus être modifiés.
+              Vérifiez les données avant validation. L’empreinte SHA-256 est un identifiant technique, sans garantie sur le médicament physique.
             </Text>
           </View>
         </View>

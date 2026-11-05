@@ -89,11 +89,12 @@ export default function PharmacieDashboard() {
         style={isDesktop ? { paddingHorizontal: 24, paddingVertical: 20, borderBottomLeftRadius: 16, borderBottomRightRadius: 16 } : { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20 }}
       >
         <Text className="text-white/60 text-sm">Bienvenue,</Text>
-        <Text className="text-white font-black text-xl mt-1">Pharmacie Centrale de Niamey</Text>
-        <Text className="text-white/40 text-xs mt-1">Pharmacie agréée</Text>
+        <Text className="text-white font-black text-xl mt-1">Espace pharmacie</Text>
+        <Text className="text-white/40 text-xs mt-1">Compte pharmacie</Text>
       </View>
 
-      <View style={isDesktop ? { padding: 24 } : { padding: 20 }}>
+      <Text className="text-muted text-xs mb-3">Compteurs du registre ; courbes illustratives sans historique mesuré.</Text>
+        <View style={isDesktop ? { padding: 24 } : { padding: 20 }}>
         {/* KPIs */}
         <View style={isDesktop ? { flexDirection: 'row', gap: 12, marginBottom: 20 } : { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
           <KPICard 
@@ -112,7 +113,7 @@ export default function PharmacieDashboard() {
             label="Lots en stock" 
             value={String(kpis.lots_stock)} 
             color="#27AE60" 
-            trend={kpis.lots_stock > 0 ? "+4% ce mois" : "Stock vide"}
+            trend={kpis.lots_stock > 0 ? "Lots consultables" : "Stock vide"}
             isUp={kpis.lots_stock > 0}
             svgPath={kpis.lots_stock > 0 ? "M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35"}
             svgFillPath={kpis.lots_stock > 0 ? "M 15 28 C 35 32, 55 24, 75 16 C 95 8, 105 14, 115 8 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
@@ -124,7 +125,7 @@ export default function PharmacieDashboard() {
             label="Scans aujourd'hui" 
             value={String(kpis.scans_today)} 
             color="#2E6DA4" 
-            trend={kpis.scans_today > 0 ? "+8% vs hier" : "Aucun scan"}
+            trend={kpis.scans_today > 0 ? "Scans enregistrés" : "Aucun scan"}
             isUp={kpis.scans_today > 0}
             svgPath={kpis.scans_today > 0 ? "M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35"}
             svgFillPath={kpis.scans_today > 0 ? "M 15 30 C 35 28, 55 12, 75 22 C 95 32, 105 8, 115 10 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}
@@ -136,7 +137,7 @@ export default function PharmacieDashboard() {
             label="Alertes actives" 
             value={String(kpis.alertes)} 
             color="#C0392B" 
-            trend={kpis.alertes > 0 ? "Risque critique" : "Sécurisé"}
+            trend={kpis.alertes > 0 ? "Risque critique" : "Aucune alerte affichée"}
             isUp={kpis.alertes > 0}
             svgPath={kpis.alertes > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35"}
             svgFillPath={kpis.alertes > 0 ? "M 15 35 C 35 32, 55 28, 75 18 C 95 8, 105 10, 115 5 L 115 40 L 15 40 Z" : "M 15 35 C 35 35, 55 35, 75 35 C 95 35, 105 35, 115 35 L 115 40 L 15 40 Z"}

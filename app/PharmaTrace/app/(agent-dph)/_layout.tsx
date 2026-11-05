@@ -4,7 +4,7 @@ import { ActivityIndicator, View, Text, TouchableOpacity, useWindowDimensions, P
 import { FontAwesome6 } from "@expo/vector-icons";
 import { FAIcon } from "../../constants/icons";
 import { supabase } from "../../lib/supabase";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getBusinessAccess } from "../../lib/businessRole";
 import ConfirmModal from "../../components/ConfirmModal";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -284,26 +284,8 @@ export default function AgentDPHLayout() {
   useEffect(() => {
     const checkAccess = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          router.replace("/(auth)/login");
-          return;
-        }
-
-        const isDemo = await AsyncStorage.getItem('pt_demo_mode') === 'true';
-        let role = null;
-        if (isDemo) {
-          role = await AsyncStorage.getItem('pt_demo_role');
-        } else {
-          const { data: profile } = await supabase
-            .from("utilisateurs")
-            .select("role")
-            .eq("id", session.user.id)
-            .maybeSingle();
-          role = profile?.role;
-        }
-
-        if (role !== "agent_dph") {
+        const access = await getBusinessAccess();
+        if (access.status !== 'AUTHORIZED' || access.role !== 'agent_dph') {
           router.replace("/(auth)/login");
         } else {
           setLoading(false);

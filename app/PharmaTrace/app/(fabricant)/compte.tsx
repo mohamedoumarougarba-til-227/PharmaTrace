@@ -6,6 +6,7 @@ import {
 import { router } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { supabase, type Utilisateur } from '../../lib/supabase';
+import { getOwnProfile } from '../../lib/workflowReads';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -27,11 +28,7 @@ export default function FabricantCompteScreen() {
       if (!session) { router.replace('/(auth)/login'); return; }
 
       // Profil
-      const { data: profile } = await supabase
-        .from('utilisateurs')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+      const profile = await getOwnProfile();
       if (profile) setUser(profile);
 
       // Stats fabricant
@@ -83,7 +80,7 @@ export default function FabricantCompteScreen() {
             <View style={{ backgroundColor: '#E8F8EC', paddingHorizontal: isDesktop ? 10 : 14, paddingVertical: isDesktop ? 2 : 4, borderRadius: 100 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <FAIcon name="check" size={isDesktop ? 10 : 12} color="#27AE60" family="FontAwesome6" />
-                <Text style={{ color: '#27AE60', fontSize: isDesktop ? 11 : 12, fontWeight: '700' }}>Fabricant agréé</Text>
+                <Text style={{ color: '#27AE60', fontSize: isDesktop ? 11 : 12, fontWeight: '700' }}>Compte fabricant</Text>
               </View>
             </View>
           </View>

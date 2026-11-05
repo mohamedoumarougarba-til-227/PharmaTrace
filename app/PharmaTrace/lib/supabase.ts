@@ -236,7 +236,7 @@ export let MOCK_SCANS: any[] = [
   }
 ];
 
-function addMockScan(values: any) {
+export function addMockScan(values: any) {
   const newScan = {
     id: `mock-scan-${Date.now()}`,
     created_at: new Date().toISOString(),
@@ -304,7 +304,7 @@ function updateMockLot(id: string, values: any) {
 
 function getMockDataForTable(tableName: string, calls: any[]) {
   let data: any[] = [];
-  if (tableName === 'lots_medicaments' || tableName === 'lots_avec_fabricant') {
+  if (tableName === 'lots_medicaments' || tableName === 'lots_avec_fabricant' || tableName === 'business_lots') {
     data = [...MOCK_LOTS];
   } else if (tableName === 'transferts' || tableName === 'transferts_avec_details') {
     data = [...MOCK_TRANSFERTS];
@@ -314,7 +314,7 @@ function getMockDataForTable(tableName: string, calls: any[]) {
     data = [...MOCK_USERS];
   } else if (tableName === 'historique_scans') {
     data = [...MOCK_SCANS];
-  } else if (tableName === 'stats_dashboard') {
+  } else if (tableName === 'stats_dashboard' || tableName === 'supervision_stats') {
     const criticalAlerts = MOCK_ALERTES.filter(a => a.niveau === 'critique' && a.statut === 'ouverte').length;
     const suspectScans = MOCK_SCANS.filter(s => s.resultat === 'non_trouve').length;
     data = [{

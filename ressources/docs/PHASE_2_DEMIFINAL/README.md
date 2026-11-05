@@ -1,3 +1,5 @@
+> **ARCHIVE MIABE — objectifs et présentation historiques.** Ce texte ne décrit pas les garanties actuelles du MVP. Les mentions d’authenticité, de décentralisation ou de surveillance nationale sont des intentions historiques ; consulter la documentation active à la racine. Aucun partenariat officiel n’est déduit de ces livrables.
+
 # Phase 2 — Demi-finale : PharmaTrace MVP & Preuve de Concept
 
 Ce dossier est réservé aux livrables de la **Phase 2 (Demi-finale)** du MIABE Hackathon 2026.

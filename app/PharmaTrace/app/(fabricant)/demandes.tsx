@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, RefreshControl, Modal, useWindowDimensions } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { supabase } from '../../lib/supabase';
+import { createTransfers, decideRequests, matchesRequestedMedicine, workflowError, type WorkflowIntent } from '../../lib/businessWorkflows';
 import { FAIcon } from '../../constants/icons';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -32,12 +33,15 @@ type LotInfo = {
   id: string;
   numero_lot: string;
   nom_medicament: string;
+  dosage: string | null;
+  forme_galenique: string | null;
   quantite_initiale: number;
   quantite_actuelle: number | null;
   date_expiration?: string;
 };
 
 export default function RequetesStockScreen() {
+  const deliveryIntent = useRef<WorkflowIntent>({});
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
 
@@ -183,28 +187,12 @@ export default function RequetesStockScreen() {
     setRefusing(true);
     try {
       if (refusTarget.id === 'bulk') {
-        const { error } = await supabase
-          .from('demandes_stock')
-          .update({
-            statut: 'refuse',
-            notes_fabricant: motifRefus.trim(),
-          })
-          .in('id', selectedItemIds);
-
-        if (error) throw error;
+        await decideRequests(selectedItemIds, 'refuse', motifRefus);
 
         setSelectedItemIds([]);
         setSelectedGroup(null);
       } else {
-        const { error } = await supabase
-          .from('demandes_stock')
-          .update({
-            statut: 'refuse',
-            notes_fabricant: motifRefus.trim(),
-          })
-          .eq('id', refusTarget.id);
-
-        if (error) throw error;
+        await decideRequests([refusTarget.id], 'refuse', motifRefus);
       }
 
       setRefusTarget(null);
@@ -221,7 +209,7 @@ export default function RequetesStockScreen() {
       console.error(e);
       setSuccessModal({
         title: 'Erreur',
-        message: 'La mise à jour de la demande a échoué.',
+        message: workflowError(e),
         color: '#C0392B',
         icon: 'triangle-exclamation',
       });
@@ -237,6 +225,8 @@ export default function RequetesStockScreen() {
       params: {
         demandeId: item.id,
         nomMedicament: item.nom_medicament,
+        dosage: item.dosage,
+        formeGalenique: item.forme_galenique || '',
         destinataireId: pharmacieId,
         quantite: String(item.quantite_demandee),
       },
@@ -252,6 +242,7 @@ export default function RequetesStockScreen() {
       if (!session) return;
 
       const itemsToDeliver = selectedGroup.items.filter(item => selectedItemIds.includes(item.id));
+      deliveryIntent.current = {};
       setBulkDeliveryItems(itemsToDeliver);
 
       const uniqueNames = Array.from(new Set(itemsToDeliver.map(it => it.nom_medicament)));
@@ -261,10 +252,10 @@ export default function RequetesStockScreen() {
       for (const name of uniqueNames) {
         const { data, error } = await supabase
           .from('lots_medicaments')
-          .select('id, numero_lot, nom_medicament, quantite_initiale, quantite_actuelle, date_expiration')
+          .select('id, numero_lot, nom_medicament, dosage, forme_galenique, quantite_initiale, quantite_actuelle, date_expiration')
           .eq('fabricant_id', session.user.id)
           .eq('statut_actuel', 'en_stock_fabricant')
-          .ilike('nom_medicament', `%${name}%`)
+          .eq('nom_medicament', name)
           .gte('date_expiration', todayStr)
           .order('date_expiration', { ascending: true });
 
@@ -278,7 +269,7 @@ export default function RequetesStockScreen() {
       const initialQtys: { [key: string]: string } = {};
 
       itemsToDeliver.forEach(item => {
-        const matching = lotsMap[item.nom_medicament] ?? [];
+        const matching = (lotsMap[item.nom_medicament] ?? []).filter(l => matchesRequestedMedicine(l, item));
         const requested = item.quantite_demandee;
         const chosen = matching.find(l => (l.quantite_actuelle ?? l.quantite_initiale) >= requested) || matching[0];
         if (chosen) {
@@ -351,57 +342,11 @@ export default function RequetesStockScreen() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      for (const item of bulkDeliveryItems) {
-        const lotId = selectedLotsForBulk[item.id];
-        const qty = parseInt(bulkQuantities[item.id], 10);
-        const lot = bulkLotsMap[item.nom_medicament]?.find(l => l.id === lotId);
-        if (!lot) continue;
-
-        // 1. Create transfer
-        const { data: transData, error: transErr } = await supabase
-          .from('transferts')
-          .insert({
-            lot_id: lotId,
-            expediteur_id: session.user.id,
-            destinataire_id: selectedGroup.pharmacie_id,
-            quantite_transferee: qty,
-            statut: 'en_attente',
-            notes_expediteur: 'Réponse à votre demande de stock (Livraison groupée)',
-          })
-          .select('id')
-          .single();
-
-        if (transErr) throw transErr;
-
-        // 2. Decrement lot quantity
-        const available = lot.quantite_actuelle ?? lot.quantite_initiale;
-        const newQty = available - qty;
-        const lotUpdatePayload: any = { quantite_actuelle: newQty };
-        if (newQty === 0) {
-          lotUpdatePayload.statut_actuel = 'en_transit';
-        }
-        const { error: lotErr } = await supabase
-          .from('lots_medicaments')
-          .update(lotUpdatePayload)
-          .eq('id', lotId);
-
-        // 3. Link stock request
-        const isPartial = qty !== item.quantite_demandee;
-        const notes = isPartial 
-          ? `Demande satisfaite (livraison partielle de ${qty} sur ${item.quantite_demandee} demandées).` 
-          : 'Demande satisfaite et lot expédié.';
-
-        const { error: demErr } = await supabase
-          .from('demandes_stock')
-          .update({
-            statut: 'satisfait',
-            transfert_id: transData.id,
-            notes_fabricant: notes,
-          })
-          .eq('id', item.id);
-
-        if (demErr) throw demErr;
-      }
+      await createTransfers(bulkDeliveryItems.map(item => ({
+        lot_id: selectedLotsForBulk[item.id], destinataire_id: selectedGroup.pharmacie_id,
+        quantite: Number(bulkQuantities[item.id]), demande_id: item.id,
+        note: 'Réponse à votre demande de stock (livraison groupée)',
+      })), deliveryIntent.current);
 
       setSelectedItemIds([]);
       setBulkDeliveryModalVisible(false);
@@ -418,7 +363,7 @@ export default function RequetesStockScreen() {
       console.error(e);
       setSuccessModal({
         title: 'Erreur',
-        message: 'L\'enregistrement des transferts groupés a échoué.',
+        message: workflowError(e),
         color: '#C0392B',
         icon: 'triangle-exclamation',
       });
@@ -758,7 +703,7 @@ export default function RequetesStockScreen() {
                 <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={true} className="mb-4">
                   <View className="gap-4">
                     {bulkDeliveryItems.map((item) => {
-                      const matchingLots = bulkLotsMap[item.nom_medicament] ?? [];
+                      const matchingLots = (bulkLotsMap[item.nom_medicament] ?? []).filter(l => matchesRequestedMedicine(l, item));
                       const selectedLotId = selectedLotsForBulk[item.id];
                       const selectedLot = matchingLots.find(l => l.id === selectedLotId);
                       const available = selectedLot ? (selectedLot.quantite_actuelle ?? selectedLot.quantite_initiale) : 0;
@@ -886,7 +831,7 @@ export default function RequetesStockScreen() {
                     disabled={bulkSaving || bulkDeliveryItems.some(item => {
                       const lotId = selectedLotsForBulk[item.id];
                       const qty = parseInt(bulkQuantities[item.id], 10) || 0;
-                      const matching = bulkLotsMap[item.nom_medicament] ?? [];
+                      const matching = (bulkLotsMap[item.nom_medicament] ?? []).filter(l => matchesRequestedMedicine(l, item));
                       const lot = matching.find(l => l.id === lotId);
                       const available = lot ? (lot.quantite_actuelle ?? lot.quantite_initiale) : 0;
                       return !lotId || qty <= 0 || qty > available;
@@ -895,7 +840,7 @@ export default function RequetesStockScreen() {
                       bulkSaving || bulkDeliveryItems.some(item => {
                         const lotId = selectedLotsForBulk[item.id];
                         const qty = parseInt(bulkQuantities[item.id], 10) || 0;
-                        const matching = bulkLotsMap[item.nom_medicament] ?? [];
+                        const matching = (bulkLotsMap[item.nom_medicament] ?? []).filter(l => matchesRequestedMedicine(l, item));
                         const lot = matching.find(l => l.id === lotId);
                         const available = lot ? (lot.quantite_actuelle ?? lot.quantite_initiale) : 0;
                         return !lotId || qty <= 0 || qty > available;

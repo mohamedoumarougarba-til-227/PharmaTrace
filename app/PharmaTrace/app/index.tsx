@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
-import { supabase } from "../lib/supabase";
+import { BUSINESS_ROUTES, getBusinessAccess } from "../lib/businessRole";
 
 /**
  * Point d'entrée — vérifie la session Supabase.
@@ -15,26 +15,10 @@ export default function Index() {
 
   const checkSession = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        router.replace("/(public)/verify");
-        return;
-      }
-
-      // Session active → récupérer le rôle
-      const { data: user } = await supabase
-        .from("utilisateurs")
-        .select("role")
-        .eq("id", session.user.id)
-        .single();
-
-      if (user?.role === "fabricant") router.replace("/(fabricant)");
-      else if (user?.role === "pharmacie") router.replace("/(pharmacie)");
-      else if (user?.role === "agent_dph") router.replace("/(agent-dph)");
-      else router.replace("/(public)/verify");
+      const access = await getBusinessAccess();
+      if (access.status === 'AUTHORIZED') router.replace(BUSINESS_ROUTES[access.role]);
+      else if (access.status === 'ANONYMOUS') router.replace("/(public)/verify");
+      else router.replace("/(auth)/login");
     } catch {
       router.replace("/(public)/verify");
     }

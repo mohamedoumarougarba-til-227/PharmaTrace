@@ -7,7 +7,7 @@ existant explicitement autorisé pour cette seule fusion ; main de publication s
 client et vitrine de production validés, tag signé et préversion source publiée,
 métadonnées GitHub, PR externes, signalements privés et quatre issues configurés.
 Voir le [rapport de clôture](phase-2-open-source-readiness.md) et la
-[release réelle](https://github.com/mohamedoumarougarba-til-227/PharmaTrace/releases/tag/v1.1.0-preview.1).
+[release réelle](https://github.com/mohamedoumarougarba-til227/PharmaTrace/releases/tag/v1.1.0-preview.1).
 Ruleset historique conservé ; ruleset supplémentaire main 26647983 ajouté.
 Aperçu social prêt, upload non effectué à cause du navigateur d’automatisation.
 La suite de ce fichier garde le plan et les décisions datés antérieurs ; ses
@@ -120,6 +120,6 @@ Sources : [API PR policy](https://docs.github.com/en/rest/repos/repos),
 
 ## Payloads préparés, aucune requête de mutation exécutée
 
-Après licence/CI et autorisation : PATCH dépôt avec `github-about.json`, PUT `topics` avec `github-topics.json`, PATCH dépôt avec `github-security.json`, PUT `private-vulnerability-reporting` sans corps. Exemple CLI : `gh api --method PATCH repos/mohamedoumarougarba-til-227/PharmaTrace --input docs/release/github-about.json`. Ne pas envoyer `github-settings.json` comme payload unique : c’est une vue de coordination.
+Après licence/CI et autorisation : PATCH dépôt avec `github-about.json`, PUT `topics` avec `github-topics.json`, PATCH dépôt avec `github-security.json`, PUT `private-vulnerability-reporting` sans corps. Exemple CLI : `gh api --method PATCH repos/mohamedoumarougarba-til227/PharmaTrace --input docs/release/github-about.json`. Ne pas envoyer `github-settings.json` comme payload unique : c’est une vue de coordination.
 
 `github-main-checks-ruleset.json` propose un ruleset supplémentaire main seulement, préservant 17278864 inchangé. Vérifier le nom réel du check après le premier run, puis POST `rulesets`. Passage par PR/checks, discussions résolues ; aucun quota de review supplémentaire n’est imposé à une équipe dont les reviewers GitHub disponibles ne sont pas établis. Bypass administrateur limité aux PR dans ce nouveau ruleset. La revue/autorisation propriétaire reste explicite, sans auto-merge.
